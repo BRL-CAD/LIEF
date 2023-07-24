@@ -1,0 +1,28 @@
+name: code-check
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'LIEF branch'
+        default: 'master'
+        required: false
+        type: string
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    container:
+      image: liefproject/code-check
+      env:
+        LIEF_S3_KEY: ${{ secrets.LIEF_S3_KEY }}
+        LIEF_S3_SECRET: ${{ secrets.LIEF_S3_SECRET }}
+        GH_BRANCH: ${{ inputs.branch }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: lief-project/code-check
+          token: ${{ secrets.LIEF_CLONE_TOKEN }}
+      - name: Print info
+        run: |
+          echo ${GH_BRANCH}
+      - name: Running LIEF coverage
+        run: ./lief-coverage --debug

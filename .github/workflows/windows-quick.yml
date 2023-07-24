@@ -1,12 +1,5 @@
 name: LIEF Windows Quick
-on:
-  push:
-    branches:
-      - '**'
-      - '!master'
-      - '!release-**'
-    tags-ignore:
-      - "**"
+on: workflow_dispatch
 
 env:
   python-version: '3.9'

@@ -1,11 +1,5 @@
 name: LIEF Windows
-on:
-  push:
-    branches:
-      - 'master'
-      - 'release-**'
-    tags:
-      - '**'
+on: workflow_dispatch
 
 env:
   python-test-version: '3.10'

@@ -1,5 +1,5 @@
 name: 'Linux AArch64'
-on: push
+on: workflow_dispatch
 
 jobs:
   linux-sdk:
