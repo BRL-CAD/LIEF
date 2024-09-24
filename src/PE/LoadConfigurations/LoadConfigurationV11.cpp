@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,45 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <iomanip>
-
-#include "LIEF/PE/hash.hpp"
-
+#include <spdlog/fmt/fmt.h>
 #include "LIEF/PE/LoadConfigurations/LoadConfigurationV11.hpp"
+#include "LIEF/Visitor.hpp"
+#include "PE/Structures.hpp"
 
 namespace LIEF {
 namespace PE {
 
-LoadConfigurationV11& LoadConfigurationV11::operator=(const LoadConfigurationV11&) = default;
-LoadConfigurationV11::LoadConfigurationV11(const LoadConfigurationV11&) = default;
-LoadConfigurationV11::~LoadConfigurationV11() = default;
-
-LoadConfigurationV11::LoadConfigurationV11() = default;
+template<class T>
+LoadConfigurationV11::LoadConfigurationV11(const details::load_configuration_v11<T>& header) :
+  LoadConfigurationV10{static_cast<const details::load_configuration_v10<T>&>(header)},
+  cast_guard_os_determined_failure_mode_{header.CastGuardOsDeterminedFailureMode}
+{}
 
 void LoadConfigurationV11::accept(Visitor& visitor) const {
   visitor.visit(*this);
 }
 
-bool LoadConfigurationV11::operator==(const LoadConfigurationV11& rhs) const {
-  if (this == &rhs) {
-    return true;
-  }
-  size_t hash_lhs = Hash::hash(*this);
-  size_t hash_rhs = Hash::hash(rhs);
-  return hash_lhs == hash_rhs;
-}
-
-bool LoadConfigurationV11::operator!=(const LoadConfigurationV11& rhs) const {
-  return !(*this == rhs);
-}
-
 std::ostream& LoadConfigurationV11::print(std::ostream& os) const {
   LoadConfigurationV10::print(os);
 
-  os << std::setw(LoadConfiguration::PRINT_WIDTH) << std::setfill(' ') <<
-        "Cast Guard OS Determined Failure Mode:" << std::hex << cast_guard_os_determined_failure_mode() << std::endl;
+  os << "LoadConfigurationV11:\n"
+     << fmt::format("  Cast Guard OS Determined Failure Mode: 0x{:08x}\n", cast_guard_os_determined_failure_mode());
   return os;
 }
+
+template
+LoadConfigurationV11::LoadConfigurationV11(const details::load_configuration_v11<uint32_t>& header);
+template
+LoadConfigurationV11::LoadConfigurationV11(const details::load_configuration_v11<uint64_t>& header);
+
 
 
 } // namespace PE

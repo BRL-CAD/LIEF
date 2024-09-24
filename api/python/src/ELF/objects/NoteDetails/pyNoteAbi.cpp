@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,52 +15,50 @@
  */
 #include <string>
 #include <sstream>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/array.h>
 
-#include "pyELF.hpp"
+#include "ELF/pyELF.hpp"
 
-#include "LIEF/ELF/hash.hpp"
 #include "LIEF/ELF/NoteDetails/NoteAbi.hpp"
+#include "enums_wrapper.hpp"
+#include "pyErr.hpp"
 
-namespace LIEF {
-namespace ELF {
-
-template<class T>
-using getter_t = T (NoteAbi::*)(void) const;
-
-template<class T>
-using setter_t = void (NoteAbi::*)(T);
+namespace LIEF::ELF::py {
 
 template<>
-void create<NoteAbi>(py::module& m) {
+void create<NoteAbi>(nb::module_& m) {
+  nb::class_<NoteAbi, Note> nabi(m, "NoteAbi",
+    R"doc(
+    Class that wraps the `NT_GNU_ABI_TAG` note
+    )doc"_doc
+  );
 
-  py::class_<NoteAbi, NoteDetails>(m, "NoteAbi")
+  #define ENTRY(X) .value(to_string(NoteAbi::ABI::X), NoteAbi::ABI::X)
+  enum_<NoteAbi::ABI>(nabi, "ABI", "ABI recognized by this note"_doc)
+    ENTRY(LINUX)
+    ENTRY(GNU)
+    ENTRY(SOLARIS2)
+    ENTRY(FREEBSD)
+    ENTRY(NETBSD)
+    ENTRY(SYLLABLE)
+    ENTRY(NACL)
+  ;
+  #undef ENTRY
 
-    .def_property_readonly("abi",
-        static_cast<getter_t<NOTE_ABIS>>(&NoteAbi::abi),
-        "Return the target " RST_CLASS_REF(lief.ELF.NOTE_ABIS) ""
-        )
+  nabi
+    .def_prop_ro("abi",
+        [] (const NoteAbi& self) {
+          return LIEF::py::value_or_none(nb::overload_cast<>(&NoteAbi::abi, nb::const_), self);
+        },
+        R"doc(Return the target :class:`~.ABI`)doc"_doc)
 
-    .def_property_readonly("version",
-        static_cast<getter_t<NoteAbi::version_t>>(&NoteAbi::version),
-        "Return the target version as ``(Major, Minor, Patch)``"
-        )
+    .def_prop_ro("version",
+        [] (const NoteAbi& self) {
+          return LIEF::py::value_or_none(nb::overload_cast<>(&NoteAbi::version, nb::const_), self);
+        },
+        "Return the target version as ``(Major, Minor, Patch)``"_doc)
 
-    .def("__eq__", &NoteAbi::operator==)
-    .def("__ne__", &NoteAbi::operator!=)
-    .def("__hash__",
-        [] (const NoteAbi& note) {
-          return Hash::hash(note);
-        })
-
-    .def("__str__",
-        [] (const NoteAbi& note)
-        {
-          std::ostringstream stream;
-          stream << note;
-          std::string str = stream.str();
-          return str;
-        });
-}
-
+    LIEF_DEFAULT_STR(NoteAbi);
 }
 }

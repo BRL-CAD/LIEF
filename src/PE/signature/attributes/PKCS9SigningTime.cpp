@@ -1,5 +1,5 @@
-/* Copyright 2021 - 2023 R. Thomas
- * Copyright 2021 - 2023 Quarkslab
+/* Copyright 2021 - 2024 R. Thomas
+ * Copyright 2021 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,6 @@
 namespace LIEF {
 namespace PE {
 
-PKCS9SigningTime::PKCS9SigningTime() :
-  Attribute(SIG_ATTRIBUTE_TYPES::PKCS9_SIGNING_TIME)
-{}
-
-PKCS9SigningTime::PKCS9SigningTime(const PKCS9SigningTime&) = default;
-PKCS9SigningTime& PKCS9SigningTime::operator=(const PKCS9SigningTime&) = default;
-
-std::unique_ptr<Attribute> PKCS9SigningTime::clone() const {
-  return std::unique_ptr<Attribute>(new PKCS9SigningTime{*this});
-}
-
-PKCS9SigningTime::PKCS9SigningTime(time_t time) :
-  Attribute(SIG_ATTRIBUTE_TYPES::PKCS9_SIGNING_TIME),
-  time_{time}
-{}
-
 void PKCS9SigningTime::accept(Visitor& visitor) const {
   visitor.visit(*this);
 }
@@ -44,9 +28,6 @@ std::string PKCS9SigningTime::print() const {
   return fmt::format("{}/{}/{} - {}:{}:{}",
                        time[0], time[1], time[2], time[3], time[4], time[5]);
 }
-
-
-PKCS9SigningTime::~PKCS9SigningTime() = default;
 
 }
 }

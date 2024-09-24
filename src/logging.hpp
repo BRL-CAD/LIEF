@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@
 #include "LIEF/config.h"
 
 #include <spdlog/spdlog.h>
-#include <spdlog/fmt/ostr.h>
 #include <spdlog/fmt/fmt.h>
 
 #define LIEF_TRACE(...) LIEF::logging::Logger::trace(__VA_ARGS__)
@@ -38,10 +37,17 @@
   } while (false)
 
 
+#define CHECK_FATAL(X, ...)  \
+  do {                       \
+    if ((X)) {               \
+      LIEF_ERR(__VA_ARGS__); \
+      std::abort();          \
+    }                        \
+  } while (false)
+
 namespace LIEF {
 namespace logging {
 
-// TODO(romain): Update when moving to C++17
 class Logger {
   public:
   Logger(const Logger&) = delete;
@@ -56,44 +62,48 @@ class Logger {
   static void enable();
 
   //! @brief Change the logging level (**hierarchical**)
-  static void set_level(LOGGING_LEVEL level);
+  static void set_level(LEVEL level);
 
   static Logger& set_log_path(const std::string& path);
 
+  static void reset();
+
   template <typename... Args>
   static void trace(const char *fmt, const Args &... args) {
-    if /* constexpr */ (lief_logging_support && lief_logging_debug) {
+    if constexpr (lief_logging_support && lief_logging_debug) {
       Logger::instance().sink_->trace(fmt, args...);
     }
   }
 
   template <typename... Args>
   static void debug(const char *fmt, const Args &... args) {
-    if /* constexpr */ (lief_logging_support && lief_logging_debug) {
+    if constexpr (lief_logging_support && lief_logging_debug) {
       Logger::instance().sink_->debug(fmt, args...);
     }
   }
 
   template <typename... Args>
   static void info(const char *fmt, const Args &... args) {
-    if /* constexpr */ (lief_logging_support) {
+    if constexpr (lief_logging_support) {
       Logger::instance().sink_->info(fmt, args...);
     }
   }
 
   template <typename... Args>
   static void err(const char *fmt, const Args &... args) {
-    if /* constexpr */ (lief_logging_support) {
+    if constexpr (lief_logging_support) {
       Logger::instance().sink_->error(fmt, args...);
     }
   }
 
   template <typename... Args>
   static void warn(const char *fmt, const Args &... args) {
-    if /* constexpr */ (lief_logging_support) {
+    if constexpr (lief_logging_support) {
       Logger::instance().sink_->warn(fmt, args...);
     }
   }
+
+  static void set_logger(const spdlog::logger& logger);
 
   ~Logger();
   private:
@@ -103,7 +113,7 @@ class Logger {
   Logger& operator=(Logger&&);
 
   static void destroy();
-  /* inline */ static Logger* instance_;
+  static inline Logger* instance_ = nullptr;
   std::shared_ptr<spdlog::logger> sink_;
 };
 

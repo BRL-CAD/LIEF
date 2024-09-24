@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 #ifndef LIEF_ART_TYPE_TRAITS_H
 #define LIEF_ART_TYPE_TRAITS_H
 
+#include <cstdint>
 #include <vector>
 #include "LIEF/iterators.hpp"
 
 namespace LIEF {
 namespace ART {
 
-  using art_version_t = uint32_t;
+using art_version_t = uint32_t;
 
 } // Namesapce ART
 } // Namespace LIEF

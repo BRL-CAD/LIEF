@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,38 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "pyPE.hpp"
+#include "PE/pyPE.hpp"
 #include "pyErr.hpp"
 
 #include "LIEF/PE/utils.hpp"
+#include "LIEF/PE/Import.hpp"
+#include "LIEF/PE/Binary.hpp"
 
-namespace LIEF {
-namespace PE {
+#include "LIEF/PE/signature/OIDToString.hpp"
 
-void init_utils(py::module& m) {
-  py::enum_<IMPHASH_MODE>(m, "IMPHASH_MODE",
-      "Enum to define the behavior of :func:`~lief.PE.get_imphash`")
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
+
+namespace LIEF::PE::py {
+
+void init_utils(nb::module_& m) {
+  using namespace LIEF::py;
+
+  nb::enum_<IMPHASH_MODE>(m, "IMPHASH_MODE",
+      "Enum to define the behavior of :func:`~lief.PE.get_imphash`"_doc)
     .value("DEFAULT", IMPHASH_MODE::DEFAULT, "Default implementation")
     .value("LIEF",    IMPHASH_MODE::LIEF,    "Same as DEFAULT")
     .value("PEFILE",  IMPHASH_MODE::PEFILE,  "Use pefile algorithm")
     .value("VT",      IMPHASH_MODE::VT,      "Same as PEFILE since Virus Total is using pefile");
 
-  m.def("is_pe",
-      static_cast<bool (*)(const std::string&)>(&is_pe),
-      "Check if the given file is a ``PE``",
+  m.def("oid_to_string", &oid_to_string,
+        "Convert an OID to a human-readable string"_doc);
+
+  lief_mod->def("is_pe",
+      nb::overload_cast<const std::string&>(&is_pe),
+      "Check if the given file is a ``PE``"_doc,
       "file"_a);
 
-  m.def("is_pe",
-      static_cast<bool (*)(const std::vector<uint8_t>&)>(&is_pe),
-      "Check if the given raw data is a ``PE``",
+  lief_mod->def("is_pe",
+      nb::overload_cast<const std::vector<uint8_t>&>(&is_pe),
+      "Check if the given raw data is a ``PE``"_doc,
       "raw"_a);
 
   m.def("get_type",
       [] (const std::string& file) {
         return error_or(static_cast<result<PE_TYPE> (*)(const std::string&)>(&get_type), file);
       },
-      "If the input file is a ``PE`` one, return the " RST_CLASS_REF(lief.PE.PE_TYPE) " \n"
-      "If the function fails to determine the type, it returns a " RST_CLASS_REF(lief.lief_errors) "",
+      R"delim(
+      If the input file is a a valid ``PE``, return the :class:`~.lief.PE.PE_TYPE`.
+      Otherwise, return a :class:`lief.lief_errors`.
+      )delim"_doc,
       "file"_a);
 
 
@@ -52,8 +65,6 @@ void init_utils(py::module& m) {
       [] (const std::vector<uint8_t>& raw) {
         return error_or(static_cast<result<PE_TYPE> (*)(const std::vector<uint8_t>&)>(&get_type), raw);
       },
-      "If the input *raw* data represent a ``PE`` file, return the " RST_CLASS_REF(lief.PE.PE_TYPE) " \n"
-      "If the function fails to determine the type, it returns a " RST_CLASS_REF(lief.lief_errors) "",
       "raw"_a);
 
   m.def("get_imphash",
@@ -66,7 +77,6 @@ void init_utils(py::module& m) {
         * Order agnostic
         * Casse agnostic
         * Ordinal (**in some extent**) agnostic
-        *
 
       If one needs the same output as Virus Total (i.e. pefile), you can use :attr:`~lief.PE.IMPHASH_MODE.PEFILE`
       as second parameter.
@@ -77,20 +87,20 @@ void init_utils(py::module& m) {
 
       .. seealso::
           https://www.fireeye.com/blog/threat-research/2014/01/tracking-malware-import-hashing.html
-      )delim",
+      )delim"_doc,
       "binary"_a, "mode"_a = IMPHASH_MODE::DEFAULT);
 
   m.def("resolve_ordinals",
       [] (const Import& import, bool strict = false, bool use_std = false) {
         return error_or(resolve_ordinals, import, strict, use_std);
       },
-      "Take an " RST_CLASS_REF(lief.PE.Import) " as entry and try to resolve its ordinal imports\n\n"
+      R"delim(
+      Take a :class:`~lief.PE.Import` as input and try to resolve its ordinal imports.
 
-      "The ``strict`` boolean parameter enables to throw a " RST_CLASS_REF(lief.not_found) " exception "
-      "if the ordinal can't be resolved. Otherwise it skips the entry.",
+      If the ``strict`` boolean parameter is set, a :attr:`lief.lief_errors.not_found` error is
+      returned upon the first non-resolvable ordinal.
+      )delim",
       "imp"_a, "strict"_a = false, "use_std"_a = false,
-      py::return_value_policy::copy);
-}
-
+      nb::rv_policy::copy);
 }
 }

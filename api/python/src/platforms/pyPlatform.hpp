@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef PY_LIEF_PLATFORM_H_
-#define PY_LIEF_PLATFORM_H_
+#ifndef PY_LIEF_PLATFORM_H
+#define PY_LIEF_PLATFORM_H
 
-#include "LIEF/platforms.hpp"
-#include "pyLIEF.hpp"
+namespace nanobind {
+class module_;
+}
 
-namespace LIEF {
-
-void init_python_platforms(py::module&);
-
+namespace LIEF::py {
+void init_platforms(nanobind::module_&);
 }
 
 #endif

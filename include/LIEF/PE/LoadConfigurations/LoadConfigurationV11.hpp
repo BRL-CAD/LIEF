@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 
 #include "LIEF/visibility.h"
 
-#include "LIEF/PE/enums.hpp"
 #include "LIEF/PE/LoadConfigurations/LoadConfigurationV10.hpp"
 
 namespace LIEF {
@@ -32,18 +31,17 @@ struct load_configuration_v11;
 
 class LIEF_API LoadConfigurationV11 : public LoadConfigurationV10 {
   public:
-
-  static constexpr WIN_VERSION VERSION = WIN_VERSION::WIN10_0_MSVC_2019_16;
-  LoadConfigurationV11();
+  static constexpr VERSION WIN_VERSION = VERSION::WIN_10_0_MSVC_2019_16;
+  LoadConfigurationV11() = default;
 
   template<class T>
   LIEF_LOCAL LoadConfigurationV11(const details::load_configuration_v11<T>& header);
 
-  LoadConfigurationV11& operator=(const LoadConfigurationV11&);
-  LoadConfigurationV11(const LoadConfigurationV11&);
+  LoadConfigurationV11& operator=(const LoadConfigurationV11&) = default;
+  LoadConfigurationV11(const LoadConfigurationV11&) = default;
 
-  WIN_VERSION version() const override {
-    return LoadConfigurationV11::VERSION;
+  VERSION version() const override {
+    return WIN_VERSION;
   }
 
   uint64_t cast_guard_os_determined_failure_mode() const {
@@ -54,12 +52,13 @@ class LIEF_API LoadConfigurationV11 : public LoadConfigurationV10 {
     cast_guard_os_determined_failure_mode_ = value;
   }
 
-  ~LoadConfigurationV11() override;
+  static bool classof(const LoadConfiguration* config) {
+    return config->version() == WIN_VERSION;
+  }
+
+  ~LoadConfigurationV11() override = default;
 
   void accept(Visitor& visitor) const override;
-
-  bool operator==(const LoadConfigurationV11& rhs) const;
-  bool operator!=(const LoadConfigurationV11& rhs) const;
 
   std::ostream& print(std::ostream& os) const override;
 

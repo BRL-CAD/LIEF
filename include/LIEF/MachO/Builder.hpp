@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 #ifndef LIEF_MACHO_BUIDLER_H
 #define LIEF_MACHO_BUIDLER_H
 
-#include <algorithm>
 #include <vector>
-#include <vector>
-#include <memory>
-#include <functional>
-#include <unordered_map>
 
 #include "LIEF/errors.hpp"
 #include "LIEF/visibility.h"
@@ -54,6 +49,7 @@ class SymbolCommand;
 class ThreadCommand;
 class TwoLevelHints;
 class VersionMin;
+class RPathCommand;
 
 //! Class used to rebuild a Mach-O file
 class LIEF_API Builder {
@@ -62,6 +58,8 @@ class LIEF_API Builder {
   struct config_t {
     bool linkedit = true;
   };
+
+  Builder() = delete;
 
   static ok_error_t write(Binary& binary, const std::string& filename);
   static ok_error_t write(Binary& binary, const std::string& filename, config_t config);
@@ -91,8 +89,6 @@ class LIEF_API Builder {
 
   Builder(Binary& binary, config_t config);
   Builder(std::vector<Binary*> binaries, config_t config);
-
-  Builder() = delete;
 
   static std::vector<uint8_t> build_raw(Binary& binary, config_t config);
   static std::vector<uint8_t> build_raw(FatBinary& binary, config_t config);
@@ -125,6 +121,9 @@ class LIEF_API Builder {
 
   template<class T>
   ok_error_t build(MainCommand& main_cmd);
+
+  template<class T>
+  ok_error_t build(RPathCommand& rpath_cmd);
 
   template<class T>
   ok_error_t build(DyldInfo& dyld_info);
@@ -181,8 +180,6 @@ class LIEF_API Builder {
 
   template <typename T>
   ok_error_t update_fixups(DyldChainedFixups& fixups);
-
-
 
   std::vector<Binary*> binaries_;
   Binary* binary_ = nullptr;

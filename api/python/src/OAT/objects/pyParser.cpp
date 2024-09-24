@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,73 +13,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "pyOAT.hpp"
+#include "OAT/pyOAT.hpp"
+
+#include "pyIOStream.hpp"
+#include "pyutils.hpp"
+#include "typing/InputParser.hpp"
 
 #include "LIEF/OAT/Parser.hpp"
+#include "LIEF/OAT/Binary.hpp"
+#include "LIEF/logging.hpp"
 
 #include <string>
+#include <nanobind/stl/vector.h>
+#include <nanobind/stl/unique_ptr.h>
+#include <nanobind/stl/string.h>
 
-namespace LIEF {
-namespace OAT {
+namespace LIEF::OAT::py {
 
 template<>
-void create<Parser>(py::module& m) {
-
-  // Parser (Parser)
-  m.def("parse",
-    static_cast<std::unique_ptr<Binary> (*) (const std::string&)>(&Parser::parse),
-    "Parse the given OAT file and return a " RST_CLASS_REF(lief.OAT.Binary) " object",
-    "oat_file"_a,
-    py::return_value_policy::take_ownership);
+void create<Parser>(nb::module_& m) {
+  using namespace LIEF::py;
 
   m.def("parse",
-    static_cast<std::unique_ptr<Binary> (*) (const std::string&, const std::string&)>(&Parser::parse),
-    "Parse the given OAT with its VDEX file and return a " RST_CLASS_REF(lief.OAT.Binary) " object",
-    "oat_file"_a, "vdex_file"_a,
-    py::return_value_policy::take_ownership);
+    nb::overload_cast<const std::string&>(&Parser::parse),
+    "Parse the given OAT file and return a " RST_CLASS_REF(lief.OAT.Binary) " object"_doc,
+    "oat_file"_a, nb::rv_policy::take_ownership);
 
   m.def("parse",
-    static_cast<std::unique_ptr<Binary> (*) (std::vector<uint8_t>, const std::string&)>(&Parser::parse),
-    "Parse the given raw data and return a " RST_CLASS_REF(lief.OAT.Binary) " object",
-    "raw"_a, "name"_a = "",
-    py::return_value_policy::take_ownership);
-
+    nb::overload_cast<const std::string&, const std::string&>(&Parser::parse),
+    "Parse the given OAT with its VDEX file and return a " RST_CLASS_REF(lief.OAT.Binary) " object"_doc,
+    "oat_file"_a, "vdex_file"_a, nb::rv_policy::take_ownership);
 
   m.def("parse",
-      [] (py::object byteio, const std::string& name) {
-        const auto& io = py::module::import("io");
-        const auto& RawIOBase = io.attr("RawIOBase");
-        const auto& BufferedIOBase = io.attr("BufferedIOBase");
-        const auto& TextIOBase = io.attr("TextIOBase");
+    nb::overload_cast<std::vector<uint8_t>>(&Parser::parse),
+    "Parse the given raw data and return a " RST_CLASS_REF(lief.OAT.Binary) " object"_doc,
+    "raw"_a, nb::rv_policy::take_ownership);
 
-        py::object rawio;
+  m.def("parse",
+    [] (typing::InputParser obj) -> std::unique_ptr<Binary> {
+      if (auto path_str = path_to_str(obj)) {
+        return Parser::parse(std::move(*path_str));
+      }
 
-
-        if (py::isinstance(byteio, RawIOBase)) {
-          rawio = byteio;
-        }
-
-        else if (py::isinstance(byteio, BufferedIOBase)) {
-          rawio = byteio.attr("raw");
-        }
-
-        else if (py::isinstance(byteio, TextIOBase)) {
-          rawio = byteio.attr("buffer").attr("raw");
-        }
-
-        else {
-          throw py::type_error(py::repr(byteio).cast<std::string>().c_str());
-        }
-
-        std::string raw_str = static_cast<py::bytes>(rawio.attr("readall")());
-        std::vector<uint8_t> raw = {
-          std::make_move_iterator(std::begin(raw_str)),
-          std::make_move_iterator(std::end(raw_str))};
-
-        return LIEF::OAT::Parser::parse(std::move(raw), name);
-      },
-      "io"_a, "name"_a = "",
-      py::return_value_policy::take_ownership);
-}
+      if (auto stream = PyIOStream::from_python(obj)) {
+        auto ptr = std::make_unique<PyIOStream>(std::move(*stream));
+        return Parser::parse(stream->content());
+      }
+      logging::log(logging::LEVEL::ERR,
+                   "LIEF parser interface does not support Python object: " +
+                   type2str(obj));
+      return nullptr;
+    },
+    "obj"_a,
+    nb::rv_policy::take_ownership);
 }
 }

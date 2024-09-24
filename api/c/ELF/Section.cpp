@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ void init_c_sections(Elf_Binary_t* c_binary, Binary* binary) {
 
     c_binary->sections[i]->name            = b_section.fullname().c_str();
     c_binary->sections[i]->flags           = b_section.flags();
-    c_binary->sections[i]->type            = static_cast<enum LIEF_ELF_ELF_SECTION_TYPES>(b_section.type());
+    c_binary->sections[i]->type            = static_cast<uint32_t>(b_section.type());
     c_binary->sections[i]->virtual_address = b_section.virtual_address();
     c_binary->sections[i]->offset          = b_section.file_offset();
     c_binary->sections[i]->original_size   = b_section.original_size();

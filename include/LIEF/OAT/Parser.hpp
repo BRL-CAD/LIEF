@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,13 +35,14 @@ class Binary;
 class Class;
 
 //! Class to parse an OAT file to produce an OAT::Binary
-class LIEF_API Parser : public LIEF::ELF::Parser {
+class LIEF_API Parser : public ELF::Parser {
   public:
   //! Parse an OAT file
   static std::unique_ptr<Binary> parse(const std::string& oat_file);
-  static std::unique_ptr<Binary> parse(const std::string& oat_file, const std::string& vdex_file);
+  static std::unique_ptr<Binary> parse(const std::string& oat_file,
+                                       const std::string& vdex_file);
 
-  static std::unique_ptr<Binary> parse(std::vector<uint8_t> data, const std::string& name = "");
+  static std::unique_ptr<Binary> parse(std::vector<uint8_t> data);
 
   Parser& operator=(const Parser& copy) = delete;
   Parser(const Parser& copy)            = delete;
@@ -50,9 +51,9 @@ class LIEF_API Parser : public LIEF::ELF::Parser {
   Parser();
   Parser(const std::string& oat_file);
   Parser(std::vector<uint8_t> data);
-  ~Parser();
+  ~Parser() override;
 
-  inline Binary& oat_binary() {
+  Binary& oat_binary() {
     // The type of the parent binary_ is guaranteed by the constructor
     return *reinterpret_cast<Binary*>(binary_.get());
   }
@@ -81,7 +82,7 @@ class LIEF_API Parser : public LIEF::ELF::Parser {
   template<typename OAT_T>
   void parse_oat_methods(uint64_t methods_offsets, Class& clazz, const DEX::Class& dex_class);
 
-  void init(const std::string& name = "");
+  void init();
 
   std::unique_ptr<LIEF::VDEX::File> vdex_file_;
 

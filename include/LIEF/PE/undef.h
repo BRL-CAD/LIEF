@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  * Copyright 2017 - 2021 K. Nakagawa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -295,7 +295,6 @@
 #undef IMAGE_SCN_MEM_READ
 #undef IMAGE_SCN_MEM_WRITE
 
-#undef RESOURCE_TYPES
 #undef RESOURCE_LANGS
 
 

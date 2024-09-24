@@ -3,7 +3,7 @@
 import lief
 from utils import get_sample
 
-lief.logging.set_level(lief.logging.LOGGING_LEVEL.INFO)
+lief.logging.set_level(lief.logging.LEVEL.INFO)
 
 def test_winapp():
     winapp = lief.parse(get_sample('PE/PE64_x86-64_binary_WinApp.exe'))
@@ -11,7 +11,7 @@ def test_winapp():
 
     lconf = winapp.load_configuration
 
-    assert lconf.version == lief.PE.WIN_VERSION.WIN10_0_15002
+    assert lconf.version == lief.PE.LoadConfiguration.VERSION.WIN_10_0_15002
     assert lconf.characteristics == 0xF8
     assert lconf.timedatestamp == 0
     assert lconf.major_version == 0
@@ -41,10 +41,11 @@ def test_winapp():
     assert lconf.guard_cf_function_table == 0x140011000
     assert lconf.guard_cf_function_count == 15
 
-    expected_flags  = lief.PE.GUARD_CF_FLAGS.GCF_LONGJUMP_TABLE_PRESENT
-    expected_flags |= lief.PE.GUARD_CF_FLAGS.GCF_FUNCTION_TABLE_PRESENT
-    expected_flags |= lief.PE.GUARD_CF_FLAGS.GCF_INSTRUMENTED
-    assert lconf.guard_flags == lief.PE.GUARD_CF_FLAGS(expected_flags)
+    expected_flags = lief.PE.LoadConfigurationV1.IMAGE_GUARD.CF_LONGJUMP_TABLE_PRESENT
+    expected_flags |= lief.PE.LoadConfigurationV1.IMAGE_GUARD.CF_FUNCTION_TABLE_PRESENT
+    expected_flags |= lief.PE.LoadConfigurationV1.IMAGE_GUARD.CF_INSTRUMENTED
+
+    assert lconf.guard_flags == expected_flags
 
     # V2
     code_integrity = lconf.code_integrity
@@ -53,6 +54,8 @@ def test_winapp():
     assert code_integrity.catalog == 0
     assert code_integrity.catalog_offset == 0
     assert code_integrity.reserved == 0
+
+    assert print(code_integrity) is None
 
     # V3
     assert lconf.guard_address_taken_iat_entry_table == 0
@@ -75,6 +78,8 @@ def test_winapp():
     assert lconf.guard_rf_verify_stackpointer_function_pointer == 0x140012030
     assert lconf.hotpatch_table_offset == 0
 
+    assert print(lconf) is None
+
 
 def test_v8():
     pe = lief.parse(get_sample('PE/ANCUtility.dll'))
@@ -82,9 +87,11 @@ def test_v8():
 
     lconf = pe.load_configuration
 
-    assert lconf.version == lief.PE.WIN_VERSION.WIN10_0_18362
+    assert lconf.version == lief.PE.LoadConfiguration.VERSION.WIN_10_0_18362
     assert isinstance(lconf, lief.PE.LoadConfigurationV8)
     assert lconf.volatile_metadata_pointer == 0
+
+    assert print(lconf) is None
 
 def test_v9():
     pe = lief.parse(get_sample('PE/ucrtbase.dll'))
@@ -92,10 +99,12 @@ def test_v9():
 
     lconf = pe.load_configuration
 
-    assert lconf.version == lief.PE.WIN_VERSION.WIN10_0_19534
+    assert lconf.version == lief.PE.LoadConfiguration.VERSION.WIN_10_0_19534
     assert isinstance(lconf, lief.PE.LoadConfigurationV9)
     assert lconf.guard_eh_continuation_table == 0x1800b9770
     assert lconf.guard_eh_continuation_count == 34
+
+    assert print(lconf) is None
 
 def test_v11():
     pe = lief.parse(get_sample('PE/hostfxr.dll'))
@@ -103,9 +112,13 @@ def test_v11():
 
     lconf = pe.load_configuration
 
-    assert lconf.version == lief.PE.WIN_VERSION.WIN10_0_MSVC_2019_16
+    assert lconf.version == lief.PE.LoadConfiguration.VERSION.WIN_10_0_MSVC_2019_16
     assert isinstance(lconf, lief.PE.LoadConfigurationV11)
     assert lconf.guard_xfg_check_function_pointer == 0x1800414d8
     assert lconf.guard_xfg_dispatch_function_pointer == 0x1800414e8
     assert lconf.guard_xfg_table_dispatch_function_pointer == 0x1800414f0
     assert lconf.cast_guard_os_determined_failure_mode == 0x180057e18
+
+    assert print(lconf) is None
+
+    assert lconf.copy() == lconf

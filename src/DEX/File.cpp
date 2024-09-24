@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -529,39 +529,28 @@ void File::accept(Visitor& visitor) const {
   visitor.visit(*this);
 }
 
-bool File::operator==(const File& rhs) const {
-  if (this == &rhs) {
-    return true;
-  }
-  size_t hash_lhs = Hash::hash(*this);
-  size_t hash_rhs = Hash::hash(rhs);
-  return hash_lhs == hash_rhs;
-}
 
-bool File::operator!=(const File& rhs) const {
-  return !(*this == rhs);
-}
 
 std::ostream& operator<<(std::ostream& os, const File& file) {
   os << "DEX File " << file.name() << " Version: " << std::dec << file.version();
   if (!file.location().empty()) {
     os << " - " << file.location();
   }
-  os << std::endl;
+  os << '\n';
 
-  os << "Header" << std::endl;
-  os << "======" << std::endl;
+  os << "Header" << '\n';
+  os << "======" << '\n';
 
   os << file.header();
 
-  os << std::endl;
+  os << '\n';
 
-  os << "Map" << std::endl;
-  os << "===" << std::endl;
+  os << "Map" << '\n';
+  os << "===" << '\n';
 
   os << file.map();
 
-  os << std::endl;
+  os << '\n';
   return os;
 }
 

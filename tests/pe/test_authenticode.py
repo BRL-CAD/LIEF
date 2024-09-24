@@ -1,16 +1,16 @@
 #!/usr/bin/env python
+import pytest
 import json
 import sys
+from itertools import chain
 
 import lief
-from utils import get_sample
+from utils import get_sample, has_private_samples
 
 try:
     sys.set_int_max_str_digits(0)
 except:
     pass
-
-lief.logging.set_level(lief.logging.LOGGING_LEVEL.WARNING)
 
 def from_hex(x):
     return bytes.fromhex(x.replace(":", ""))
@@ -41,10 +41,13 @@ def test_api():
 
     # Verify ContentInfo
     content_info = sig.content_info
+    spc_indirect_data = content_info.value
 
     assert content_info.content_type == "1.3.6.1.4.1.311.2.1.4"
-    assert content_info.digest_algorithm == lief.PE.ALGORITHMS.SHA_256
-    assert content_info.digest == from_hex("a7:38:da:44:46:a4:e7:8a:b6:47:db:7e:53:42:7e:b0:79:61:c9:94:31:7f:4c:59:d7:ed:be:a5:cc:78:6d:80")
+    assert content_info.digest == bytes(spc_indirect_data.digest)
+    assert content_info.digest_algorithm == spc_indirect_data.digest_algorithm
+    assert spc_indirect_data.digest_algorithm == lief.PE.ALGORITHMS.SHA_256
+    assert spc_indirect_data.digest == from_hex("a7:38:da:44:46:a4:e7:8a:b6:47:db:7e:53:42:7e:b0:79:61:c9:94:31:7f:4c:59:d7:ed:be:a5:cc:78:6d:80")
 
     # Verify embedded certificates
     certs = sig.certificates
@@ -108,11 +111,7 @@ def test_api():
     assert len(unauth_attrs) == 1
 
     ms_counter_sig = unauth_attrs[0]
-    # TODO(romain): Currently we do not support the (undocumented) Ms-CounterSignature attribute
-    # Therefore it is wrapped through lief.PE.GenericType. The first assert should fail when
-    # it will be implemented
-    assert isinstance(ms_counter_sig, lief.PE.GenericType)
-    assert ms_counter_sig.oid == "1.3.6.1.4.1.311.3.3.1"
+    assert isinstance(ms_counter_sig, lief.PE.MsCounterSign)
 
     assert avast.verify_signature() == lief.PE.Signature.VERIFICATION_FLAGS.OK
     # Verify the signature through a fake-detached signature
@@ -123,11 +122,11 @@ def test_json_serialization():
     avast = lief.PE.parse(get_sample("PE/PE32_x86-64_binary_avast-free-antivirus-setup-online.exe"))
     with open(get_sample("PE/PE32_x86-64_binary_avast-free-antivirus-setup-online-signature.json"), "rb") as f:
         json_sig = json.load(f)
+    print(lief.to_json(avast.signatures[0]))
     assert json.loads(lief.to_json(avast.signatures[0])) == json_sig
 
 def test_fail():
     # Check bad-signed PE files
-
     avast_altered = lief.parse(get_sample("PE/PE32_x86-64_binary_avast-free-antivirus-setup-online-altered-dos-stub.exe"))
     assert avast_altered.verify_signature() != lief.PE.Signature.VERIFICATION_FLAGS.OK
     assert avast_altered.signatures[0].check() == lief.PE.Signature.VERIFICATION_FLAGS.OK
@@ -146,30 +145,30 @@ def test_fail():
 
 def test_pkcs9_signing_time():
     sig = lief.PE.Signature.parse(get_sample("pkcs7/cert0.p7b"))
-    attr = sig.signers[0].get_attribute(lief.PE.SIG_ATTRIBUTE_TYPES.PKCS9_SIGNING_TIME)
+    attr = sig.signers[0].get_attribute(lief.PE.Attribute.TYPE.PKCS9_SIGNING_TIME)
     assert attr.time == [2018, 8, 2, 15, 0, 12]
 
 def test_pkcs9_at_sequence_number():
     sig = lief.PE.Signature.parse(get_sample("pkcs7/cert3.p7b"))
-    nested_sig = sig.signers[0].get_attribute(lief.PE.SIG_ATTRIBUTE_TYPES.MS_SPC_NESTED_SIGN).signature
-    at_seq_nb = nested_sig.signers[0].get_attribute(lief.PE.SIG_ATTRIBUTE_TYPES.PKCS9_AT_SEQUENCE_NUMBER)
+    nested_sig = sig.signers[0].get_attribute(lief.PE.Attribute.TYPE.MS_SPC_NESTED_SIGN).signature
+    at_seq_nb = nested_sig.signers[0].get_attribute(lief.PE.Attribute.TYPE.PKCS9_AT_SEQUENCE_NUMBER)
     assert at_seq_nb.number == 1
 
 def test_spc_sp_opus_info():
     sig = lief.PE.Signature.parse(get_sample("pkcs7/cert11.p7b"))
-    spc = sig.signers[0].get_attribute(lief.PE.SIG_ATTRIBUTE_TYPES.SPC_SP_OPUS_INFO)
+    spc = sig.signers[0].get_attribute(lief.PE.Attribute.TYPE.SPC_SP_OPUS_INFO)
 
     assert spc.program_name == "Slideshow Generator Powertoy for WinXP"
     assert spc.more_info == "http://www.microsoft.com/windowsxp"
 
     sig = lief.PE.Signature.parse(get_sample("pkcs7/cert9.p7b"))
-    spc = sig.signers[0].get_attribute(lief.PE.SIG_ATTRIBUTE_TYPES.SPC_SP_OPUS_INFO)
+    spc = sig.signers[0].get_attribute(lief.PE.Attribute.TYPE.SPC_SP_OPUS_INFO)
     assert spc.program_name == "Microsoft Windows"
     assert spc.more_info == "http://www.microsoft.com/windows"
 
 def test_pkcs9_counter_signature():
     sig = lief.PE.Signature.parse(get_sample("pkcs7/cert10.p7b"))
-    counter_sign = sig.signers[0].get_attribute(lief.PE.SIG_ATTRIBUTE_TYPES.PKCS9_COUNTER_SIGNATURE)
+    counter_sign = sig.signers[0].get_attribute(lief.PE.Attribute.TYPE.PKCS9_COUNTER_SIGNATURE)
 
     signer = counter_sign.signer
 
@@ -189,17 +188,20 @@ def test_pkcs9_counter_signature():
 
 def test_ms_spc_nested_signature():
     sig = lief.PE.Signature.parse(get_sample("pkcs7/cert0.p7b"))
-    attr = sig.signers[0].get_attribute(lief.PE.SIG_ATTRIBUTE_TYPES.MS_SPC_NESTED_SIGN)
+    attr = sig.signers[0].get_attribute(lief.PE.Attribute.TYPE.MS_SPC_NESTED_SIGN)
     nested_sig = attr.signature
 
     assert nested_sig.version == 1
     assert nested_sig.digest_algorithm == lief.PE.ALGORITHMS.SHA_256
 
     content_info = nested_sig.content_info
+    spc_indirect_data = content_info.value
+    print(spc_indirect_data)
 
-    assert content_info.content_type == "1.3.6.1.4.1.311.2.1.4"
-    assert content_info.digest_algorithm == lief.PE.ALGORITHMS.SHA_256
-    assert content_info.digest == from_hex("90:a4:df:36:26:df:d9:8d:6b:3b:1d:42:74:5b:94:54:c5:e2:30:2e:d2:f8:23:70:16:3f:1e:e6:dd:7d:8c:91")
+
+    assert spc_indirect_data.content_type == "1.3.6.1.4.1.311.2.1.4"
+    assert spc_indirect_data.digest_algorithm == lief.PE.ALGORITHMS.SHA_256
+    assert spc_indirect_data.digest == from_hex("90:a4:df:36:26:df:d9:8d:6b:3b:1d:42:74:5b:94:54:c5:e2:30:2e:d2:f8:23:70:16:3f:1e:e6:dd:7d:8c:91")
 
     certs = nested_sig.certificates
     assert len(certs) == 3
@@ -209,11 +211,11 @@ def test_ms_spc_nested_signature():
     assert nvidia_cert.subject == "C=US, ST=California, L=Santa Clara, O=NVIDIA Corporation, OU=IT-MIS, CN=NVIDIA Corporation"
     assert nvidia_cert.serial_number == from_hex("62:E7:45:E9:21:65:21:3C:97:1F:5C:49:0A:EA:12:A5")
 
-    assert self_signed_ca.issuer == "C=US, O=VeriSign\\, Inc., OU=VeriSign Trust Network, OU=(c) 2008 VeriSign\\, Inc. - For authorized use only, CN=VeriSign Universal Root Certification Authority"
-    assert self_signed_ca.subject == "C=US, O=VeriSign\\, Inc., OU=VeriSign Trust Network, OU=(c) 2008 VeriSign\\, Inc. - For authorized use only, CN=VeriSign Universal Root Certification Authority"
+    assert self_signed_ca.issuer == r"C=US, O=VeriSign\, Inc., OU=VeriSign Trust Network, OU=(c) 2008 VeriSign\, Inc. - For authorized use only, CN=VeriSign Universal Root Certification Authority"
+    assert self_signed_ca.subject == r"C=US, O=VeriSign\, Inc., OU=VeriSign Trust Network, OU=(c) 2008 VeriSign\, Inc. - For authorized use only, CN=VeriSign Universal Root Certification Authority"
     assert self_signed_ca.serial_number == from_hex("40:1A:C4:64:21:B3:13:21:03:0E:BB:E4:12:1A:C5:1D")
 
-    assert signer_cert.issuer == "C=US, O=VeriSign\\, Inc., OU=VeriSign Trust Network, OU=(c) 2008 VeriSign\\, Inc. - For authorized use only, CN=VeriSign Universal Root Certification Authority"
+    assert signer_cert.issuer == r"C=US, O=VeriSign\, Inc., OU=VeriSign Trust Network, OU=(c) 2008 VeriSign\, Inc. - For authorized use only, CN=VeriSign Universal Root Certification Authority"
     assert signer_cert.subject == "C=US, O=Symantec Corporation, OU=Symantec Trust Network, CN=Symantec Class 3 SHA256 Code Signing CA - G2"
     assert signer_cert.serial_number == from_hex("7C:1B:35:35:4A:E7:DB:74:E7:41:5F:11:69:CA:6B:A8")
 
@@ -232,6 +234,7 @@ def test_ms_spc_nested_signature():
     assert nested_sig.check() == lief.PE.Signature.VERIFICATION_FLAGS.OK
 
     signer = nested_sig.signers[0]
+    print(signer)
 
 def test_self_signed():
     selfsigned = lief.parse(get_sample("PE/PE32_x86-64_binary_self-signed.exe"))
@@ -256,8 +259,8 @@ def test_rsa_info():
     P = int_from_bytes(rsa_info.P)
     Q = int_from_bytes(rsa_info.Q)
 
-    assert E == 340287559217796998291003137928097431552
-    assert str(N)[:70] == "9739755319358115164405180509398652054747121607842183679471640563806368"
+    assert E == 65537
+    assert str(N)[:70] == "2645636708930440977121533117630461323983500317859148049010916849328467"
     assert D == 0
     assert P == 0
     assert Q == 0
@@ -270,3 +273,66 @@ def test_issue_703():
 def test_issue_912():
     steam = lief.PE.parse(get_sample("PE/steam.exe"))
     assert steam.verify_signature() == lief.PE.Signature.VERIFICATION_FLAGS.OK
+
+def test_verification_flags_str():
+    flag = lief.PE.Signature.VERIFICATION_FLAGS.BAD_DIGEST | \
+           lief.PE.Signature.VERIFICATION_FLAGS.CERT_FUTURE
+    assert str(flag) == "lief.PE.VERIFICATION_FLAGS.BAD_DIGEST | lief.PE.VERIFICATION_FLAGS.CERT_FUTURE"
+    assert repr(flag) == "<lief.PE.VERIFICATION_FLAGS.BAD_DIGEST | CERT_FUTURE: 2176>"
+    assert str(lief.PE.Signature.VERIFICATION_FLAGS.from_value(0)) == "lief.PE.VERIFICATION_FLAGS.OK"
+
+def test_ms_manifest_binary_id():
+    acres = lief.PE.parse(get_sample("PE/AcRes.dll"))
+    attr = acres.signatures[0].signers[0].get_auth_attribute(lief.PE.Attribute.TYPE.MS_PLATFORM_MANIFEST_BINARY_ID)
+    assert attr is not None
+    assert attr.manifest_id == "Q3XarTZK62/v5aPftDNzWYB5ybbMDvHGQIYjVa+ja+0="
+
+def test_ms_counter_signature():
+    #lief.logging.set_level(lief.logging.LEVEL.DEBUG)
+    acres = lief.PE.parse(get_sample("PE/AppVClient.exe"))
+    sig = acres.signatures[0]
+    ms_counter_sig: lief.PE.MsCounterSign = sig.signers[0].get_unauth_attribute(lief.PE.Attribute.TYPE.MS_COUNTER_SIGN)
+    assert ms_counter_sig is not None
+    assert ms_counter_sig.version == 3
+    assert ms_counter_sig.digest_algorithm == lief.PE.ALGORITHMS.SHA_256
+
+    content_info = ms_counter_sig.content_info
+    assert content_info.digest_algorithm == lief.PE.ALGORITHMS.UNKNOWN
+    assert content_info.content_type == "1.2.840.113549.1.9.16.1.4"
+
+    content_info_value = content_info.value
+    assert isinstance(content_info_value, lief.PE.PKCS9TSTInfo)
+
+    certs = list(ms_counter_sig.certificates)
+
+    assert len(certs) == 2
+    assert certs[0].issuer == "C=US, ST=Washington, L=Redmond, O=Microsoft Corporation, CN=Microsoft Time-Stamp PCA 2010"
+    assert certs[1].issuer == "C=US, ST=Washington, L=Redmond, O=Microsoft Corporation, CN=Microsoft Root Certificate Authority 2010"
+
+    signers = list(ms_counter_sig.signers)
+    assert len(signers) == 1
+
+    signer = signers[0]
+    assert signer.version == 1
+    assert signer.digest_algorithm == lief.PE.ALGORITHMS.SHA_256
+    assert signer.encryption_algorithm == lief.PE.ALGORITHMS.SHA_256_RSA
+    assert signer.issuer == "C=US, ST=Washington, L=Redmond, O=Microsoft Corporation, CN=Microsoft Time-Stamp PCA 2010"
+    assert ":".join(map(lambda e: f"{e:02x}", signer.serial_number)) == "33:00:00:01:b7:21:27:1a:07:a2:2a:86:46:00:01:00:00:01:b7"
+
+    auth_attrs = signer.authenticated_attributes
+    assert len(auth_attrs) == 3
+    assert auth_attrs[0].type == lief.PE.Attribute.TYPE.CONTENT_TYPE
+    assert auth_attrs[1].type == lief.PE.Attribute.TYPE.PKCS9_MESSAGE_DIGEST
+    assert auth_attrs[2].type == lief.PE.Attribute.TYPE.SIGNING_CERTIFICATE_V2
+    assert isinstance(auth_attrs[2], lief.PE.SigningCertificateV2)
+
+    unauth_attrs = signer.unauthenticated_attributes
+    assert len(unauth_attrs) == 0
+
+@pytest.mark.skipif(not has_private_samples(), reason="needs private samples")
+def test_playready_signature():
+    pe = lief.PE.parse(get_sample("private/PE/Windows.Media.Protection.PlayReady.dll"))
+
+    sig = pe.signatures[0]
+    spc = sig.signers[0].get_auth_attribute(lief.PE.Attribute.TYPE.SPC_RELAXED_PE_MARKER_CHECK)
+    assert spc is not None

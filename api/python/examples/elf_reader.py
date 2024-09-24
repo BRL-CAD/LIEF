@@ -71,6 +71,9 @@ def print_header(binary):
 
     if header.machine_type == lief.ELF.ARCH.HEXAGON:
         eflags_str = " - ".join([str(s).split(".")[-1] for s in header.hexagon_flags_list])
+
+    if header.machine_type == lief.ELF.ARCH.LOONGARCH:
+        eflags_str = " - ".join([str(s).split(".")[-1] for s in header.loongarch_flags_list])
     print(identity)
     print(format_ide.format("Magic:",                 identity[0], identity[1], identity[2], identity[3]))
     print(format_str.format("Class:",                 str(header.identity_class).split(".")[-1]))
@@ -131,13 +134,13 @@ def print_segments(binary):
             sections = segment.sections
             s = ", ".join([section.name for section in sections])
             flags_str = ["-"] * 3
-            if ELF.SEGMENT_FLAGS.R in segment:
+            if ELF.Segment.FLAGS.R in segment:
                 flags_str[0] = "r"
 
-            if ELF.SEGMENT_FLAGS.W in segment:
+            if ELF.Segment.FLAGS.W in segment:
                 flags_str[1] = "w"
 
-            if ELF.SEGMENT_FLAGS.X in segment:
+            if ELF.Segment.FLAGS.X in segment:
                 flags_str[2] = "x"
             flags_str = "".join(flags_str)
 
@@ -164,18 +167,18 @@ def print_dynamic_entries(binary):
     f_value = "|{:<16} | 0x{:<8x}| {:<20}|"
     print(f_title.format("Tag", "Value", "Info"))
     for entry in dynamic_entries:
-        if entry.tag == ELF.DYNAMIC_TAGS.NULL:
+        if entry.tag == ELF.DynamicEntry.TAG.NULL:
             continue
 
-        if entry.tag in [ELF.DYNAMIC_TAGS.SONAME, ELF.DYNAMIC_TAGS.NEEDED, ELF.DYNAMIC_TAGS.RUNPATH, ELF.DYNAMIC_TAGS.RPATH]:
+        if entry.tag in [ELF.DynamicEntry.TAG.SONAME, ELF.DynamicEntry.TAG.NEEDED, ELF.DynamicEntry.TAG.RUNPATH, ELF.DynamicEntry.TAG.RPATH]:
             print(f_value.format(str(entry.tag).split(".")[-1], entry.value, entry.name))
-        elif type(entry) is ELF.DynamicEntryArray: # [ELF.DYNAMIC_TAGS.INIT_ARRAY,ELF.DYNAMIC_TAGS.FINI_ARRAY]:
+        elif type(entry) is ELF.DynamicEntryArray: # [ELF.DynamicEntry.TAG.INIT_ARRAY,ELF.DynamicEntry.TAG.FINI_ARRAY]:
             print(f_value.format(str(entry.tag).split(".")[-1], entry.value, ", ".join(map(hex, entry.array))))
-        elif entry.tag == ELF.DYNAMIC_TAGS.FLAGS:
-            flags_str = " - ".join([str(ELF.DYNAMIC_FLAGS(s)).split(".")[-1] for s in entry.flags])
+        elif entry.tag == ELF.DynamicEntry.TAG.FLAGS:
+            flags_str = " - ".join([str(ELF.DynamicEntryFlags.FLAG(s)).split(".")[-1] for s in entry.flags])
             print(f_value.format(str(entry.tag).split(".")[-1], entry.value, flags_str))
-        elif entry.tag == ELF.DYNAMIC_TAGS.FLAGS_1:
-            flags_str = " - ".join([str(ELF.DYNAMIC_FLAGS_1(s)).split(".")[-1] for s in entry.flags])
+        elif entry.tag == ELF.DynamicEntry.TAG.FLAGS_1:
+            flags_str = " - ".join([str(ELF.DynamicEntryFlags.FLAG(s)).split(".")[-1] for s in entry.flags])
             print(f_value.format(str(entry.tag).split(".")[-1], entry.value, flags_str))
         else:
             print(f_value.format(str(entry.tag).split(".")[-1], entry.value, ""))
@@ -237,9 +240,9 @@ def print_dynamic_symbols(binary, args):
 
 
 @exceptions_handler(Exception)
-def print_static_symbols(binary, args):
-    print("== Static symbols ==\n")
-    print_symbols(binary.static_symbols, args.no_trunc)
+def print_symtab_symbols(binary, args):
+    print("== Symtab symbols ==\n")
+    print_symbols(binary.symtab_symbols, args.no_trunc)
 
 @exceptions_handler(Exception)
 def print_relocations(binary, relocations):
@@ -251,20 +254,20 @@ def print_relocations(binary, relocations):
     for relocation in relocations:
         type = str(relocation.type)
         if binary.header.machine_type == ELF.ARCH.x86_64:
-            type = str(ELF.RELOCATION_X86_64(relocation.type))
+            type = str(relocation.type)
         elif binary.header.machine_type == ELF.ARCH.i386:
-            type = str(ELF.RELOCATION_i386(relocation.type))
+            type = str(relocation.type)
         elif binary.header.machine_type == ELF.ARCH.ARM:
-            type = str(ELF.RELOCATION_ARM(relocation.type))
+            type = str(relocation.type)
         elif binary.header.machine_type == ELF.ARCH.AARCH64:
-            type = str(ELF.RELOCATION_AARCH64(relocation.type))
+            type = str(relocation.type)
 
         symbol_name = ""
         if relocation.has_symbol:
             symbol: lief.ELF.Symbol = relocation.symbol
             if len(symbol.name) > 0:
                 symbol_name = symbol.name
-            elif symbol.type == lief.ELF.SYMBOL_TYPES.SECTION:
+            elif symbol.type == lief.ELF.Symbol.TYPE.SECTION:
                 shndx = symbol.shndx
                 sections = binary.sections
                 if 0 < shndx and shndx < len(sections):
@@ -328,7 +331,6 @@ def print_information(binary):
     format_str = "{:<30} {:<30}"
     format_hex = "{:<30} 0x{:<28x}"
     format_dec = "{:<30} {:<30d}"
-    print(format_str.format("Name:",         binary.name))
     print(format_hex.format("Address base:", binary.imagebase))
     print(format_hex.format("Virtual size:", binary.virtual_size))
     print(format_str.format("PIE:",          str(binary.is_pie)))
@@ -400,19 +402,19 @@ def print_notes(binary):
 
         note_details = note.details
 
-        if type(note_details) == lief.ELF.AndroidNote:
+        if isinstance(note_details, lief.ELF.AndroidIdent):
             print(format_dec.format("SDK Version:",      note_details.sdk_version))
             print(format_str.format("NDK Version:",      note_details.ndk_version))
             print(format_str.format("NDK build number:", note_details.ndk_build_number))
 
-        if type(note_details) == lief.ELF.NoteAbi:
+        if isinstance(note_details, lief.ELF.NoteAbi):
             version     = note_details.version
             version_str = "{:d}.{:d}.{:d}".format(version[0], version[1], version[2])
 
             print(format_str.format("ABI:",     note_details.abi))
             print(format_str.format("Version:", version_str))
 
-        if ELF.NOTE_TYPES(note.type) == ELF.NOTE_TYPES.GOLD_VERSION:
+        if note.type == ELF.Note.TYPE.GNU_GOLD_VERSION:
             print(format_str.format("Version:", "".join(map(chr, note.description))))
 
         if note.is_core:
@@ -495,9 +497,9 @@ def main():
             action='store_true', dest='show_dynamic_symbols',
             help='Display the dynamic symbols')
 
-    parser.add_argument('--static-symbols', '--ssyms',
-            action='store_true', dest='show_static_symbols',
-            help='Display the static symbols')
+    parser.add_argument('--symtab-symbols', '--ssyms',
+            action='store_true', dest='show_symtab_symbols',
+            help='Display the symtab symbols')
 
     parser.add_argument('-r', '--relocs',
             action='store_true', dest='show_relocs',
@@ -547,34 +549,34 @@ def main():
     verbosity.add_argument('--debug',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.DEBUG)
+            const=lief.logging.LEVEL.DEBUG)
 
     verbosity.add_argument('--trace',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.TRACE)
+            const=lief.logging.LEVEL.TRACE)
 
     verbosity.add_argument('--info',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.INFO)
+            const=lief.logging.LEVEL.INFO)
 
     verbosity.add_argument('--warn',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.WARNING)
+            const=lief.logging.LEVEL.WARN)
 
     verbosity.add_argument('--err',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.ERROR)
+            const=lief.logging.LEVEL.ERROR)
 
     verbosity.add_argument('--critical',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.CRITICAL)
+            const=lief.logging.LEVEL.CRITICAL)
 
-    parser.set_defaults(main_verbosity=lief.logging.LOGGING_LEVEL.WARNING)
+    parser.set_defaults(main_verbosity=lief.logging.LEVEL.WARN)
 
     args = parser.parse_args()
 
@@ -606,8 +608,8 @@ def main():
     if (args.show_symbols or args.show_all or args.show_dynamic_symbols) and len(binary.dynamic_symbols) > 0:
         print_dynamic_symbols(binary, args)
 
-    if (args.show_symbols or args.show_all or args.show_static_symbols) and len(binary.static_symbols) > 0:
-        print_static_symbols(binary, args)
+    if (args.show_symbols or args.show_all or args.show_symtab_symbols) and len(binary.symtab_symbols) > 0:
+        print_symtab_symbols(binary, args)
 
     if args.show_relocs or args.show_all:
         print_all_relocations(binary)

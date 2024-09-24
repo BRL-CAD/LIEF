@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ class Object;
 
 class LIEF_API AbstractHash : public LIEF::Hash {
   public:
-  static size_t hash(const Object& obj);
+  static LIEF::Hash::value_type hash(const Object& obj);
 
   public:
   using LIEF::Hash::Hash;
@@ -41,7 +41,7 @@ class LIEF_API AbstractHash : public LIEF::Hash {
   void visit(const Relocation& relocation) override;
   void visit(const Function& function)     override;
 
-  virtual ~AbstractHash();
+  ~AbstractHash() override;
 };
 
 }

@@ -16,13 +16,13 @@ dynamic table (``PT_DYNAMIC``).
 In addition, the functions imported from this library are referenced in the dynamic symbols table with the following attributes:
 
 * :attr:`~lief.ELF.Symbol.value` set to ``0``
-* :attr:`~lief.ELF.Symbol.type` set to :attr:`~lief.ELF.SYMBOL_TYPES.FUNC`
+* :attr:`~lief.ELF.Symbol.type` set to :attr:`~lief.ELF.Symbol.TYPE.FUNC`
 
 Similarly, when a library exports functions the exported functions
 are registered in the dynamic symbols table with the following attributes:
 
 * :attr:`~lief.ELF.Symbol.value` set to the address of the function in the library
-* :attr:`~lief.ELF.Symbol.type` set to :attr:`~lief.ELF.SYMBOL_TYPES.FUNC`
+* :attr:`~lief.ELF.Symbol.type` set to :attr:`~lief.ELF.Symbol.TYPE.FUNC`
 
 Imported and exported functions are abstracted in LIEF and one can iterate over these elements through
 the properties: :attr:`~lief.Binary.exported_functions` and :attr:`~lief.Binary.imported_functions`
@@ -70,6 +70,7 @@ Basically, this program takes an integer as a parameter and performs some comput
 
 .. code-block:: console
 
+
   $ hashme 123
   228886645.836282
 
@@ -97,8 +98,8 @@ Then, we can change the name of the two imported functions in the **executable**
 
 .. code-block:: python
 
-  hashme_pow_sym = next(filter(lambda e : e.name == "pow", hashme.imported_symbols))
-  hashme_log_sym = next(filter(lambda e : e.name == "log", hashme.imported_symbols))
+  hashme_pow_sym = next(i for i in hashme.imported_symbols if i.name == "pow")
+  hashme_log_sym = next(i for i in hashme.imported_symbols if i.name == "log")
 
   hashme_pow_sym.name = "cos"
   hashme_log_sym.name = "sin"
@@ -116,14 +117,14 @@ And we need to do the same in the library: the ``log`` symbol's name is swapped 
 
 
   def swap(obj, a, b):
-      symbol_a = next(filter(lambda e : e.name == a, obj.dynamic_symbols))
-      symbol_b = next(filter(lambda e : e.name == b, obj.dynamic_symbols))
+      symbol_a = next(i for i in obj.dynamic_symbols if i.name == a)
+      symbol_b = next(i for i in obj.dynamic_symbols if i.name == b)
       b_name = symbol_b.name
       symbol_b.name = symbol_a.name
       symbol_a.name = b_name
 
-  hashme_pow_sym = next(filter(lambda e : e.name == "pow", hashme.imported_symbols))
-  hashme_log_sym = next(filter(lambda e : e.name == "log", hashme.imported_symbols))
+  hashme_pow_sym = next(i for i in hashme.imported_symbols if i.name == "pow")
+  hashme_log_sym = next(i for i in hashme.imported_symbols if i.name == "log")
 
   hashme_pow_sym.name = "cos"
   hashme_log_sym.name = "sin"

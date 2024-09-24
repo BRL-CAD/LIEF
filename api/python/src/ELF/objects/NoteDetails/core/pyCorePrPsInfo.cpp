@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,89 +16,43 @@
 #include <string>
 #include <sstream>
 
-#include "pyELF.hpp"
+#include <nanobind/stl/string.h>
 
-#include "LIEF/ELF/hash.hpp"
+#include "pyErr.hpp"
+#include "ELF/pyELF.hpp"
+
 #include "LIEF/ELF/NoteDetails/core/CorePrPsInfo.hpp"
 
-namespace LIEF {
-namespace ELF {
-
-template<class T>
-using getter_t = T (CorePrPsInfo::*)(void) const;
-
-template<class T>
-using setter_t = void (CorePrPsInfo::*)(T);
+namespace LIEF::ELF::py {
 
 template<>
-void create<CorePrPsInfo>(py::module& m) {
+void create<CorePrPsInfo>(nb::module_& m) {
+  nb::class_<CorePrPsInfo, Note> cls(m, "CorePrPsInfo");
+  nb::class_<CorePrPsInfo::info_t>(cls, "info_t")
+    .def_rw("state", &CorePrPsInfo::info_t::state)
+    .def_rw("sname", &CorePrPsInfo::info_t::sname)
+    .def_rw("zombie", &CorePrPsInfo::info_t::zombie)
+    .def_rw("nice", &CorePrPsInfo::info_t::nice)
+    .def_rw("flag", &CorePrPsInfo::info_t::flag)
+    .def_rw("uid", &CorePrPsInfo::info_t::uid)
+    .def_rw("gid", &CorePrPsInfo::info_t::gid)
+    .def_rw("pid", &CorePrPsInfo::info_t::pid)
+    .def_rw("ppid", &CorePrPsInfo::info_t::ppid)
+    .def_rw("pgrp", &CorePrPsInfo::info_t::pgrp)
+    .def_rw("sid", &CorePrPsInfo::info_t::sid)
+    .def_rw("filename", &CorePrPsInfo::info_t::filename)
+    .def_rw("args", &CorePrPsInfo::info_t::args)
+    .def_prop_ro("filename_stripped", &CorePrPsInfo::info_t::filename_stripped)
+    .def_prop_ro("args_stripped", &CorePrPsInfo::info_t::args_stripped);
 
-  py::class_<CorePrPsInfo, NoteDetails>(m, "CorePrPsInfo")
-
-    .def_property("file_name",
-        static_cast<getter_t<std::string>>(&CorePrPsInfo::file_name),
-        static_cast<setter_t<const std::string&>>(&CorePrPsInfo::file_name),
-        "Process file name"
-        )
-
-    .def_property("flags",
-        static_cast<getter_t<uint64_t>>(&CorePrPsInfo::flags),
-        static_cast<setter_t<uint64_t>>(&CorePrPsInfo::flags),
-        "Process flags"
-        )
-
-    .def_property("uid",
-        static_cast<getter_t<uint32_t>>(&CorePrPsInfo::uid),
-        static_cast<setter_t<uint32_t>>(&CorePrPsInfo::uid),
-        "Process User ID"
-        )
-
-    .def_property("gid",
-        static_cast<getter_t<uint32_t>>(&CorePrPsInfo::gid),
-        static_cast<setter_t<uint32_t>>(&CorePrPsInfo::gid),
-        "Process Group ID"
-        )
-
-    .def_property("pid",
-        static_cast<getter_t<int32_t>>(&CorePrPsInfo::pid),
-        static_cast<setter_t<int32_t>>(&CorePrPsInfo::pid),
-        "Process ID"
-        )
-
-    .def_property("ppid",
-        static_cast<getter_t<int32_t>>(&CorePrPsInfo::ppid),
-        static_cast<setter_t<int32_t>>(&CorePrPsInfo::ppid),
-        "Process parent ID"
-        )
-
-    .def_property("pgrp",
-        static_cast<getter_t<int32_t>>(&CorePrPsInfo::pgrp),
-        static_cast<setter_t<int32_t>>(&CorePrPsInfo::pgrp),
-        "Process session group ID"
-        )
-
-    .def_property("sid",
-        static_cast<getter_t<int32_t>>(&CorePrPsInfo::sid),
-        static_cast<setter_t<int32_t>>(&CorePrPsInfo::sid),
-        "Process session ID"
-        )
-
-    .def("__eq__", &CorePrPsInfo::operator==)
-    .def("__ne__", &CorePrPsInfo::operator!=)
-    .def("__hash__",
-        [] (const CorePrPsInfo& note) {
-          return Hash::hash(note);
-        })
-
-    .def("__str__",
-        [] (const CorePrPsInfo& note)
-        {
-          std::ostringstream stream;
-          stream << note;
-          std::string str = stream.str();
-          return str;
-        });
+  cls
+    .def_prop_rw("info",
+        [] (const CorePrPsInfo& self) {
+          return LIEF::py::value_or_none(nb::overload_cast<>(&CorePrPsInfo::info, nb::const_), self);
+        },
+        nb::overload_cast<const CorePrPsInfo::info_t&>(&CorePrPsInfo::info)
+    )
+    LIEF_DEFAULT_STR(CorePrPsInfo);
 }
 
-}
 }

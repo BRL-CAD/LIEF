@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 #define LIEF_PE_SYMBOLS_H
 
 #include <string>
-#include <vector>
 #include <ostream>
 
 #include "LIEF/Object.hpp"
@@ -68,8 +67,6 @@ class LIEF_API Symbol : public LIEF::Symbol {
 
   void accept(Visitor& visitor) const override;
 
-  bool operator==(const Symbol& rhs) const;
-  bool operator!=(const Symbol& rhs) const;
 
   LIEF_API friend std::ostream& operator<<(std::ostream& os, const Symbol& entry);
 
@@ -79,7 +76,6 @@ class LIEF_API Symbol : public LIEF::Symbol {
   uint8_t  numberof_aux_symbols_ = 0;
   Section* section_ = nullptr;
   SYMBOL_STORAGE_CLASS storage_class_ = SYMBOL_STORAGE_CLASS::IMAGE_SYM_CLASS_INVALID;
-
 };
 
 

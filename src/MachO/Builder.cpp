@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@
 
 #include "logging.hpp"
 
-
 #include "LIEF/BinaryStream/BinaryStream.hpp"
 
 #include "LIEF/MachO/Builder.hpp"
 #include "LIEF/MachO/FatBinary.hpp"
 #include "LIEF/MachO/UUIDCommand.hpp"
+#include "LIEF/MachO/ExportInfo.hpp"
 
 #include "Object.tcc"
 
@@ -114,6 +114,11 @@ ok_error_t Builder::build() {
       build<T>(*cmd->as<BuildVersion>());
       continue;
     }
+
+    if (RPathCommand::classof(cmd.get())) {
+      build<T>(*cmd->as<RPathCommand>());
+      continue;
+    }
   }
 
   build_segments<T>();
@@ -140,7 +145,7 @@ ok_error_t Builder::build_fat() {
     std::vector<uint8_t> raw = build_raw(*binaries_[i], config_);
 
     auto alignment = BinaryStream::swap_endian<uint32_t>(arch->align);
-    uint32_t offset = align(raw_.size(), 1 << alignment);
+    uint32_t offset = align(raw_.size(), 1llu << alignment);
 
     arch->offset = BinaryStream::swap_endian<uint32_t>(offset);
     arch->size   = BinaryStream::swap_endian<uint32_t>(raw.size());

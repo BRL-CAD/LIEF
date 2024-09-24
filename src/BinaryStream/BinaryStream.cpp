@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,6 @@
 #define TMPL_DECL(T) template T BinaryStream::swap_endian<T>(T u)
 
 namespace LIEF {
-BinaryStream::~BinaryStream() = default;
-BinaryStream::BinaryStream() = default;
-
 
 template<typename T>
 T BinaryStream::swap_endian(T u) {
@@ -56,61 +53,35 @@ TMPL_DECL(int16_t);
 TMPL_DECL(int32_t);
 TMPL_DECL(int64_t);
 
-void BinaryStream::setpos(size_t pos) const {
-  pos_ = pos;
-}
-
-void BinaryStream::increment_pos(size_t value) const {
-  pos_ += value;
-}
-
-
-void BinaryStream::decrement_pos(size_t value) const {
-  if (pos_ >= value) {
-    pos_ -= value;
-  } else {
-    pos_ = 0;
-  }
-}
-
-
-BinaryStream::operator bool() const {
-  return pos_ < size();
-}
-
-size_t BinaryStream::pos() const {
-  return pos_;
-}
-
 
 result<int64_t> BinaryStream::read_dwarf_encoded(uint8_t encoding) const {
-  const auto encodevalue =  static_cast<LIEF::DWARF::EH_ENCODING>(encoding & 0x0F);
+  const auto encodevalue =  static_cast<LIEF::dwarf::EH_ENCODING>(encoding & 0x0F);
 
   switch (encodevalue) {
-    case LIEF::DWARF::EH_ENCODING::ULEB128:
+    case LIEF::dwarf::EH_ENCODING::ULEB128:
       {
         return read_uleb128();
       }
 
-    case LIEF::DWARF::EH_ENCODING::SDATA2:
-    case LIEF::DWARF::EH_ENCODING::UDATA2:
+    case LIEF::dwarf::EH_ENCODING::SDATA2:
+    case LIEF::dwarf::EH_ENCODING::UDATA2:
       {
         return read<int16_t>();
       }
 
-    case LIEF::DWARF::EH_ENCODING::SDATA4:
-    case LIEF::DWARF::EH_ENCODING::UDATA4:
+    case LIEF::dwarf::EH_ENCODING::SDATA4:
+    case LIEF::dwarf::EH_ENCODING::UDATA4:
       {
         return read<int32_t>();
       }
 
-    case LIEF::DWARF::EH_ENCODING::SDATA8:
-    case LIEF::DWARF::EH_ENCODING::UDATA8:
+    case LIEF::dwarf::EH_ENCODING::SDATA8:
+    case LIEF::dwarf::EH_ENCODING::UDATA8:
       {
         return read<int64_t>();
       }
 
-    case LIEF::DWARF::EH_ENCODING::SLEB128:
+    case LIEF::dwarf::EH_ENCODING::SLEB128:
       {
         return read_sleb128();
       }
@@ -164,7 +135,7 @@ result<uint64_t> BinaryStream::read_sleb128() const {
 result<std::string> BinaryStream::read_string(size_t maxsize) const {
   result<std::string> str = peek_string(maxsize);
   if (!str) {
-    return str.error();
+    return str;
   }
   increment_pos(str->size() + 1); // +1 for'\0'
   return str;
@@ -184,7 +155,7 @@ result<std::string> BinaryStream::peek_string(size_t maxsize) const {
   do {
     c = peek<char>(off);
     if (!c) {
-      return c.error();
+      return make_error_code(c.error());
     }
     off += sizeof(char);
     str_result.push_back(*c);
@@ -206,7 +177,7 @@ result<std::string> BinaryStream::peek_string_at(size_t offset, size_t maxsize) 
 result<std::u16string> BinaryStream::read_u16string() const {
   result<std::u16string> str = peek_u16string();
   if (!str) {
-    return str.error();
+    return str;
   }
   increment_pos((str->size() + 1) * sizeof(uint16_t)); // +1 for'\0'
   return str.value();
@@ -225,7 +196,7 @@ result<std::u16string> BinaryStream::peek_u16string() const {
   do {
     c = peek<char16_t>(off);
     if (!c) {
-      return c.error();
+      return make_error_code(c.error());
     }
     off += sizeof(char16_t);
     u16_str.push_back(*c);
@@ -288,7 +259,7 @@ result<std::string> BinaryStream::read_mutf8(size_t maxsize) const {
   for (size_t i = 0; i < maxsize; ++i) {
     result<uint8_t> res_a = read<char>();
     if (!res_a) {
-      return res_a.error();
+      return make_error_code(res_a.error());
     }
     uint8_t a = *res_a;
 
@@ -301,7 +272,7 @@ result<std::string> BinaryStream::read_mutf8(size_t maxsize) const {
 
       result<uint8_t> res_b = read<int8_t>();
       if (!res_b) {
-        return res_b.error();
+        return make_error_code(res_b.error());
       }
       uint8_t b = *res_b & 0xFF;
 
@@ -313,10 +284,10 @@ result<std::string> BinaryStream::read_mutf8(size_t maxsize) const {
         result<uint8_t> res_b = read<uint8_t>();
         result<uint8_t> res_c = read<uint8_t>();
         if (!res_b) {
-          return res_b.error();
+          return make_error_code(res_b.error());
         }
         if (!res_c) {
-          return res_c.error();
+          return make_error_code(res_c.error());
         }
         uint8_t b = *res_b;
         uint8_t c = *res_c;
@@ -342,55 +313,4 @@ result<std::string> BinaryStream::read_mutf8(size_t maxsize) const {
   return u8str;
 }
 
-void BinaryStream::set_endian_swap(bool swap) {
-  endian_swap_ = swap;
 }
-
-result<size_t> BinaryStream::asn1_read_tag(int) {
-  return make_error_code(lief_errors::not_implemented);
-}
-
-result<size_t> BinaryStream::asn1_read_len() {
-  return make_error_code(lief_errors::not_implemented);
-}
-
-result<std::string> BinaryStream::asn1_read_alg() {
-  return make_error_code(lief_errors::not_implemented);
-}
-
-result<std::string> BinaryStream::asn1_read_oid() {
-  return make_error_code(lief_errors::not_implemented);
-}
-
-result<int32_t> BinaryStream::asn1_read_int() {
-  return make_error_code(lief_errors::not_implemented);
-}
-
-result<std::vector<uint8_t>> BinaryStream::asn1_read_bitstring() {
-  return make_error_code(lief_errors::not_implemented);
-}
-
-result<std::vector<uint8_t>> BinaryStream::asn1_read_octet_string() {
-  return make_error_code(lief_errors::not_implemented);
-}
-
-result<std::unique_ptr<mbedtls_x509_crt>> BinaryStream::asn1_read_cert() {
-  return make_error_code(lief_errors::not_implemented);
-}
-
-result<std::string> BinaryStream::x509_read_names() {
-  return make_error_code(lief_errors::not_implemented);
-}
-
-result<std::vector<uint8_t>> BinaryStream::x509_read_serial() {
-  return make_error_code(lief_errors::not_implemented);
-}
-
-result<std::unique_ptr<mbedtls_x509_time>> BinaryStream::x509_read_time() {
-  return make_error_code(lief_errors::not_implemented);
-}
-
-
-
-}
-

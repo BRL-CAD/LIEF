@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,17 @@
 #include <limits>
 #include <set>
 #include <map>
+#include <unordered_map>
 
-#include "LIEF/types.hpp"
 #include "LIEF/visibility.h"
 #include "LIEF/errors.hpp"
 
 #include "LIEF/Abstract/Parser.hpp"
 
 #include "LIEF/MachO/enums.hpp"
+#include "LIEF/MachO/DyldChainedFormat.hpp"
 #include "LIEF/MachO/ParserConfig.hpp"
-#include "LIEF/MachO/type_traits.hpp"
+#include "LIEF/MachO/DyldBindingInfo.hpp"
 
 namespace LIEF {
 class BinaryStream;
@@ -95,7 +96,7 @@ class LIEF_API BinaryParser : public LIEF::Parser {
   BinaryParser& operator=(const BinaryParser& copy) = delete;
   BinaryParser(const BinaryParser& copy) = delete;
 
-  ~BinaryParser();
+  ~BinaryParser() override;
 
   private:
   using exports_list_t = std::vector<std::unique_ptr<ExportInfo>>;
@@ -140,7 +141,7 @@ class LIEF_API BinaryParser : public LIEF::Parser {
   using it_opaque_segments = void*; // To avoid including Binary.hpp. It must contains it_opaque_segments
 
   template<class MACHO_T>
-  ok_error_t do_bind(BINDING_CLASS cls, uint8_t type, uint8_t segment_idx,
+  ok_error_t do_bind(DyldBindingInfo::CLASS cls, uint8_t type, uint8_t segment_idx,
                      uint64_t segment_offset, const std::string& symbol_name,
                      int32_t ord, int64_t addend, bool is_weak,
                      bool is_non_weak_definition, it_opaque_segments segments_ptr, uint64_t offset = 0);
@@ -148,7 +149,7 @@ class LIEF_API BinaryParser : public LIEF::Parser {
 
   template<class MACHO_T>
   ok_error_t do_rebase(uint8_t type, uint8_t segment_idx, uint64_t segment_offset,
-                       const it_opaque_segments segments);
+                       it_opaque_segments segments);
 
   /*
    * This set of functions are related to the parsing of LC_DYLD_CHAINED_FIXUPS
@@ -222,13 +223,16 @@ class LIEF_API BinaryParser : public LIEF::Parser {
   template<class MACHO_T>
   ok_error_t post_process(CodeSignatureDir& cmd);
 
+  ok_error_t parse_overlay();
+
   // Exports
   // -------
   ok_error_t parse_dyldinfo_export();
   ok_error_t parse_dyld_exports();
 
   ok_error_t parse_export_trie(exports_list_t& exports, uint64_t start,
-                               uint64_t end, const std::string& prefix);
+                               uint64_t end, const std::string& prefix,
+                               bool* invalid_names);
 
   void copy_from(ChainedBindingInfo& to, ChainedBindingInfo& from);
 
@@ -238,7 +242,7 @@ class LIEF_API BinaryParser : public LIEF::Parser {
   bool                           is64_ = true;
   ParserConfig                   config_;
   std::set<uint64_t>             visited_;
-  std::map<std::string, Symbol*> memoized_symbols_;
+  std::unordered_map<std::string, Symbol*> memoized_symbols_;
   std::map<uint64_t, Symbol*>    memoized_symbols_by_address_;
 
   std::vector<DylibCommand*> binding_libs_;

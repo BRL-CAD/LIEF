@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,22 @@
 #define LIEF_DEX_PARSER_H
 
 #include <memory>
+#include <vector>
+#include <string>
+#include <unordered_map>
 
 #include "LIEF/visibility.h"
-
-#include "LIEF/BinaryStream/VectorStream.hpp"
-
-#include "LIEF/DEX/File.hpp"
+#include "LIEF/DEX/types.hpp"
 
 namespace LIEF {
+class VectorStream;
+
 namespace DEX {
 class Class;
 class Method;
 class Field;
+class File;
+class Type;
 
 //! Class which parses a DEX file to produce a DEX::File object
 class LIEF_API Parser {
@@ -114,9 +118,6 @@ class LIEF_API Parser {
 
   std::unique_ptr<VectorStream> stream_;
 };
-
-
-
 
 } // namespace DEX
 } // namespace LIEF

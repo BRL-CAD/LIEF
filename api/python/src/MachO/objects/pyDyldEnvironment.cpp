@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,54 +17,29 @@
 
 #include <string>
 #include <sstream>
+#include <nanobind/stl/string.h>
 
-#include "LIEF/MachO/hash.hpp"
 #include "LIEF/MachO/DyldEnvironment.hpp"
 
-#include "pyMachO.hpp"
+#include "MachO/pyMachO.hpp"
 
-namespace LIEF {
-namespace MachO {
-
-template<class T>
-using getter_t = T (DyldEnvironment::*)(void) const;
-
-template<class T>
-using setter_t = void (DyldEnvironment::*)(T);
-
+namespace LIEF::MachO::py {
 
 template<>
-void create<DyldEnvironment>(py::module& m) {
+void create<DyldEnvironment>(nb::module_& m) {
 
-  py::class_<DyldEnvironment, LoadCommand>(m, "DyldEnvironment",
+  nb::class_<DyldEnvironment, LoadCommand>(m, "DyldEnvironment",
       R"delim(
       Class that represents a LC_DYLD_ENVIRONMENT which is
       used by the Mach-O linker/loader to initialize an environment variable
-      )delim")
+      )delim"_doc)
 
-    .def_property("value",
-        static_cast<getter_t<const std::string&>>(&DyldEnvironment::value),
-        static_cast<setter_t<const std::string&>>(&DyldEnvironment::value),
-        "Environment variable as a string",
-        py::return_value_policy::reference_internal)
+    .def_prop_rw("value",
+        nb::overload_cast<>(&DyldEnvironment::value, nb::const_),
+        nb::overload_cast<std::string>(&DyldEnvironment::value),
+        "Environment variable as a string"_doc,
+        nb::rv_policy::reference_internal)
 
-    .def("__eq__", &DyldEnvironment::operator==)
-    .def("__ne__", &DyldEnvironment::operator!=)
-    .def("__hash__",
-        [] (const DyldEnvironment& env) {
-          return Hash::hash(env);
-        })
-
-
-    .def("__str__",
-        [] (const DyldEnvironment& env)
-        {
-          std::ostringstream stream;
-          stream << env;
-          return stream.str();
-        });
-
-}
-
+    LIEF_DEFAULT_STR(DyldEnvironment);
 }
 }

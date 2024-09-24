@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,123 +13,140 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "pyELF.hpp"
+#include <string>
+#include <sstream>
+#include <nanobind/stl/string.h>
 
-#include "LIEF/ELF/hash.hpp"
+#include "ELF/pyELF.hpp"
+#include "enums_wrapper.hpp"
+
 #include "LIEF/ELF/Relocation.hpp"
 #include "LIEF/ELF/Symbol.hpp"
 #include "LIEF/ELF/Section.hpp"
 
-#include <string>
-#include <sstream>
+namespace LIEF::ELF::py {
 
-namespace LIEF {
-namespace ELF {
-
-template<class T>
-using getter_t = T (Relocation::*)(void) const;
-
-template<class T>
-using setter_t = void (Relocation::*)(T);
-
+void init_relocation_types(nb::class_<Relocation, LIEF::Relocation>& m);
 
 template<>
-void create<Relocation>(py::module& m) {
-
-  // Relocation object
-  py::class_<Relocation, LIEF::Relocation>(m, "Relocation",
+void create<Relocation>(nb::module_& m) {
+  nb::class_<Relocation, LIEF::Relocation> reloc(m, "Relocation",
       R"delim(
       Class that represents an ELF relocation.
-      )delim")
-    .def(py::init<>())
-    .def(py::init<ARCH>(), "arch"_a)
-    .def(py::init<uint64_t, uint32_t, int64_t, bool>(),
-        "address"_a, "type"_a = 0, "addend"_a = 0, "is_rela"_a = false)
+      )delim"_doc);
 
-    .def_property("addend",
-        static_cast<getter_t<int64_t>>(&Relocation::addend),
-        static_cast<setter_t<int64_t>>(&Relocation::addend),
-        "Additional value")
+  init_relocation_types(reloc);
 
-    .def_property("info",
-        static_cast<getter_t<uint32_t>>(&Relocation::info),
-        static_cast<setter_t<uint32_t>>(&Relocation::info),
-        "Extra information like the symbol index")
+  enum_<Relocation::PURPOSE>(reloc, "PURPOSE")
+    .value("NONE", Relocation::PURPOSE::NONE)
+    .value("PLTGOT", Relocation::PURPOSE::PLTGOT)
+    .value("DYNAMIC", Relocation::PURPOSE::DYNAMIC)
+    .value("OBJECT", Relocation::PURPOSE::OBJECT);
 
-    .def_property("purpose",
-        static_cast<getter_t<RELOCATION_PURPOSES>>(&Relocation::purpose),
-        static_cast<setter_t<RELOCATION_PURPOSES>>(&Relocation::purpose),
+  enum_<Relocation::ENCODING>(reloc, "ENCODING")
+    .value("UNKNOWN", Relocation::ENCODING::UNKNOWN)
+    .value("ANDROID_SLEB", Relocation::ENCODING::ANDROID_SLEB,
+           "The relocation is using the packed Android-SLEB128 format"_doc)
+    .value("REL", Relocation::ENCODING::REL,
+           "The relocation is using the regular Elf_Rel structure"_doc)
+    .value("RELR", Relocation::ENCODING::RELR,
+           "The relocation is using the relative relocation format"_doc)
+    .value("RELA", Relocation::ENCODING::RELA,
+           "The relocation is using the regular Elf_Rela structure"_doc);
+
+  reloc
+    .def(nb::init<>())
+    .def(nb::init<ARCH>(), "arch"_a)
+    .def(nb::init<uint64_t, Relocation::TYPE, Relocation::ENCODING>(),
+        "address"_a, "type"_a, "encoding"_a)
+
+    .def_prop_rw("addend",
+        nb::overload_cast<>(&Relocation::addend, nb::const_),
+        nb::overload_cast<int64_t>(&Relocation::addend),
+        "Additional value"_doc)
+
+    .def_prop_rw("info",
+        nb::overload_cast<>(&Relocation::info, nb::const_),
+        nb::overload_cast<uint32_t>(&Relocation::info),
+        "Extra information like the symbol index"_doc)
+
+    .def_prop_rw("purpose",
+        nb::overload_cast<>(&Relocation::purpose, nb::const_),
+        nb::overload_cast<Relocation::PURPOSE>(&Relocation::purpose),
         R"delim(
-        Purpose of the relocation (:class:`~lief.ELF.RELOCATION_PURPOSES`).
-
+        Purpose of the relocation.
         This value provides the information about how the relocation is used (PLT/GOT resolution, ``.o`` file, ...)
-        )delim")
+        )delim"_doc)
 
-    .def_property("type",
-        static_cast<getter_t<uint32_t>>(&Relocation::type),
-        static_cast<setter_t<uint32_t>>(&Relocation::type),
-        R"delim(
-        Relocation type. This value depends on the underlying architecture.
+    .def_prop_rw("type",
+        nb::overload_cast<>(&Relocation::type, nb::const_),
+        nb::overload_cast<Relocation::TYPE>(&Relocation::type),
+        R"delim(Relocation type.)delim"_doc)
 
-        See:
-          * :class:`~lief.ELF.RELOCATION_X86_64`
-          * :class:`~lief.ELF.RELOCATION_i386`
-          * :class:`~lief.ELF.RELOCATION_AARCH64`
-          * :class:`~lief.ELF.RELOCATION_ARM`
-        )delim")
-
-    .def_property_readonly("has_symbol",
+    .def_prop_ro("has_symbol",
         &Relocation::has_symbol,
-        "``True`` if a " RST_CLASS_REF(lief.ELF.Symbol) " is associated with the relocation")
+        "``True`` if a " RST_CLASS_REF(lief.ELF.Symbol) " is associated with the relocation"_doc)
 
-    .def_property("symbol",
-        static_cast<Symbol* (Relocation::*)(void)>(&Relocation::symbol),
-        static_cast<void (Relocation::*)(Symbol*)>(&Relocation::symbol),
+    .def_prop_rw("symbol",
+        nb::overload_cast<>(&Relocation::symbol, nb::const_),
+        nb::overload_cast<Symbol*>(&Relocation::symbol),
         R"delim(
         :class:`~lief.ELF.Symbol` associated with the relocation or None
         if no symbol are associated with this relocation.
-        )delim",
-        py::return_value_policy::reference)
+        )delim"_doc,
+        nb::rv_policy::reference_internal)
 
-    .def_property_readonly("has_section",
+    .def_prop_ro("has_section",
         &Relocation::has_section,
         R"delim(
         ``True`` if this relocation has a :class:`lief.ELF.Section` associated with.
 
         This is usually the case for object files (``.o``)
-        )delim")
+        )delim"_doc)
 
-    .def_property_readonly("section",
-        static_cast<Section* (Relocation::*)(void)>(&Relocation::section),
+    .def_prop_ro("section",
+        nb::overload_cast<>(&Relocation::section),
         R"delim(
         :class:`~lief.ELF.Section` in which the relocation is applied or None if not relevant
-        )delim",
-        py::return_value_policy::reference)
+        )delim"_doc,
+        nb::rv_policy::reference_internal)
 
-    .def_property_readonly("is_rela",
-      static_cast<getter_t<bool>>(&Relocation::is_rela),
-      "``True`` if the relocation **uses** the :attr:`~lief.ELF.Relocation.addend` proprety")
+    .def_prop_ro("symbol_table",
+      nb::overload_cast<>(&Relocation::symbol_table),
+      R"delim(
+      the symbol table :class:`~lief.ELF.Section` which the relocation references
+      )delim"_doc,
+      nb::rv_policy::reference_internal)
 
-    .def_property_readonly("is_rel",
-      static_cast<getter_t<bool>>(&Relocation::is_rel),
-      "``True`` if the relocation **doesn't use** the :attr:`~lief.ELF.Relocation.addend` proprety")
+    .def_prop_ro("is_rela",
+      &Relocation::is_rela,
+      "``True`` if the relocation **uses** the :attr:`~lief.ELF.Relocation.addend` proprety"_doc)
 
-    .def("__eq__", &Relocation::operator==)
-    .def("__ne__", &Relocation::operator!=)
-    .def("__hash__",
-        [] (const Relocation& relocation) {
-          return Hash::hash(relocation);
-        })
+    .def_prop_ro("is_rel",
+      &Relocation::is_rel,
+      "``True`` if the relocation **doesn't use** the :attr:`~lief.ELF.Relocation.addend` proprety"_doc)
 
-    .def("__str__",
-      [] (const Relocation& relocation)
-        {
-          std::ostringstream stream;
-          stream << relocation;
-          std::string str =  stream.str();
-          return str;
-        });
+    .def("r_info", &Relocation::r_info,
+      R"delim(
+      (re)Compute the raw ``r_info`` attribute based on the given ELF class
+      )delim"_doc, "clazz"_a)
+
+    .def_prop_ro("is_relatively_encoded", &Relocation::is_relatively_encoded,
+                 "True if the relocation is using the relative encoding"_doc)
+
+    .def_prop_ro("is_android_packed", &Relocation::is_android_packed,
+                 "True if the relocation is using the Android packed relocation format"_doc)
+
+    .def_prop_ro("is_rel", &Relocation::is_rel,
+        R"delim(
+        Check if the relocation uses the implicit addend
+        (i.e. not present in the ELF structure)
+        )delim"_doc)
+
+    .def_prop_ro("encoding", &Relocation::encoding,
+                 "The encoding of the relocation")
+
+    LIEF_DEFAULT_STR(Relocation);
 }
 
-}
 }

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef LIEF_PE_UTILS_LIBRARY_TABLE_STD_H_
-#define LIEF_PE_UTILS_LIBRARY_TABLE_STD_H_
-
-#include <unordered_map>
+#ifndef LIEF_PE_UTILS_LIBRARY_TABLE_STD_H
+#define LIEF_PE_UTILS_LIBRARY_TABLE_STD_H
 
 #include "ws2_32_dll_lookup.hpp"
 #include "oleauth32_dll_lookup.hpp"

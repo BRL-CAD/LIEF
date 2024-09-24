@@ -12,7 +12,7 @@ if not is_linux():
 
 COMPILER = get_compiler()
 
-lief.logging.set_level(lief.logging.LOGGING_LEVEL.INFO)
+lief.logging.set_level(lief.logging.LEVEL.INFO)
 
 BINADD_C = """\
 #include <stdio.h>
@@ -67,11 +67,11 @@ def test_write_object(tmp_path: Path):
 
     compile_obj(binadd_o, binadd_c)
 
-    binadd = lief.parse(binadd_o.as_posix())
+    binadd = lief.ELF.parse(binadd_o.as_posix())
     init_obj = [str(o).strip() for o in binadd.object_relocations]
 
     binadd.write(newfile_o.as_posix())
-    binadd = lief.parse(newfile_o.as_posix())
+    binadd = lief.ELF.parse(newfile_o.as_posix())
     new_obj = [str(o).strip() for o in binadd.object_relocations]
 
     assert len(init_obj) == len(new_obj)
@@ -93,12 +93,12 @@ def test_update_addend_object(tmp_path: Path):
     binadd_c.write_text(BINADD_C)
 
     compile_obj(binadd_o, binadd_c)
-    binadd = lief.parse(binadd_o.as_posix())
+    binadd = lief.ELF.parse(binadd_o.as_posix())
     reloc = next(o for o in binadd.object_relocations if o.symbol.name == "add")
 
     reloc.addend = 0xABCD
     binadd.write(newfile_o.as_posix())
-    binadd = lief.parse(newfile_o.as_posix())
+    binadd = lief.ELF.parse(newfile_o.as_posix())
     reloc = next(o for o in binadd.object_relocations if o.symbol.name == "add")
 
     assert reloc.addend == 0xABCD

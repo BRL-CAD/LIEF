@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@
 #include "LIEF/MachO/LinkEdit.hpp"
 #include "LIEF/MachO/LinkerOptHint.hpp"
 #include "LIEF/MachO/MainCommand.hpp"
+#include "LIEF/MachO/RPathCommand.hpp"
 #include "LIEF/MachO/RelocationFixup.hpp"
 #include "LIEF/MachO/Section.hpp"
 #include "LIEF/MachO/SegmentCommand.hpp"
@@ -173,7 +174,7 @@ ok_error_t Builder::build_segments() {
       const Section& section = sections[i];
       const std::string& sec_name = section.name();
       const std::string& segment_name = segment.name();
-      LIEF_DEBUG("{}", section);
+      LIEF_DEBUG("{}", to_string(section));
       section_t header;
       std::memset(&header, 0, sizeof(header));
 
@@ -194,7 +195,8 @@ ok_error_t Builder::build_segments() {
       header.flags     = static_cast<uint32_t>(section.raw_flags());
       header.reserved1 = static_cast<uint32_t>(section.reserved1());
       header.reserved2 = static_cast<uint32_t>(section.reserved2());
-      if (std::is_same<section_t, details::section_64>::value) { // TODO: Move to if constexpr when LIEF will use C++17
+
+      if constexpr (std::is_same_v<section_t, details::section_64>) {
         reinterpret_cast<details::section_64*>(&header)->reserved3 = static_cast<uint32_t>(section.reserved3());
       }
 
@@ -346,6 +348,47 @@ ok_error_t Builder::build(SourceVersion& source_version) {
   return ok();
 }
 
+
+template<class T>
+ok_error_t Builder::build(RPathCommand& rpath_cmd) {
+  LIEF_DEBUG("Build '{}'", to_string(rpath_cmd.command()));
+
+  const uint32_t raw_size = sizeof(details::rpath_command) + rpath_cmd.path().size() + 1;
+  const uint32_t size_needed = align(raw_size, sizeof(typename T::uint));
+  const uint32_t padding = size_needed - raw_size;
+
+  if (rpath_cmd.original_data_.size() != size_needed ||
+      rpath_cmd.size() != size_needed)
+  {
+    LIEF_WARN("Not enough room left to rebuild {}."
+              "required=0x{:x} available=0x{:x}",
+              rpath_cmd.path(), size_needed, rpath_cmd.original_data_.size());
+  }
+
+
+  details::rpath_command raw_cmd;
+  std::memset(&raw_cmd, 0, sizeof(details::rpath_command));
+
+  raw_cmd.cmd     = static_cast<uint32_t>(rpath_cmd.command());
+  raw_cmd.cmdsize = static_cast<uint32_t>(size_needed);
+  raw_cmd.path    = static_cast<uint32_t>(sizeof(details::rpath_command));
+
+  rpath_cmd.size_ = size_needed;
+  rpath_cmd.original_data_.clear();
+
+  // Write Header
+  std::move(reinterpret_cast<uint8_t*>(&raw_cmd),
+            reinterpret_cast<uint8_t*>(&raw_cmd) + sizeof(raw_cmd),
+            std::back_inserter(rpath_cmd.original_data_));
+
+  // Write String
+  const std::string& rpath = rpath_cmd.path();
+  std::move(std::begin(rpath), std::end(rpath),
+            std::back_inserter(rpath_cmd.original_data_));
+  rpath_cmd.original_data_.push_back(0);
+  rpath_cmd.original_data_.insert(std::end(rpath_cmd.original_data_), padding, 0);
+  return ok();
+}
 
 template<class T>
 ok_error_t Builder::build(MainCommand& main_cmd) {
@@ -556,14 +599,9 @@ ok_error_t Builder::build(SymbolCommand& symbol_command) {
   std::memset(&symtab, 0, sizeof(details::symtab_command));
   DynamicSymbolCommand* dynsym = binary_->dynamic_symbol_command();
 
-  if (dynsym == nullptr) {
-    LIEF_ERR("Can't rebuild LC_SYMTAB: LC_DYSYMTAB not found");
-    return make_error_code(lief_errors::not_found);
-  }
-
   /* 1. Fille the n_list table */ {
     for (Symbol& s : binary_->symbols()) {
-      if (s.origin() != SYMBOL_ORIGINS::SYM_ORIGIN_LC_SYMTAB) {
+      if (s.origin() != Symbol::ORIGIN::LC_SYMTAB) {
         continue;
       }
       all_syms.push_back(&s);
@@ -605,32 +643,44 @@ ok_error_t Builder::build(SymbolCommand& symbol_command) {
 
     size_t isym = 0;
     /* Local Symbols */ {
-      dynsym->idx_local_symbol(isym);
+      if (dynsym != nullptr) {
+        dynsym->idx_local_symbol(isym);
+      }
       for (Symbol* sym : local_syms) {
         indirect_symbols[sym] = isym;
         write_symbol<T>(nlist_table, *sym, offset_name_map);
         ++isym;
       }
-      dynsym->nb_local_symbols(local_syms.size());
+      if (dynsym != nullptr) {
+        dynsym->nb_local_symbols(local_syms.size());
+      }
     }
 
     /* External Symbols */ {
-      dynsym->idx_external_define_symbol(isym);
+      if (dynsym != nullptr) {
+        dynsym->idx_external_define_symbol(isym);
+      }
       for (Symbol* sym : ext_syms)   {
         indirect_symbols[sym] = isym;
         write_symbol<T>(nlist_table, *sym, offset_name_map);
         ++isym;
       }
-      dynsym->nb_external_define_symbols(ext_syms.size());
+      if (dynsym != nullptr) {
+        dynsym->nb_external_define_symbols(ext_syms.size());
+      }
     }
     /* Undefined Symbols */ {
-      dynsym->idx_undefined_symbol(isym);
+      if (dynsym != nullptr) {
+        dynsym->idx_undefined_symbol(isym);
+      }
       for (Symbol* sym : undef_syms) {
         indirect_symbols[sym] = isym;
         write_symbol<T>(nlist_table, *sym, offset_name_map);
         ++isym;
       }
-      dynsym->nb_undefined_symbols(undef_syms.size());
+      if (dynsym != nullptr) {
+        dynsym->nb_undefined_symbols(undef_syms.size());
+      }
     }
 
     /* The other symbols [...] */ {
@@ -640,7 +690,7 @@ ok_error_t Builder::build(SymbolCommand& symbol_command) {
         ++isym;
       }
     }
-    nlist_table.align(8);
+    nlist_table.align(binary_->is64_ ? 8 : 4);
 
     raw_nlist_table = nlist_table.raw();
     symtab.symoff = linkedit_offset_ + linkedit_.size();
@@ -660,7 +710,7 @@ ok_error_t Builder::build(SymbolCommand& symbol_command) {
   /*
    * Indirect symbol table
    */
-  {
+  if (dynsym != nullptr) {
     LIEF_DEBUG("LC_DYSYMTAB.indirectsymoff: 0x{:06x} -> 0x{:x}",
                dynsym->indirect_symbol_offset(), linkedit_offset_ + linkedit_.size());
     dynsym->indirect_symbol_offset(linkedit_offset_ + linkedit_.size());
@@ -686,7 +736,7 @@ ok_error_t Builder::build(SymbolCommand& symbol_command) {
         LIEF_ERR("Can't find the symbol index");
       }
     }
-    LIEF_DEBUG("LC_SYMTAB.nindirectsyms:    0x{:06x} -> 0x{:x}",
+    LIEF_DEBUG("LC_DYSYMTAB.nindirectsyms:    0x{:06x} -> 0x{:x}",
                dynsym->nb_indirect_symbols(), count);
     dynsym->nb_indirect_symbols(count);
   }
@@ -926,7 +976,7 @@ ok_error_t Builder::build(ThreadCommand& tc) {
   details::thread_command raw_cmd;
   std::memset(&raw_cmd, 0, sizeof(details::thread_command));
 
-  const std::vector<uint8_t>& state = tc.state();
+  const span<const uint8_t> state = tc.state();
 
   const uint32_t raw_size = sizeof(details::thread_command) + state.size();
   const uint32_t size_needed = align(raw_size, sizeof(typename T::uint));
@@ -1476,9 +1526,5 @@ ok_error_t Builder::build(TwoLevelHints& two) {
   memcpy(two.original_data_.data(), &raw_cmd, sizeof(details::linkedit_data_command));
   return ok();
 }
-
-
-
-
 }
 }

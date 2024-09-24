@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,52 +14,23 @@
  * limitations under the License.
  */
 #include "LIEF/ART/File.hpp"
-#include "LIEF/ART/hash.hpp"
 
-#include "pyART.hpp"
+#include "ART/pyART.hpp"
 
-namespace LIEF {
-namespace ART {
+#include <sstream>
+#include <nanobind/stl/string.h>
 
-template<class T>
-using no_const_getter = T (File::*)(void);
-
-template<class T, class P>
-using no_const_func = T (File::*)(P);
-
-template<class T>
-using getter_t = T (File::*)(void) const;
-
-template<class T>
-using setter_t = void (File::*)(T);
+namespace LIEF::ART::py {
 
 template<>
-void create<File>(py::module& m) {
+void create<File>(nb::module_& m) {
+  nb::class_<File, LIEF::Object>(m, "File", "ART File representation"_doc)
 
-  // File object
-  py::class_<File, LIEF::Object>(m, "File", "ART File representation")
-
-    .def_property_readonly("header",
-        static_cast<no_const_getter<Header&>>(&File::header),
-        "Return the ART " RST_CLASS_REF(lief.ART.Header) "",
-        py::return_value_policy::reference)
-
-    .def("__eq__", &File::operator==)
-    .def("__ne__", &File::operator!=)
-    .def("__hash__",
-        [] (const File& file) {
-          return Hash::hash(file);
-        })
-
-    .def("__str__",
-        [] (const File& file)
-        {
-          std::ostringstream stream;
-          stream << file;
-          std::string str = stream.str();
-          return str;
-        });
+    .def_prop_ro("header",
+        nb::overload_cast<>(&File::header),
+        "Return the ART " RST_CLASS_REF(lief.ART.Header) ""_doc,
+        nb::rv_policy::reference_internal)
+    LIEF_DEFAULT_STR(Header);
 }
 
-}
 }

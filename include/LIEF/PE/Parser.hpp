@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 
 #include "LIEF/Abstract/Parser.hpp"
 #include "LIEF/PE/enums.hpp"
+#include "LIEF/PE/ParserConfig.hpp"
 
 namespace LIEF {
 class BinaryStream;
@@ -38,6 +39,7 @@ class DelayImport;
 
 namespace details {
 struct pe_resource_directory_table;
+struct pe_debug;
 }
 
 //! Main interface to parse PE binaries. In particular the **static** functions:
@@ -73,13 +75,16 @@ class LIEF_API Parser : public LIEF::Parser {
 
   public:
   //! Parse a PE binary from the given filename
-  static std::unique_ptr<Binary> parse(const std::string& filename);
+  static std::unique_ptr<Binary> parse(const std::string& filename,
+                                       const ParserConfig& conf = ParserConfig::all());
 
   //! Parse a PE binary from a data buffer
-  static std::unique_ptr<Binary> parse(std::vector<uint8_t> data, const std::string& name = "");
+  static std::unique_ptr<Binary> parse(std::vector<uint8_t> data,
+                                       const ParserConfig& conf = ParserConfig::all());
 
   //! Parse a PE binary from the given BinaryStream
-  static std::unique_ptr<Binary> parse(std::unique_ptr<BinaryStream> stream, const std::string& name = "");
+  static std::unique_ptr<Binary> parse(std::unique_ptr<BinaryStream> stream,
+                                       const ParserConfig& conf = ParserConfig::all());
 
   Parser& operator=(const Parser& copy) = delete;
   Parser(const Parser& copy)            = delete;
@@ -89,10 +94,10 @@ class LIEF_API Parser : public LIEF::Parser {
   Parser(std::vector<uint8_t> data);
   Parser(std::unique_ptr<BinaryStream> stream);
 
-  ~Parser();
+  ~Parser() override;
   Parser();
 
-  void init(const std::string& name = "");
+  void init(const ParserConfig& config);
 
   template<typename PE_T>
   ok_error_t parse();
@@ -119,8 +124,10 @@ class LIEF_API Parser : public LIEF::Parser {
 
   ok_error_t parse_export_table();
   ok_error_t parse_debug();
-  ok_error_t parse_debug_code_view(Debug& debug_info);
-  ok_error_t parse_debug_pogo(Debug& debug_info);
+
+  std::unique_ptr<Debug> parse_code_view(const details::pe_debug& debug_info);
+  std::unique_ptr<Debug> parse_pogo(const details::pe_debug& debug_info);
+  std::unique_ptr<Debug> parse_repro(const details::pe_debug& debug_info);
 
   template<typename PE_T>
   ok_error_t parse_tls();
@@ -137,8 +144,6 @@ class LIEF_API Parser : public LIEF::Parser {
   ok_error_t parse_dos_stub();
   ok_error_t parse_rich_header();
 
-  result<uint32_t> checksum();
-
   std::unique_ptr<ResourceNode> parse_resource_node(
       const details::pe_resource_directory_table& directory_table,
       uint32_t base_offset, uint32_t current_offset, uint32_t depth = 0);
@@ -148,6 +153,7 @@ class LIEF_API Parser : public LIEF::Parser {
   std::unique_ptr<Binary> binary_;
   std::set<uint32_t> resource_visited_;
   std::unique_ptr<BinaryStream> stream_;
+  ParserConfig config_;
 };
 
 

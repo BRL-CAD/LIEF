@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -691,8 +691,7 @@ ok_error_t ResourcesParser::parse_tail_ext_dialog(ResourceDialog& dialog, Binary
   }
 
   if (auto res = stream.read<uint8_t>()) {
-    italic = *res;
-    dialog.italic_ = italic;
+    dialog.italic_ = static_cast<bool>(*res);
     LIEF_DEBUG("DLGTEMPLATEEX.italic: {}", italic);
   } else {
     LIEF_INFO("Can't read DLGTEMPLATEEX.italic");

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-# In this example, we replace all statics symbols in the .symtab
+# In this example, we replace all symtab symbols in the .symtab
 # with a random name.
 #
 # Example:
@@ -39,7 +39,7 @@ def randomword(length):
 
 def randomize(binary, output):
 
-    symbols = binary.static_symbols
+    symbols = binary.symtab_symbols
     if len(symbols) == 0:
         print("No symbols")
         return
@@ -48,12 +48,15 @@ def randomize(binary, output):
 
     binary.write(output)
 
-if __name__ == '__main__':
+def main():
     if len(sys.argv) != 3:
         print("Usage:", sys.argv[0], "<elf binary> <output binary>")
         sys.exit(-1)
 
     binary = lief.parse(sys.argv[1])
     randomize(binary, sys.argv[2])
+
+if __name__ == '__main__':
+    main()
 
 

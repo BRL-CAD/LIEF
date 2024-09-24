@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,65 +15,11 @@
  */
 #ifndef LIEF_ELF_NOTE_DETAILS_H
 #define LIEF_ELF_NOTE_DETAILS_H
-
-#include <vector>
-#include <ostream>
-
-#include "LIEF/Object.hpp"
-#include "LIEF/visibility.h"
-
-namespace LIEF {
-namespace ELF {
-
-class Parser;
-class Builder;
-class Binary;
-class Note;
-
-class LIEF_API NoteDetails : public Object {
-
-  friend class Parser;
-  friend class Builder;
-  friend class Binary;
-
-  public:
-  using description_t = std::vector<uint8_t>;
-  NoteDetails();
-
-  protected:
-  NoteDetails(Note& note);
-
-  public:
-  virtual ~NoteDetails();
-
-  virtual NoteDetails* clone() const;
-
-  const description_t& description() const;
-
-  virtual void dump(std::ostream& os) const;
-
-  bool operator==(const NoteDetails& rhs) const;
-  bool operator!=(const NoteDetails& rhs) const;
-
-  void accept(Visitor& visitor) const override;
-
-  LIEF_API friend std::ostream& operator<<(std::ostream& os, const NoteDetails& note);
-
-  protected:
-  virtual void parse();
-  virtual void build();
-
-  description_t& description();
-  Binary* binary();
-  const Binary* binary() const;
-
-  private:
-  Note* note_{nullptr};
-  description_t empty_;
-};
-
-
-} // namepsace ELF
-} // namespace LIEF
+#include "LIEF/ELF/NoteDetails/QNXStack.hpp"
+#include "LIEF/ELF/NoteDetails/AndroidIdent.hpp"
+#include "LIEF/ELF/NoteDetails/NoteAbi.hpp"
+#include "LIEF/ELF/NoteDetails/NoteGnuProperty.hpp"
+#include "LIEF/ELF/NoteDetails/Core.hpp"
+#include "LIEF/ELF/NoteDetails/Properties.hpp"
 
 #endif

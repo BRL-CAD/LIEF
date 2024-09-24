@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,11 @@
  */
 #ifndef LIEF_MACHO_LINK_EDIT_H
 #define LIEF_MACHO_LINK_EDIT_H
-
-#include <string>
-#include <vector>
-#include <ostream>
 #include <memory>
 
-#include "LIEF/types.hpp"
 #include "LIEF/visibility.h"
 
 #include "LIEF/MachO/SegmentCommand.hpp"
-
 
 namespace LIEF {
 namespace MachO {
@@ -55,24 +49,28 @@ class LIEF_API LinkEdit : public SegmentCommand {
   using SegmentCommand::SegmentCommand;
 
   LinkEdit& operator=(LinkEdit other);
-  LinkEdit(const LinkEdit& copy);
+  LinkEdit(const LinkEdit& copy) = default;
 
-  void swap(LinkEdit& other);
+  void swap(LinkEdit& other) noexcept;
 
-  SegmentCommand* clone() const override;
+  std::unique_ptr<LoadCommand> clone() const override {
+    return std::unique_ptr<LinkEdit>(new LinkEdit(*this));
+  }
 
-  ~LinkEdit() override;
+  ~LinkEdit() override = default;
 
-  bool operator==(const SegmentCommand& rhs) const;
-  bool operator!=(const SegmentCommand& rhs) const;
+  static bool classof(const LoadCommand* cmd) {
+    return SegmentCommand::classof(cmd);
+  }
 
-  static bool classof(const LoadCommand* cmd);
-  static bool segmentof(const SegmentCommand& segment);
+  static bool segmentof(const SegmentCommand& segment) {
+    return segment.name() == "__LINKEDIT";
+  }
 
   private:
-
-  LIEF_LOCAL void update_data(update_fnc_t f) override;
-  LIEF_LOCAL void update_data(update_fnc_ws_t f, size_t where, size_t size) override;
+  LIEF_LOCAL void update_data(const update_fnc_t& f) override;
+  LIEF_LOCAL void update_data(const update_fnc_ws_t& f,
+                              size_t where, size_t size) override;
 
   //x-ref to keep the spans in a consistent state
   DyldInfo* dyld_                    = nullptr;

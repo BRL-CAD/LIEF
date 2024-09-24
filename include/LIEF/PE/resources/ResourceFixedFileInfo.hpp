@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ class LIEF_API ResourceFixedFileInfo : public Object {
 
   ResourceFixedFileInfo(const ResourceFixedFileInfo&);
   ResourceFixedFileInfo& operator=(const ResourceFixedFileInfo&);
-  virtual ~ResourceFixedFileInfo();
+  ~ResourceFixedFileInfo() override;
 
   //! Must be set to ``0xFEEF04BD``
   uint32_t signature() const;
@@ -113,8 +113,6 @@ class LIEF_API ResourceFixedFileInfo : public Object {
 
   void accept(Visitor& visitor) const override;
 
-  bool operator==(const ResourceFixedFileInfo& rhs) const;
-  bool operator!=(const ResourceFixedFileInfo& rhs) const;
 
   LIEF_API friend std::ostream& operator<<(std::ostream& os, const ResourceFixedFileInfo& fixed_info);
 

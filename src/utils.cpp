@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@
 
 #include "third-party/utfcpp.hpp"
 
+#include "LIEF/config.h"
+
 namespace LIEF {
 namespace LEB128 {
 std::vector<uint8_t> uencode(uint64_t value) {
@@ -49,7 +51,7 @@ std::vector<uint8_t> uencode(uint64_t value) {
 template <typename octet_iterator>
 result<uint32_t> next(octet_iterator& it, octet_iterator end) {
   using namespace utf8;
-  uint32_t cp = 0;
+  utfchar32_t cp = 0;
   internal::utf_error err_code = internal::validate_next(it, end, cp);
   switch (err_code) {
     case internal::UTF8_OK :
@@ -72,7 +74,7 @@ std::string u16tou8(const std::u16string& string, bool remove_null_char) {
   std::u16string clean_string;
   std::copy_if(std::begin(string), std::end(string),
                std::back_inserter(clean_string),
-               utf8::internal::is_code_point_valid<char16_t>);
+               utf8::internal::is_code_point_valid);
 
   utf8::unchecked::utf16to8(std::begin(clean_string), std::end(clean_string),
                             std::back_inserter(name));
@@ -110,26 +112,32 @@ std::string hex_str(uint8_t c) {
   return ss.str();
 }
 
+template<class T>
+std::string hex_dump_impl(T data, const std::string& sep) {
+  std::vector<std::string> hexdigits;
+  hexdigits.reserve(data.size());
+  std::transform(data.begin(), data.end(), std::back_inserter(hexdigits),
+                 [] (uint8_t x) { return fmt::format("{:02x}", x); });
+  return fmt::to_string(fmt::join(hexdigits, sep));
+}
+
 std::string hex_dump(const std::vector<uint8_t>& data, const std::string& sep) {
-
-  std::string hexstring = std::accumulate(std::begin(data), std::end(data), std::string{},
-     [sep] (const std::string& a, uint8_t b) {
-         return a.empty() ? fmt::format("{:02x}", b) : a + sep + fmt::format("{:02x}", b);
-     });
-
-  return hexstring;
+  return hex_dump_impl(data, sep);
 }
 
-
-bool is_printable(const std::string& str) {
-  return std::all_of(std::begin(str), std::end(str),
-                     [] (char c) { return std::isprint<char>(c, std::locale("C")); });
+std::string hex_dump(span<const uint8_t> data, const std::string& sep) {
+  return hex_dump_impl(data, sep);
 }
+
 
 bool is_hex_number(const std::string& str) {
   return std::all_of(std::begin(str), std::end(str), isxdigit);
 }
 
+
+bool is_extended() {
+  return lief_extended;
+}
 
 
 } // namespace LIEF

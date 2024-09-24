@@ -1,20 +1,15 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+
 import lief
 import os
-import sys
 import stat
-import subprocess
-import time
 import ctypes
 import zipfile
 
-from subprocess import Popen
+from utils import get_sample, is_windows, win_exec
 
-from utils import get_sample
-
-if sys.platform.startswith("win"):
-    SEM_NOGPFAULTERRORBOX = 0x0002 # From MSDN
+if is_windows():
+    SEM_NOGPFAULTERRORBOX = 0x0002  # From MSDN
     ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX)
 
 def test_add_multiples_sections(tmp_path):
@@ -27,11 +22,11 @@ def test_add_multiples_sections(tmp_path):
     with zipfile.ZipFile(sample_file, 'r') as zip_ref:
         zip_ref.extractall(tmp_path)
 
-    notepadpp = lief.parse(sample.as_posix())
+    notepadpp = lief.PE.parse(sample.as_posix())
 
     # Add 20 sections to the binary
     for i in range(20):
-        section = lief.PE.Section(".section_{}".format(i))
+        section = lief.PE.Section(f".section_{i}")
         section.content = [i & 0xFF for i in range(0x200)]
         notepadpp.add_section(section)
 
@@ -43,20 +38,9 @@ def test_add_multiples_sections(tmp_path):
     st = os.stat(output)
     os.chmod(output, st.st_mode | stat.S_IEXEC)
 
-    if sys.platform.startswith("win"):
-        subprocess_flags = 0x8000000 # win32con.CREATE_NO_WINDOW?
-        p = Popen(["START", output.as_posix()], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, creationflags=subprocess_flags)
-        time.sleep(3)
-        q = Popen(["taskkill", "/im", "notepad++_sections.exe"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        stdout, _ = p.communicate()
-        print(stdout.decode("utf8"))
-
-        stdout, _ = q.communicate()
-        print(stdout.decode("utf8"))
-
-        assert q.returncode == 0
-
+    if ret := win_exec(output):
+        ret_code, stdout = ret
+        assert ret_code == 0
 
 def test_imports_notepadpp(tmp_path):
     sample_file = get_sample('PE/PE32_x86_binary_Notepad++.zip')
@@ -71,10 +55,10 @@ def test_imports_notepadpp(tmp_path):
     notepadpp = lief.parse(sample.as_posix())
 
     # Disable ASLR
-    notepadpp.optional_header.dll_characteristics &= ~lief.PE.DLL_CHARACTERISTICS.DYNAMIC_BASE
+    notepadpp.optional_header.dll_characteristics &= ~lief.PE.OptionalHeader.DLL_CHARACTERISTICS.DYNAMIC_BASE
 
     # Disable NX protection
-    notepadpp.optional_header.dll_characteristics &= ~lief.PE.DLL_CHARACTERISTICS.NX_COMPAT
+    notepadpp.optional_header.dll_characteristics &= ~lief.PE.OptionalHeader.DLL_CHARACTERISTICS.NX_COMPAT
 
     builder = lief.PE.Builder(notepadpp)
     builder.build_imports(True).patch_imports(True)
@@ -85,16 +69,17 @@ def test_imports_notepadpp(tmp_path):
     st = os.stat(output)
     os.chmod(output, st.st_mode | stat.S_IEXEC)
 
-    if sys.platform.startswith("win"):
-        subprocess_flags = 0x8000000 # win32con.CREATE_NO_WINDOW?
-        p = Popen(["START", output.as_posix()], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, creationflags=subprocess_flags)
-        time.sleep(3)
-        q = Popen(["taskkill", "/im", "notepad++_imports.exe"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if ret := win_exec(output):
+        ret_code, stdout = ret
+        assert ret_code == 0
 
-        stdout, _ = p.communicate()
-        print(stdout.decode("utf8"))
+def test_issue_952(tmp_path):
+    pe = lief.PE.parse(get_sample("PE/PE32_x86_binary_HelloWorld.exe"))
+    stub = bytes(pe.dos_stub)
+    assert not all(x == 0 for x in stub)
 
-        stdout, _ = q.communicate()
-        print(stdout.decode("utf8"))
+    out = tmp_path / "out.exe"
+    pe.write(out.as_posix())
 
-        assert q.returncode == 0
+    new = lief.PE.parse(out.as_posix())
+    assert bytes(new.dos_stub) == stub

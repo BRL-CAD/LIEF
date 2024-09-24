@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 #ifndef LIEF_ELF_SYSV_HASH_H
 #define LIEF_ELF_SYSV_HASH_H
 
+#include <cstdint>
 #include <vector>
 #include <ostream>
 
@@ -42,32 +43,37 @@ class LIEF_API SysvHash : public Object {
   friend class Binary;
 
   public:
-  SysvHash();
-  SysvHash& operator=(const SysvHash& copy);
-  SysvHash(const SysvHash& copy);
+  SysvHash() = default;
+  SysvHash& operator=(const SysvHash& copy) = default;
+  SysvHash(const SysvHash& copy) = default;
 
-  SysvHash& operator=(SysvHash&&);
-  SysvHash(SysvHash&&);
-  ~SysvHash() override;
+  SysvHash& operator=(SysvHash&&) = default;
+  SysvHash(SysvHash&&) = default;
+  ~SysvHash() override = default;
 
   //! @brief Return the number of buckets used
-  uint32_t nbucket() const;
-
-  //! @brief Return the number of chain used
-  uint32_t nchain() const;
-
-  //! @brief Buckets values
-  const std::vector<uint32_t>& buckets() const;
-
-  //! @brief Chains values
-  const std::vector<uint32_t>& chains() const;
-
-  inline void nchain(uint32_t nb) {
-    chains_.resize(nb);
+  uint32_t nbucket() const {
+    return buckets_.size();
   }
 
-  bool operator==(const SysvHash& rhs) const;
-  bool operator!=(const SysvHash& rhs) const;
+  //! @brief Return the number of chain used
+  uint32_t nchain() const {
+    return chains_.size();
+  }
+
+  //! @brief Buckets values
+  const std::vector<uint32_t>& buckets() const {
+    return buckets_;
+  }
+
+  //! @brief Chains values
+  const std::vector<uint32_t>& chains() const {
+    return chains_;
+  }
+
+  void nchain(uint32_t nb) {
+    chains_.resize(nb);
+  }
 
   void accept(Visitor& visitor) const override;
 
@@ -76,9 +82,7 @@ class LIEF_API SysvHash : public Object {
   private:
   std::vector<uint32_t> buckets_;
   std::vector<uint32_t> chains_;
-
 };
-
 
 } // namepsace ELF
 } // namespace LIEF

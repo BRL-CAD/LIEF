@@ -1,6 +1,6 @@
 
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ class LIEF_API ResourceDialogItem : public Object {
   ResourceDialogItem(const ResourceDialogItem&);
   ResourceDialogItem& operator=(const ResourceDialogItem&);
 
-  virtual ~ResourceDialogItem();
+  ~ResourceDialogItem() override;
 
   //! ``True`` if the control is an extended one
   bool is_extended() const;
@@ -100,8 +100,6 @@ class LIEF_API ResourceDialogItem : public Object {
 
   void accept(Visitor& visitor) const override;
 
-  bool operator==(const ResourceDialogItem& rhs) const;
-  bool operator!=(const ResourceDialogItem& rhs) const;
 
   LIEF_API friend std::ostream& operator<<(std::ostream& os, const ResourceDialogItem& dialog_item);
 

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ class LIEF_API ResourceVersion : public Object {
   public:
   ResourceVersion(const ResourceVersion&);
   ResourceVersion& operator=(const ResourceVersion&);
-  virtual ~ResourceVersion();
+  ~ResourceVersion() override;
 
   //! The type of data in the version resource
   //! * ``1`` if it contains text data
@@ -81,7 +81,9 @@ class LIEF_API ResourceVersion : public Object {
 
   void type(uint16_t type);
 
-  void key(const std::u16string& key);
+  void key(std::u16string key) {
+    key_ = std::move(key);
+  }
   void key(const std::string& key);
 
   void fixed_file_info(const ResourceFixedFileInfo& fixed_file_info);
@@ -95,8 +97,6 @@ class LIEF_API ResourceVersion : public Object {
 
   void accept(Visitor& visitor) const override;
 
-  bool operator==(const ResourceVersion& rhs) const;
-  bool operator!=(const ResourceVersion& rhs) const;
 
   LIEF_API friend std::ostream& operator<<(std::ostream& os, const ResourceVersion& version);
 

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,7 @@
 #ifndef LIEF_ABSTRACT_ENUMS_H
 #define LIEF_ABSTRACT_ENUMS_H
 
-#include "LIEF/types.hpp"
-
 namespace LIEF {
-
-//! LIEF executable format
-enum EXE_FORMATS {
-  FORMAT_UNKNOWN = 0,
-  FORMAT_ELF     = 1, /// ELF. See: LIEF::ELF
-  FORMAT_PE      = 2, /// PE. See: LIEF::PE
-  FORMAT_MACHO   = 3, /// Mach-O. See: LIEF::MachO
-};
 
 enum OBJECT_TYPES {
   TYPE_NONE       = 0,
@@ -48,6 +38,7 @@ enum ARCHITECTURES {
   ARCH_XCORE = 8,
   ARCH_INTEL = 9,
   ARCH_RISCV = 10,
+  ARCH_LOONGARCH = 11,
 };
 
 enum MODES {
@@ -74,10 +65,6 @@ enum ENDIANNESS {
   ENDIAN_BIG    = 1,
   ENDIAN_LITTLE = 2,
 };
-
-
-
-
 
 } // namespace LIEF
 #endif

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,5 +17,12 @@
 #define LIEF_DWARF_H
 
 #include "LIEF/DWARF/enums.hpp"
+#include "LIEF/DWARF/DebugInfo.hpp"
+#include "LIEF/DWARF/CompilationUnit.hpp"
+#include "LIEF/DWARF/Function.hpp"
+#include "LIEF/DWARF/Variable.hpp"
+#include "LIEF/DWARF/Scope.hpp"
+#include "LIEF/DWARF/Type.hpp"
+#include "LIEF/DWARF/types.hpp"
 
 #endif

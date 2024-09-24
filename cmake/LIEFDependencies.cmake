@@ -37,20 +37,9 @@ if(NOT LIEF_OPT_MBEDTLS_EXTERNAL)
   set(MBED_TLS_URL "${THIRD_PARTY_DIRECTORY}/mbedtls-${MBED_TLS_VERSION}.zip" CACHE STRING "URL to MbedTLS")
   set(MBED_TLS_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/mbed_tls")
 
-
-  ExternalProject_Add(lief_mbed_tls
-    PREFIX            ${MBED_TLS_PREFIX}
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND     ""
-    INSTALL_COMMAND   ""
-    URL               ${MBED_TLS_URL}
-    URL_HASH          ${MBED_TLS_SHA256}
-    UPDATE_COMMAND    "" # repetitive update are a pain
-    BUILD_BYPRODUCTS  ${MBED_TLS_PREFIX})
-
-  ExternalProject_get_property(lief_mbed_tls SOURCE_DIR)
+  set(SOURCE_DIR mbed_src)
   set(MBEDTLS_SOURCE_DIR "${SOURCE_DIR}")
-  set(MBEDTLS_INCLUDE_DIRS "${MBEDTLS_SOURCE_DIR}/include")
+  set(MBEDTLS_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_DIR}/library")
 
   set(mbedtls_src_crypto
     "${MBEDTLS_SOURCE_DIR}/library/aes.c"
@@ -155,6 +144,18 @@ if(NOT LIEF_OPT_MBEDTLS_EXTERNAL)
     "${MBEDTLS_SOURCE_DIR}/library/ssl_tls13_client.c"
     "${MBEDTLS_SOURCE_DIR}/library/ssl_tls13_generic.c"
   )
+
+  ExternalProject_Add(lief_mbed_tls
+    SOURCE_DIR        ${SOURCE_DIR}
+    PREFIX            ${MBED_TLS_PREFIX}
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND     ""
+    INSTALL_COMMAND   ""
+    URL               ${MBED_TLS_URL}
+    URL_HASH          ${MBED_TLS_SHA256}
+    UPDATE_COMMAND    "" # repetitive update are a pain
+    BUILD_BYPRODUCTS  ${mbedtls_src_crypto} ${mbedtls_src_x509} ${mbedtls_src_tls})
+
 endif()
 
 add_library(lief_spdlog INTERFACE)
@@ -166,8 +167,8 @@ if(LIEF_EXTERNAL_SPDLOG)
   get_target_property(SPDLOG_INC_DIR spdlog::spdlog INTERFACE_INCLUDE_DIRECTORIES)
   target_include_directories(lief_spdlog SYSTEM INTERFACE ${SPDLOG_INC_DIR})
 else()
-  set(SPDLOG_VERSION 1.11.0)
-  set(SPDLOG_SHA256 SHA256=33f83c6b86ec0fbbd0eb0f4e980da6767494dc0ad063900bcfae8bc3e9c75f21)
+  set(SPDLOG_VERSION 1.14.0)
+  set(SPDLOG_SHA256 SHA256=2cd8a65885e7937fdd046b181eed7e95d61bab7006bd0fb7b9c766185ed3e0ae)
   set(SPDLOG_URL "${THIRD_PARTY_DIRECTORY}/spdlog-${SPDLOG_VERSION}.zip" CACHE STRING "URL to the spdlog source")
   ExternalProject_Add(lief_spdlog_project
     URL               ${SPDLOG_URL}
@@ -208,30 +209,29 @@ if (LIEF_SUPPORT_CXX14 AND NOT LIEF_DISABLE_FROZEN)
   endif()
 endif()
 
-
-# Boost leaf
+# expected
 # ----------
-if(NOT LIEF_EXTERNAL_LEAF)
-  set(LEAF_VERSION 1.81.0)
-  set(LEAF_SHA256 SHA256=7974ad4d440114e1affd40067166a319cb5ea7309e03bf6622f20bc012ec46fc)
-  set(LEAF_URL "${THIRD_PARTY_DIRECTORY}/leaf-${LEAF_VERSION}.zip" CACHE STRING "URL to Leaf")
-  ExternalProject_Add(lief_leaf # :)
-    URL               ${LEAF_URL}
-    URL_HASH          ${LEAF_SHA256}
+if(NOT LIEF_EXTERNAL_EXPECTED)
+  set(EXPECTED_VERSION 1.1.0)
+  set(EXPECTED_SHA256 SHA256=4b2a347cf5450e99f7624247f7d78f86f3adb5e6acd33ce307094e9507615b78)
+  set(EXPECTED_URL "${THIRD_PARTY_DIRECTORY}/expected-${EXPECTED_VERSION}.zip" CACHE STRING "URL to Expected")
+  ExternalProject_Add(lief_expected
+    URL               ${EXPECTED_URL}
+    URL_HASH          ${EXPECTED_SHA256}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND     ""
     UPDATE_COMMAND    ""
     INSTALL_COMMAND   "")
 
-  ExternalProject_get_property(lief_leaf SOURCE_DIR)
-  set(LEAF_SRC_DIR "${SOURCE_DIR}")
+  ExternalProject_get_property(lief_expected SOURCE_DIR)
+  set(EXPECTED_SRC_DIR "${SOURCE_DIR}")
 endif()
 
 # utfcpp
 # ------
 if(NOT LIEF_OPT_UTFCPP_EXTERNAL)
-  set(UTFCPP_VERSION 3.2.1)
-  set(UTFCPP_SHA256 SHA256=04dacc4717d1ef9741f8254d1c56faf57a514684923ec35b2b98378ef016b87a)
+  set(UTFCPP_VERSION 4.0.5)
+  set(UTFCPP_SHA256 SHA256=91c9134a0d1c45be05ad394147cc8fda044f8313f23dc60d9ac5371175a8eff1)
   set(UTFCPP_URL "${THIRD_PARTY_DIRECTORY}/utfcpp-${UTFCPP_VERSION}.zip" CACHE STRING "URL to UTFCPP")
   ExternalProject_Add(lief_utfcpp
     URL               ${UTFCPP_URL}
@@ -248,8 +248,8 @@ endif()
 # https://github.com/tcbrindle/span
 # ---------------------------------
 if(NOT LIEF_EXTERNAL_SPAN)
-  set(TCB_SPAN_VERSION d6c6e30)
-  set(TCB_SPAN_SHA256 SHA256=c31fed99ea01526af28f26bb9b77a86d21e8964748708d57cf55a8813e883fe3)
+  set(TCB_SPAN_VERSION b70b0ff)
+  set(TCB_SPAN_SHA256 SHA256=f3d47ed83507fce94245a9f3cf97bc433cd1116f94d11ac0dca1a6f53bbeb239)
   set(TCB_SPAN_URL "${THIRD_PARTY_DIRECTORY}/tcb-span-${TCB_SPAN_VERSION}.zip" CACHE STRING "URL to tcb/span")
   ExternalProject_Add(lief_span
     URL               ${TCB_SPAN_URL}

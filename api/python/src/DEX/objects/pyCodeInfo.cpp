@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,42 +14,19 @@
  * limitations under the License.
  */
 #include "LIEF/DEX/CodeInfo.hpp"
-#include "LIEF/DEX/hash.hpp"
 
-#include "pyDEX.hpp"
+#include "DEX/pyDEX.hpp"
 
-namespace LIEF {
-namespace DEX {
+#include <string>
+#include <sstream>
 
-template<class T>
-using getter_t = T (CodeInfo::*)(void) const;
-
-template<class T>
-using no_const_getter_t = T (CodeInfo::*)(void);
-
-template<class T>
-using setter_t = void (CodeInfo::*)(T);
-
+namespace LIEF::DEX::py {
 
 template<>
-void create<CodeInfo>(py::module& m) {
+void create<CodeInfo>(nb::module_& m) {
 
-  py::class_<CodeInfo, LIEF::Object>(m, "CodeInfo", "DEX CodeInfo representation")
-
-    .def("__eq__", &CodeInfo::operator==)
-    .def("__ne__", &CodeInfo::operator!=)
-    .def("__hash__",
-        [] (const CodeInfo& cinfo) {
-          return Hash::hash(cinfo);
-        })
-
-    .def("__str__",
-        [] (const CodeInfo& cinfo) {
-          std::ostringstream stream;
-          stream << cinfo;
-          return stream.str();
-        });
-}
+  nb::class_<CodeInfo, LIEF::Object>(m, "CodeInfo", "DEX CodeInfo representation"_doc)
+    LIEF_DEFAULT_STR(CodeInfo);
 
 }
 }

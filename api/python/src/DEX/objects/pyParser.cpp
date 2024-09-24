@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,67 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "pyDEX.hpp"
+#include "DEX/pyDEX.hpp"
 
 #include "LIEF/DEX/Parser.hpp"
+#include "LIEF/DEX/File.hpp"
+#include "LIEF/logging.hpp"
+
+#include "pyutils.hpp"
+#include "pyIOStream.hpp"
+#include "typing/InputParser.hpp"
 
 #include <string>
+#include <memory>
 
-namespace LIEF {
-namespace DEX {
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
+#include <nanobind/stl/unique_ptr.h>
+
+namespace LIEF::DEX::py {
 
 template<>
-void create<Parser>(py::module& m) {
+void create<Parser>(nb::module_& m) {
+  using namespace LIEF::py;
 
   m.def("parse",
     static_cast<std::unique_ptr<File> (*) (const std::string&)>(&Parser::parse),
-    "Parse the given filename and return a " RST_CLASS_REF(lief.DEX.File) " object",
+    "Parse the given filename and return a " RST_CLASS_REF(lief.DEX.File) " object"_doc,
     "filename"_a,
-    py::return_value_policy::take_ownership);
+    nb::rv_policy::take_ownership);
 
   m.def("parse",
     static_cast<std::unique_ptr<File>(*)(std::vector<uint8_t>, const std::string&)>(&Parser::parse),
-    "Parse the given raw data and return a " RST_CLASS_REF(lief.DEX.File) " object",
+    "Parse the given raw data and return a " RST_CLASS_REF(lief.DEX.File) " object"_doc,
     "raw"_a, "name"_a = "",
-    py::return_value_policy::take_ownership);
-
+    nb::rv_policy::take_ownership);
 
   m.def("parse",
-      [] (py::object byteio, const std::string& name) {
-        const auto& io = py::module::import("io");
-        const auto& RawIOBase = io.attr("RawIOBase");
-        const auto& BufferedIOBase = io.attr("BufferedIOBase");
-        const auto& TextIOBase = io.attr("TextIOBase");
+    [] (typing::InputParser obj, const std::string& name) -> std::unique_ptr<File> {
+      if (auto path_str = path_to_str(obj)) {
+        return DEX::Parser::parse(std::move(*path_str));
+      }
 
-        py::object rawio;
+      if (auto stream = PyIOStream::from_python(obj)) {
+        auto ptr = std::make_unique<PyIOStream>(std::move(*stream));
+        return DEX::Parser::parse(stream->content(), name);
+      }
 
-
-        if (py::isinstance(byteio, RawIOBase)) {
-          rawio = byteio;
-        }
-
-        else if (py::isinstance(byteio, BufferedIOBase)) {
-          rawio = byteio.attr("raw");
-        }
-
-        else if (py::isinstance(byteio, TextIOBase)) {
-          rawio = byteio.attr("buffer").attr("raw");
-        }
-
-        else {
-          throw py::type_error(py::repr(byteio).cast<std::string>().c_str());
-        }
-
-        std::string raw_str = static_cast<py::bytes>(rawio.attr("readall")());
-        std::vector<uint8_t> raw = {
-          std::make_move_iterator(std::begin(raw_str)),
-          std::make_move_iterator(std::end(raw_str))};
-
-        return LIEF::DEX::Parser::parse(std::move(raw), name);
-      },
-      "io"_a, "name"_a = "",
-      py::return_value_policy::take_ownership);
-}
-
+      logging::log(logging::LEVEL::ERR,
+                   "LIEF parser interface does not support Python object: " +
+                   type2str(obj));
+      return nullptr;
+    }, "obj"_a, "name"_a = "",
+    nb::rv_policy::take_ownership);
 }
 }

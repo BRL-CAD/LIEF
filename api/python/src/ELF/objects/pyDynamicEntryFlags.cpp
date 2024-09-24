@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,104 +13,95 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "pyELF.hpp"
+#include <string>
+#include <sstream>
 
-#include "LIEF/ELF/hash.hpp"
+#include <nanobind/operators.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
+
+#include "ELF/pyELF.hpp"
+#include "enums_wrapper.hpp"
 
 #include "LIEF/ELF/DynamicEntryFlags.hpp"
 #include "LIEF/ELF/DynamicEntry.hpp"
 
-#include <string>
-#include <sstream>
-
-namespace LIEF {
-namespace ELF {
-
-template<class T>
-using getter_t = T (DynamicEntryFlags::*)(void) const;
-
-template<class T>
-using setter_t = void (DynamicEntryFlags::*)(T);
-
+namespace LIEF::ELF::py {
 
 template<>
-void create<DynamicEntryFlags>(py::module& m) {
+void create<DynamicEntryFlags>(nb::module_& m) {
+  nb::class_<DynamicEntryFlags, DynamicEntry> entry(m, "DynamicEntryFlags");
 
-  py::class_<DynamicEntryFlags, DynamicEntry>(m, "DynamicEntryFlags")
-    .def(py::init<>())
+  #define ENTRY(X) .value(to_string(DynamicEntryFlags::FLAG::X), DynamicEntryFlags::FLAG::X)
+  enum_<DynamicEntryFlags::FLAG>(entry, "FLAG")
+    ENTRY(ORIGIN)
+    ENTRY(SYMBOLIC)
+    ENTRY(TEXTREL)
+    ENTRY(BIND_NOW)
+    ENTRY(STATIC_TLS)
+    ENTRY(NOW)
+    ENTRY(GLOBAL)
+    ENTRY(GROUP)
+    ENTRY(NODELETE)
+    ENTRY(LOADFLTR)
+    ENTRY(INITFIRST)
+    ENTRY(NOOPEN)
+    ENTRY(HANDLE_ORIGIN)
+    ENTRY(DIRECT)
+    ENTRY(TRANS)
+    ENTRY(INTERPOSE)
+    ENTRY(NODEFLIB)
+    ENTRY(NODUMP)
+    ENTRY(CONFALT)
+    ENTRY(ENDFILTEE)
+    ENTRY(DISPRELDNE)
+    ENTRY(DISPRELPND)
+    ENTRY(NODIRECT)
+    ENTRY(IGNMULDEF)
+    ENTRY(NOKSYMS)
+    ENTRY(NOHDR)
+    ENTRY(EDITED)
+    ENTRY(NORELOC)
+    ENTRY(SYMINTPOSE)
+    ENTRY(GLOBAUDIT)
+    ENTRY(SINGLETON)
+    ENTRY(PIE)
+    ENTRY(KMOD)
+    ENTRY(WEAKFILTER)
+    ENTRY(NOCOMMON)
+  ;
+  #undef ENTRY
 
-    .def(py::init<DYNAMIC_TAGS, uint64_t>(),
-        "Constructor with " RST_CLASS_REF(lief.ELF.DYNAMIC_TAGS) " and value",
-        "tag"_a, "value"_a)
-
-    .def_property_readonly("flags",
+  entry
+    .def_prop_ro("flags",
         &DynamicEntryFlags::flags,
-        "Return list of " RST_CLASS_REF(lief.ELF.DYNAMIC_FLAGS) " or " RST_CLASS_REF(lief.ELF.DYNAMIC_FLAGS_1) " (integer)",
-        py::return_value_policy::move)
+        "Return list of :class:`~.FLAG`"_doc,
+        nb::rv_policy::move)
 
     .def("has",
-        static_cast<bool (DynamicEntryFlags::*)(DYNAMIC_FLAGS) const>(&DynamicEntryFlags::has),
-        "Check if this entry contains the given " RST_CLASS_REF(lief.ELF.DYNAMIC_FLAGS) "",
+        nb::overload_cast<DynamicEntryFlags::FLAG>(&DynamicEntryFlags::has, nb::const_),
+        "Check if this entry contains the given :class:`~.FLAG`"_doc,
         "flag"_a)
 
-    .def("has",
-        static_cast<bool (DynamicEntryFlags::*)(DYNAMIC_FLAGS_1) const>(&DynamicEntryFlags::has),
-        "Check if this entry contains the given " RST_CLASS_REF(lief.ELF.DYNAMIC_FLAGS_1) "",
-        "flag"_a)
 
     .def("add",
-        static_cast<void (DynamicEntryFlags::*)(DYNAMIC_FLAGS)>(&DynamicEntryFlags::add),
-        "Add the given " RST_CLASS_REF(lief.ELF.DYNAMIC_FLAGS) "",
-        "flag"_a)
-
-    .def("add",
-        static_cast<void (DynamicEntryFlags::*)(DYNAMIC_FLAGS_1)>(&DynamicEntryFlags::add),
-        "Add the given " RST_CLASS_REF(lief.ELF.DYNAMIC_FLAGS_1) "",
+        nb::overload_cast<DynamicEntryFlags::FLAG>(&DynamicEntryFlags::add),
+        "Add the given :class:`~.FLAG`"_doc,
         "flag"_a)
 
     .def("remove",
-        static_cast<void (DynamicEntryFlags::*)(DYNAMIC_FLAGS)>(&DynamicEntryFlags::remove),
-        "Remove the given " RST_CLASS_REF(lief.ELF.DYNAMIC_FLAGS) "",
+        nb::overload_cast<DynamicEntryFlags::FLAG>(&DynamicEntryFlags::remove),
+        "Remove the given :class:`~.FLAG`"_doc,
         "flag"_a)
 
-    .def("remove",
-        static_cast<void (DynamicEntryFlags::*)(DYNAMIC_FLAGS_1)>(&DynamicEntryFlags::remove),
-        "Remove the given " RST_CLASS_REF(lief.ELF.DYNAMIC_FLAGS_1) "",
-        "flag"_a)
-
-
-    .def("__eq__", &DynamicEntryFlags::operator==)
-    .def("__ne__", &DynamicEntryFlags::operator!=)
-    .def("__hash__",
-        [] (const DynamicEntryFlags& entry) {
-          return Hash::hash(entry);
-        })
-
-    .def(py::self += DYNAMIC_FLAGS())
-    .def(py::self += DYNAMIC_FLAGS_1())
-
-
-    .def(py::self -= DYNAMIC_FLAGS())
-    .def(py::self -= DYNAMIC_FLAGS_1())
+    .def(nb::self += DynamicEntryFlags::FLAG())
+    .def(nb::self -= DynamicEntryFlags::FLAG())
 
     .def("__contains__",
-        static_cast<bool (DynamicEntryFlags::*)(DYNAMIC_FLAGS) const>(&DynamicEntryFlags::has),
-        "Check if the given " RST_CLASS_REF(lief.ELF.DYNAMIC_FLAGS) " is present")
+        nb::overload_cast<DynamicEntryFlags::FLAG>(&DynamicEntryFlags::has, nb::const_),
+        "Check if the given :class:`~.FLAG` is present"_doc)
 
-    .def("__contains__",
-        static_cast<bool (DynamicEntryFlags::*)(DYNAMIC_FLAGS_1) const>(&DynamicEntryFlags::has),
-        "Check if the given " RST_CLASS_REF(lief.ELF.DYNAMIC_FLAGS_1) " is present")
-
-
-    .def("__str__",
-        [] (const DynamicEntryFlags& entry)
-        {
-          std::ostringstream stream;
-          stream << entry;
-          std::string str =  stream.str();
-          return str;
-        });
+    LIEF_DEFAULT_STR(DynamicEntryFlags);
 }
 
-}
 }

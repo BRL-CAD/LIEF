@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,98 +15,152 @@
  */
 #include <string>
 #include <sstream>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
+#include <nanobind/stl/unique_ptr.h>
+#include "nanobind/extra/memoryview.hpp"
+#include "nanobind/utils.hpp"
 
-#include "pyELF.hpp"
+#include "ELF/pyELF.hpp"
 
-#include "LIEF/ELF/hash.hpp"
 #include "LIEF/ELF/Note.hpp"
+#include "LIEF/ELF/NoteDetails.hpp"
 
-namespace LIEF {
-namespace ELF {
+#include "enums_wrapper.hpp"
 
-template<class T>
-using getter_t = T (Note::*)(void) const;
-
-template<class T>
-using setter_t = void (Note::*)(T);
-
+namespace LIEF::ELF::py {
 
 template<>
-void create<Note>(py::module& m) {
-
-  py::class_<Note, LIEF::Object>(m, "Note",
+void create<Note>(nb::module_& m) {
+  nb::class_<Note, Object> note(m, "Note",
       R"delim(
       Class which represents an ELF note.
-      )delim")
+      )delim"_doc);
 
-    .def(py::init<>(),
-        "Default constructor")
+  #define ENTRY(X) .value(to_string(Note::TYPE::X), Note::TYPE::X)
+  enum_<Note::TYPE>(note, "TYPE", "LIEF representation of the ELF `NT_` values.")
+    ENTRY(UNKNOWN)
+    ENTRY(GNU_ABI_TAG)
+    ENTRY(GNU_HWCAP)
+    ENTRY(GNU_ABI_TAG)
+    ENTRY(GNU_HWCAP)
+    ENTRY(GNU_BUILD_ID)
+    ENTRY(GNU_GOLD_VERSION)
+    ENTRY(GNU_PROPERTY_TYPE_0)
+    ENTRY(GNU_BUILD_ATTRIBUTE_OPEN)
+    ENTRY(GNU_BUILD_ATTRIBUTE_FUNC)
+    ENTRY(CRASHPAD)
+    ENTRY(CORE_PRSTATUS)
+    ENTRY(CORE_FPREGSET)
+    ENTRY(CORE_PRPSINFO)
+    ENTRY(CORE_TASKSTRUCT)
+    ENTRY(CORE_AUXV)
+    ENTRY(CORE_PSTATUS)
+    ENTRY(CORE_FPREGS)
+    ENTRY(CORE_PSINFO)
+    ENTRY(CORE_LWPSTATUS)
+    ENTRY(CORE_LWPSINFO)
+    ENTRY(CORE_WIN32PSTATUS)
+    ENTRY(CORE_FILE)
+    ENTRY(CORE_PRXFPREG)
+    ENTRY(CORE_SIGINFO)
+    ENTRY(CORE_ARM_VFP)
+    ENTRY(CORE_ARM_TLS)
+    ENTRY(CORE_ARM_HW_BREAK)
+    ENTRY(CORE_ARM_HW_WATCH)
+    ENTRY(CORE_ARM_SYSTEM_CALL)
+    ENTRY(CORE_ARM_SVE)
+    ENTRY(CORE_ARM_PAC_MASK)
+    ENTRY(CORE_ARM_PACA_KEYS)
+    ENTRY(CORE_ARM_PACG_KEYS)
+    ENTRY(CORE_TAGGED_ADDR_CTRL)
+    ENTRY(CORE_PAC_ENABLED_KEYS)
+    ENTRY(CORE_X86_TLS)
+    ENTRY(CORE_X86_IOPERM)
+    ENTRY(CORE_X86_XSTATE)
+    ENTRY(CORE_X86_CET)
+    ENTRY(ANDROID_MEMTAG)
+    ENTRY(ANDROID_KUSER)
+    ENTRY(ANDROID_IDENT)
+    ENTRY(GO_BUILDID)
+    ENTRY(STAPSDT)
+    ENTRY(QNX_STACK)
+  ;
+  #undef ENTRY
 
-    .def(py::init<const std::string&, NOTE_TYPES, const std::vector<uint8_t>&>(),
-        "Constructor from a ``name``, ``type`` and ``description``",
-        "name"_a, "type"_a, "description"_a)
+  const auto create_overload_0 = nb::overload_cast<const std::string&, uint32_t, Note::description_t, std::string, Header::FILE_TYPE, ARCH, Header::CLASS>(&Note::create);
+  const auto create_overload_1 = nb::overload_cast<const std::string&, Note::TYPE, Note::description_t, std::string, ARCH, Header::CLASS>(&Note::create);
+  note
+    .def_static("create", create_overload_0,
+      R"doc(
+      Create a note from the owner name, the original type (`NT_xxx` value)
+      and the description.
 
-    .def_property_readonly("details",
-        static_cast<NoteDetails& (Note::*)(void)>(&Note::details),
-        "Parse the given note description and return a " RST_CLASS_REF(lief.ELF.NoteDetails) " object",
-        py::return_value_policy::reference_internal)
+      Depending on the note, the filetype, the architecture and the ELF class might be needed.
+      )doc"_doc,
+      "name"_a, "original_type"_a, "description"_a, "section_name"_a,
+      "file_type"_a = Header::FILE_TYPE::NONE, "arch"_a = ARCH::NONE, "cls"_a = Header::CLASS::NONE)
 
-    .def_property("name",
-        static_cast<getter_t<const std::string&>>(&Note::name),
-        static_cast<setter_t<const std::string&>>(&Note::name),
-        "Return the *name* of the note (Usually the owner)."
-        )
+    .def_static("create",
+      [] (nb::bytes bytes, std::string section, Header::FILE_TYPE ftype, ARCH arch, Header::CLASS cls) -> std::unique_ptr<Note> {
+        std::unique_ptr<LIEF::SpanStream> stream = to_stream(bytes);
+        if (!stream) {
+          return nullptr;
+        }
+        return Note::create(*stream, std::move(section), ftype, arch, cls);
+      },
+      R"doc(
+      Create a note from the given `bytes` buffer.
 
-    .def_property("type",
-        static_cast<getter_t<NOTE_TYPES>>(&Note::type),
-        static_cast<setter_t<NOTE_TYPES>>(&Note::type),
-        "Return the type of the note. It can be one of the " RST_CLASS_REF(lief.ELF.NOTE_TYPES) " values"
-        )
+      Depending on the note, the filetype, the architecture and the ELF class might
+      be needed.
+      )doc"_doc,
+      "raw"_a, "section_name"_a = "",
+      "file_type"_a = Header::FILE_TYPE::NONE, "arch"_a = ARCH::NONE,
+      "cls"_a = Header::CLASS::NONE)
 
-    .def_property("type_core",
-        static_cast<getter_t<NOTE_TYPES_CORE>>(&Note::type_core),
-        static_cast<setter_t<NOTE_TYPES_CORE>>(&Note::type_core),
-        "Return the type of the note for ELF Core (ET_CORE). It Can be one of the " RST_CLASS_REF(lief.ELF.NOTE_TYPES_CORE) " values"
-        )
+    .def_static("create", create_overload_1,
+      R"doc(
+      Create the owner name, the type and the description
 
-    .def_property("description",
-        static_cast<getter_t<const Note::description_t&>>(&Note::description),
-        static_cast<setter_t<const Note::description_t&>>(&Note::description),
-        "Return the description associated with the note"
-        )
+      Depending on the note, the filetype, the architecture and the ELF class might
+      be needed.
+      )doc"_doc,
+      "name"_a, "type"_a, "description"_a, "section_name"_a,
+      "arch"_a = ARCH::NONE, "cls"_a = Header::CLASS::NONE)
 
-    .def_property_readonly("is_core",
-        &Note::is_core,
-        "True if the note is associated with a coredump")
+    .def_prop_rw("name",
+        nb::overload_cast<>(&Note::name, nb::const_),
+        nb::overload_cast<std::string>(&Note::name),
+        "Return the *name* of the note also known as the owner."_doc)
 
-    .def_property_readonly("is_android",
-        &Note::is_android,
-        R"delim(
-        True if the current note is specific to Android.
+    .def_prop_ro("original_type",
+        nb::overload_cast<>(&Note::original_type, nb::const_),
+        R"doc(
+        Return the original `NT_` value of the note.
 
-        If true, :attr:`lief.Note.details` returns a reference to the :class:`~lief.ELF.AndroidNote` object
-        )delim")
+        This value should be interpreted according the the :attr:`~.name` of the
+        note.
+        )doc"_doc)
 
-    .def_property_readonly("size",
-        &Note::size,
-        "Size of the **raw** note")
+    .def_prop_ro("type",
+        nb::overload_cast<>(&Note::type, nb::const_),
+        R"doc(
+        Return the LIEF type representation of the note.
+        )doc"_doc)
 
-    .def("__eq__", &Note::operator==)
-    .def("__ne__", &Note::operator!=)
-    .def("__hash__",
-        [] (const Note& note) {
-          return Hash::hash(note);
-        })
+    .def_prop_rw("description",
+        [] (const Note& self) {
+          return nb::to_memoryview(self.description());
+        },
+        nb::overload_cast<Note::description_t>(&Note::description),
+        "Return the description associated with the note"_doc)
 
-    .def("__str__",
-        [] (const Note& note)
-        {
-          std::ostringstream stream;
-          stream << note;
-          std::string str = stream.str();
-          return str;
-        });
+    .def_prop_ro("size", &Note::size, "Size of the **raw** note"_doc)
+
+    LIEF_CLONABLE(Note)
+    LIEF_DEFAULT_STR(Note);
 }
 
 }
-}
+

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,24 +30,31 @@ class Parser;
 class LIEF_API SymbolVersionAux : public Object {
   friend class Parser;
   public:
-  SymbolVersionAux(std::string name);
-  SymbolVersionAux();
-  virtual ~SymbolVersionAux();
+  SymbolVersionAux(std::string name) :
+    name_(std::move(name))
+  {}
+  SymbolVersionAux() = default;
+  ~SymbolVersionAux() override = default;
 
-  SymbolVersionAux& operator=(const SymbolVersionAux&);
-  SymbolVersionAux(const SymbolVersionAux&);
+  SymbolVersionAux& operator=(const SymbolVersionAux&) = default;
+  SymbolVersionAux(const SymbolVersionAux&) = default;
 
-  //! Smybol's aux name (e.g. ``GLIBC_2.2.5``)
-  const std::string& name() const;
+  //! Symbol's aux name (e.g. ``GLIBC_2.2.5``)
+  const std::string& name() const {
+    return name_;
+  }
 
-  void name(const std::string& name);
+  void name(std::string name) {
+    name_ = std::move(name);
+  }
 
   void accept(Visitor& visitor) const override;
 
-  bool operator==(const SymbolVersionAux& rhs) const;
-  bool operator!=(const SymbolVersionAux& rhs) const;
-
-  LIEF_API friend std::ostream& operator<<(std::ostream& os, const SymbolVersionAux& symAux);
+  LIEF_API friend
+  std::ostream& operator<<(std::ostream& os, const SymbolVersionAux& aux) {
+    os << aux.name();
+    return os;
+  }
 
   protected:
   std::string name_;

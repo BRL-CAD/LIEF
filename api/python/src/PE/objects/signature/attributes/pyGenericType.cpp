@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,49 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "pyPE.hpp"
+#include "PE/pyPE.hpp"
 
-#include "LIEF/PE/hash.hpp"
 #include "LIEF/PE/signature/Attribute.hpp"
 #include "LIEF/PE/signature/attributes/GenericType.hpp"
 
 #include <string>
 #include <sstream>
+#include <nanobind/stl/string.h>
+#include "nanobind/utils.hpp"
 
-namespace LIEF {
-namespace PE {
-
-template<class T>
-using getter_t = T (GenericType::*)(void) const;
-
-template<class T>
-using setter_t = void (GenericType::*)(T);
-
+namespace LIEF::PE::py {
 
 template<>
-void create<GenericType>(py::module& m) {
-  py::class_<GenericType, Attribute>(m, "GenericType",
+void create<GenericType>(nb::module_& m) {
+  nb::class_<GenericType, Attribute>(m, "GenericType",
     R"delim(
     Interface over an attribute for which the internal structure is not supported by LIEF
-    )delim")
-    .def_property_readonly("oid",
+    )delim"_doc)
+    .def_prop_ro("oid",
         &GenericType::oid,
-        "OID of the original attribute")
+        "OID of the original attribute"_doc)
 
-    .def_property_readonly("raw_content",
-        [] (const GenericType& type) -> py::bytes {
-          const std::vector<uint8_t>& raw = type.raw_content();
-          return py::bytes(reinterpret_cast<const char*>(raw.data()), raw.size());
-        },
-        "Original DER blob of the attribute")
-
-    .def("__hash__",
-        [] (const GenericType& obj) {
-          return Hash::hash(obj);
-        })
-
-    .def("__str__", &GenericType::print);
+    .def_prop_ro("raw_content",
+        [] (const GenericType& type) {
+          return nb::to_memoryview(type.raw_content());
+        }, "Original DER blob of the attribute"_doc);
 }
 
-}
 }

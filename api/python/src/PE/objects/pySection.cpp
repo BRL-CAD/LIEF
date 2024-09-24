@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,142 +13,168 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "pyPE.hpp"
+#include "PE/pyPE.hpp"
 
-#include "LIEF/PE/hash.hpp"
-#include "LIEF/Abstract/Section.hpp"
 #include "LIEF/PE/Section.hpp"
+#include "enums_wrapper.hpp"
 
 #include <string>
 #include <sstream>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/set.h>
+#include <nanobind/stl/vector.h>
+#include "nanobind/utils.hpp"
 
-namespace LIEF {
-namespace PE {
 
-template<class T>
-using getter_t = T (Section::*)(void) const;
+#define PY_ENUM(x) to_string(x), x
 
-template<class T>
-using setter_t = void (Section::*)(T);
-
+namespace LIEF::PE::py {
 
 template<>
-void create<Section>(py::module& m) {
-  py::class_<Section, LIEF::Section>(m, "Section",
+void create<Section>(nb::module_& m) {
+  nb::class_<Section, LIEF::Section> sec(m, "Section",
       R"delim(
       Class which represents a PE section.
 
       It extends the base class :class:`lief.Section`
-      )delim")
-    .def(py::init<>())
-    .def(py::init<const std::vector<uint8_t>&, const std::string&, uint32_t>(),
+      )delim"_doc);
+
+  enum_<Section::CHARACTERISTICS>(sec, "CHARACTERISTICS", nb::is_arithmetic())
+    .value(PY_ENUM(Section::CHARACTERISTICS::TYPE_NO_PAD))
+    .value(PY_ENUM(Section::CHARACTERISTICS::CNT_CODE))
+    .value(PY_ENUM(Section::CHARACTERISTICS::CNT_INITIALIZED_DATA))
+    .value(PY_ENUM(Section::CHARACTERISTICS::CNT_UNINITIALIZED_DATA))
+    .value(PY_ENUM(Section::CHARACTERISTICS::LNK_OTHER))
+    .value(PY_ENUM(Section::CHARACTERISTICS::LNK_INFO))
+    .value(PY_ENUM(Section::CHARACTERISTICS::LNK_REMOVE))
+    .value(PY_ENUM(Section::CHARACTERISTICS::LNK_COMDAT))
+    .value(PY_ENUM(Section::CHARACTERISTICS::GPREL))
+    .value(PY_ENUM(Section::CHARACTERISTICS::MEM_PURGEABLE))
+    .value(PY_ENUM(Section::CHARACTERISTICS::MEM_16BIT))
+    .value(PY_ENUM(Section::CHARACTERISTICS::MEM_LOCKED))
+    .value(PY_ENUM(Section::CHARACTERISTICS::MEM_PRELOAD))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_1BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_2BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_4BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_8BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_16BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_32BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_64BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_128BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_256BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_512BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_1024BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_2048BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_4096BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::ALIGN_8192BYTES))
+    .value(PY_ENUM(Section::CHARACTERISTICS::LNK_NRELOC_OVFL))
+    .value(PY_ENUM(Section::CHARACTERISTICS::MEM_DISCARDABLE))
+    .value(PY_ENUM(Section::CHARACTERISTICS::MEM_NOT_CACHED))
+    .value(PY_ENUM(Section::CHARACTERISTICS::MEM_NOT_PAGED))
+    .value(PY_ENUM(Section::CHARACTERISTICS::MEM_SHARED))
+    .value(PY_ENUM(Section::CHARACTERISTICS::MEM_EXECUTE))
+    .value(PY_ENUM(Section::CHARACTERISTICS::MEM_READ))
+    .value(PY_ENUM(Section::CHARACTERISTICS::MEM_WRITE));
+
+  sec
+    .def(nb::init<>())
+    .def(nb::init<const std::vector<uint8_t>&, const std::string&, uint32_t>(),
         "Constructor from "
         ":attr:`~lief.PE.Section.content`, "
         ":attr:`~lief.PE.Section.name` and "
-        ":attr:`~lief.PE.Section.characteristics`",
-        "content"_a, py::arg("name") = "", py::arg("characteristics") = 0)
+        ":attr:`~lief.PE.Section.characteristics`"_doc,
+        "content"_a, nb::arg("name") = "", nb::arg("characteristics") = 0)
 
-    .def(py::init<const std::string&>(),
+    .def(nb::init<const std::string&>(),
         "Constructor from a "
-        ":attr:`~lief.PE.Section.name`",
+        ":attr:`~lief.PE.Section.name`"_doc,
         "name"_a)
 
-    .def_property("virtual_size",
-        static_cast<getter_t<uint32_t>>(&Section::virtual_size),
-        static_cast<setter_t<uint32_t>>(&Section::virtual_size),
+    .def_prop_rw("virtual_size",
+        nb::overload_cast<>(&Section::virtual_size, nb::const_),
+        nb::overload_cast<uint32_t>(&Section::virtual_size),
         R"delim(
         The total size of the section when loaded into memory.
 
-        If this value is greater than :attr:`~lief.PE.Section.sizeof_raw_data`, the section is zero-padded.
-        )delim")
+        If this value is greater than :attr:`~lief.PE.Section.sizeof_raw_data`,
+        the section is zero-padded.
+        )delim"_doc)
 
-    .def_property("sizeof_raw_data",
-        static_cast<getter_t<uint32_t>>(&Section::sizeof_raw_data),
-        static_cast<setter_t<uint32_t>>(&Section::sizeof_raw_data),
-        "Alias of :attr:`~lief.PE.Section.size` (size of the data in the section)")
+    .def_prop_rw("sizeof_raw_data",
+        nb::overload_cast<>(&Section::sizeof_raw_data, nb::const_),
+        nb::overload_cast<uint32_t>(&Section::sizeof_raw_data),
+        "Alias of :attr:`~lief.PE.Section.size` (size of the data in the section)"_doc)
 
-    .def_property("pointerto_raw_data",
-        static_cast<getter_t<uint32_t>>(&Section::pointerto_raw_data),
-        static_cast<setter_t<uint32_t>>(&Section::pointerto_raw_data),
-        "The offset of the section data in the PE file. Alias of :attr:`~lief.PE.Section.offset`")
+    .def_prop_rw("pointerto_raw_data",
+        nb::overload_cast<>(&Section::pointerto_raw_data, nb::const_),
+        nb::overload_cast<uint32_t>(&Section::pointerto_raw_data),
+        "The offset of the section data in the PE file. Alias of :attr:`~lief.PE.Section.offset`"_doc)
 
-    .def_property("pointerto_relocation",
-        static_cast<getter_t<uint32_t>>(&Section::pointerto_relocation),
-        static_cast<setter_t<uint32_t>>(&Section::pointerto_relocation),
+    .def_prop_rw("pointerto_relocation",
+        nb::overload_cast<>(&Section::pointerto_relocation, nb::const_),
+        nb::overload_cast<uint32_t>(&Section::pointerto_relocation),
         R"delim(
-        The file pointer to the beginning of the COFF relocation entries for the section. This is set to zero for
-        executable images or if there are no relocations.
+        The file pointer to the beginning of the COFF relocation entries for
+        the section. This is set to zero for executable images or if there are
+        no relocations.
 
         For modern PE binaries, this value is usually set to 0 as the relocations are managed by
         :class:`~lief.PE.Relocation`.
-        )delim")
+        )delim"_doc)
 
-    .def_property("pointerto_line_numbers",
-        static_cast<getter_t<uint32_t>>(&Section::pointerto_line_numbers),
-        static_cast<setter_t<uint32_t>>(&Section::pointerto_line_numbers),
+    .def_prop_rw("pointerto_line_numbers",
+        nb::overload_cast<>(&Section::pointerto_line_numbers, nb::const_),
+        nb::overload_cast<uint32_t>(&Section::pointerto_line_numbers),
         R"delim(
         The file pointer to the beginning of line-number entries for the section.
-        This is set to zero if there are no COFF line numbers. This value should be zero for an image because COFF
-        debugging information is deprecated and modern debug information relies on the PDB files.
-        )delim")
+        This is set to zero if there are no COFF line numbers. This value should
+        be zero for an image because COFF debugging information is deprecated
+        and modern debug information relies on the PDB files.
+        )delim"_doc)
 
-    .def_property("numberof_relocations",
-        static_cast<getter_t<uint16_t>>(&Section::numberof_relocations),
-        static_cast<setter_t<uint16_t>>(&Section::numberof_relocations),
+    .def_prop_rw("numberof_relocations",
+        nb::overload_cast<>(&Section::numberof_relocations, nb::const_),
+        nb::overload_cast<uint16_t>(&Section::numberof_relocations),
         R"delim(
         The number of relocation entries for the section.
 
         See: :attr:`~lief.PE.Section.pointerto_relocation`
-        )delim")
+        )delim"_doc)
 
-    .def_property("numberof_line_numbers",
-        static_cast<getter_t<uint16_t>>(&Section::numberof_line_numbers),
-        static_cast<setter_t<uint16_t>>(&Section::numberof_line_numbers),
+    .def_prop_rw("numberof_line_numbers",
+        nb::overload_cast<>(&Section::numberof_line_numbers, nb::const_),
+        nb::overload_cast<uint16_t>(&Section::numberof_line_numbers),
         R"delim(
         The number of line-number entries for the section.
         This value should be zero for an image because COFF debugging information is
         deprecated.
 
         See: :attr:`~lief.PE.Section.pointerto_line_numbers`
-        )delim")
+        )delim"_doc)
 
 
-    .def_property("characteristics",
-        static_cast<getter_t<uint32_t>>(&Section::characteristics),
-        static_cast<setter_t<uint32_t>>(&Section::characteristics),
-        "The " RST_CLASS_REF(lief.PE.SECTION_CHARACTERISTICS) "  that describe the characteristics of the section")
+    .def_prop_rw("characteristics",
+        nb::overload_cast<>(&Section::characteristics, nb::const_),
+        nb::overload_cast<uint32_t>(&Section::characteristics),
+        "The " RST_CLASS_REF(lief.PE.Section.CHARACTERISTICS) "  that describe the characteristics of the section"_doc)
 
-    .def_property_readonly("characteristics_lists",
+    .def_prop_ro("characteristics_lists",
         &Section::characteristics_list,
-        ":attr:`~lief.PE.Section.characteristics` as a ``list``")
+        ":attr:`~lief.PE.Section.characteristics` as a ``list``"_doc)
 
     .def("has_characteristic",
         &Section::has_characteristic,
-        "``True`` if the section has the given " RST_CLASS_REF(lief.PE.SECTION_CHARACTERISTICS) "",
+        "``True`` if the section has the given " RST_CLASS_REF(lief.PE.Section.CHARACTERISTICS) ""_doc,
         "characteristic"_a)
 
-    .def_property_readonly("padding",
+    .def_prop_ro("padding",
         [] (const Section& sec) {
-          const std::vector<uint8_t>& data = sec.padding();
-          return py::bytes(reinterpret_cast<const char*>(data.data()), data.size());
+          return nb::to_bytes(sec.padding());
         },
-        "Section padding content as bytes")
+        "Section padding content as bytes"_doc)
 
-    .def("__eq__", &Section::operator==)
-    .def("__ne__", &Section::operator!=)
-    .def("__hash__",
-        [] (const Section& section) {
-          return Hash::hash(section);
-        })
-
-    .def("__str__",
-        [] (const Section& section) {
-          std::ostringstream stream;
-          stream << section;
-          std::string str =  stream.str();
-          return str;
-        });
+    LIEF_COPYABLE(Section)
+    LIEF_DEFAULT_STR(Section);
 }
 
-}
 }

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 #ifndef LIEF_VDEX_HEADER_H
 #define LIEF_VDEX_HEADER_H
+#include <ostream>
+#include <array>
 
 #include "LIEF/VDEX/type_traits.hpp"
 #include "LIEF/visibility.h"
@@ -58,12 +60,10 @@ class LIEF_API Header : public Object {
 
   void accept(Visitor& visitor) const override;
 
-  bool operator==(const Header& rhs) const;
-  bool operator!=(const Header& rhs) const;
 
   LIEF_API friend std::ostream& operator<<(std::ostream& os, const Header& header);
 
-  virtual ~Header();
+  ~Header() override;
 
   private:
   magic_t magic_;

@@ -18,8 +18,6 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  fprintf(stdout, "Binary Name: %s\n", pe_binary->name);
-
   Pe_DosHeader_t dos_header = pe_binary->dos_header;
 
   uint16_t *reserved = dos_header.reserved;
@@ -27,7 +25,7 @@ int main(int argc, char **argv) {
 
   fprintf(stdout, "DosHeader\n");
   fprintf(stdout, "=========\n");
-  fprintf(stdout, "Used bytes in the last page: 0x%x\n",   dos_header.used_bytes_in_the_last_page);
+  fprintf(stdout, "Used bytes in the last page: 0x%x\n",   dos_header.used_bytes_in_last_page);
   fprintf(stdout, "File size in pages: 0x%x\n",            dos_header.file_size_in_pages);
   fprintf(stdout, "Number of relocations: 0x%x\n",         dos_header.numberof_relocation);
   fprintf(stdout, "Header size in paragraphs: 0x%x\n",     dos_header.header_size_in_paragraphs);
@@ -52,7 +50,7 @@ int main(int argc, char **argv) {
   Pe_Header_t header = pe_binary->header;
   fprintf(stdout, "Header\n");
   fprintf(stdout, "======\n");
-  fprintf(stdout, "Machine: %s\n",                   MACHINE_TYPES_to_string(header.machine));
+  fprintf(stdout, "Machine: %s\n",                   lief_pe_header_machine_str(header.machine));
   fprintf(stdout, "Number of sections: %d\n",        header.numberof_sections);
   fprintf(stdout, "Timestamp: 0x%x\n",               header.time_date_stamp);
   fprintf(stdout, "Pointer to symbol table: 0x%x\n", header.pointerto_symbol_table);
@@ -86,7 +84,7 @@ int main(int argc, char **argv) {
   fprintf(stdout, "Size of image: 0x%x\n",                  optional_header.sizeof_image);
   fprintf(stdout, "Size of headers: 0x%x\n",                optional_header.sizeof_headers);
   fprintf(stdout, "Checksum: 0x%x\n",                       optional_header.checksum);
-  fprintf(stdout, "subsystem: %s\n",                        SUBSYSTEM_to_string(optional_header.subsystem));
+  fprintf(stdout, "subsystem: %s\n",                        lief_pe_subsytem_str(optional_header.subsystem));
   fprintf(stdout, "DLL characteristics: 0x%x\n",            optional_header.dll_characteristics);
   fprintf(stdout, "Size of stack reserve: 0x%" PRIx64 "\n", optional_header.sizeof_stack_reserve);
   fprintf(stdout, "Size of stack commit: 0x%" PRIx64 "\n",  optional_header.sizeof_stack_commit);
@@ -133,7 +131,7 @@ int main(int argc, char **argv) {
         section->entropy
         );
 
-    if (section->size > 3 && section->content != NULL) {
+    if (section->content_size > 3 && section->content != NULL) {
       fprintf(stdout, "content[0..3]: %02x %02x %02x\n",
           section->content[0], section->content[1], section->content[2]);
     }

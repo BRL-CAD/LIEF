@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  * Copyright 2017 - 2021 K. Nakagawa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,31 +29,35 @@ class LIEF_API ResourceStringTable : public Object {
 
   friend class ResourcesManager;
   public:
-  ResourceStringTable();
+  ResourceStringTable() = default;
 
-  ResourceStringTable(int16_t length, std::u16string name);
-  ResourceStringTable(const ResourceStringTable&);
+  ResourceStringTable(int16_t length, std::u16string name) :
+    name_(std::move(name)),
+    length_(length)
+  {}
 
-  ResourceStringTable& operator=(const ResourceStringTable&);
+  ResourceStringTable(const ResourceStringTable&) = default;
+  ResourceStringTable& operator=(const ResourceStringTable&) = default;
 
-  virtual ~ResourceStringTable();
+  ~ResourceStringTable() override = default;
 
   void accept(Visitor& visitor) const override;
 
   //! The size of the string, not including length field itself.
-  int16_t length() const;
+  int16_t length() const {
+    return length_;
+  }
 
   //! The variable-length Unicode string data, word-aligned.
-  const std::u16string& name() const;
-
-  bool operator==(const ResourceStringTable& rhs) const;
-  bool operator!=(const ResourceStringTable& rhs) const;
+  const std::u16string& name() const {
+    return name_;
+  }
 
   LIEF_API friend std::ostream& operator<<(std::ostream& os, const ResourceStringTable& string_table);
 
   private:
   std::u16string name_;
-  int16_t length_;
+  int16_t length_ = 0;
 };
 
 }

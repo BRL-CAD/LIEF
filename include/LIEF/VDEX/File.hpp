@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,10 @@
 
 #include "LIEF/visibility.h"
 #include "LIEF/Object.hpp"
+#include "LIEF/iterators.hpp"
+
+#include <vector>
+#include <memory>
 
 namespace LIEF {
 namespace DEX {
@@ -61,10 +65,8 @@ class LIEF_API File : public Object {
 
   void accept(Visitor& visitor) const override;
 
-  bool operator==(const File& rhs) const;
-  bool operator!=(const File& rhs) const;
 
-  virtual ~File();
+  ~File() override;
 
   LIEF_API friend std::ostream& operator<<(std::ostream& os, const File& vdex_file);
 

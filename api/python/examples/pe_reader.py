@@ -41,7 +41,6 @@ def print_information(binary):
     print("== Information ==\n")
     format_str = "{:<30} {:<30}"
     format_hex = "{:<30} 0x{:<28x}"
-    print(format_str.format("Name:",         binary.name))
     print(format_hex.format("Virtual size:", binary.virtual_size))
     print(format_str.format("Imphash:",      PE.get_imphash(binary)))
     print(format_str.format("PIE:",          str(binary.is_pie)))
@@ -59,7 +58,7 @@ def print_header(binary):
 
     print("== Dos Header ==")
     print(format_str.format("Magic:",                       str((dos_header.magic))))
-    print(format_dec.format("Used bytes in the last page:", dos_header.used_bytes_in_the_last_page))
+    print(format_dec.format("Used bytes in the last page:", dos_header.used_bytes_in_last_page))
     print(format_dec.format("File size in pages:",          dos_header.file_size_in_pages))
     print(format_dec.format("Number of relocations:",       dos_header.numberof_relocation))
     print(format_dec.format("Header size in paragraphs:",   dos_header.header_size_in_paragraphs))
@@ -272,19 +271,20 @@ def print_debug(binary):
         print(format_hex.format("Address of raw data:", debug.addressof_rawdata))
         print(format_hex.format("Pointer to raw data:", debug.pointerto_rawdata))
 
-        if debug.has_code_view:
-            code_view = debug.code_view
+        if isinstance(debug, lief.PE.CodeViewPDB):
+            code_view: lief.PE.CodeViewPDB = debug
             cv_signature = code_view.cv_signature
-
-            if cv_signature in (lief.PE.CODE_VIEW_SIGNATURES.PDB_70, lief.PE.CODE_VIEW_SIGNATURES.PDB_70):
-                sig_str = " ".join(map(lambda e : "{:02x}".format(e), code_view.signature))
-                print(format_str.format("Code View Signature:", str(cv_signature).split(".")[-1]))
-                print(format_str.format("Signature:", sig_str))
-                print(format_dec.format("Age:", code_view.age))
-                print(format_str.format("Filename:", code_view.filename))
-
-        if debug.has_pogo:
-            pogo = debug.pogo
+            sig_str = " ".join(map(lambda e : "{:02x}".format(e), code_view.signature))
+            print(format_str.format("Code View Signature:", str(cv_signature).split(".")[-1]))
+            print(format_str.format("Signature:", sig_str))
+            print(format_dec.format("Age:", code_view.age))
+            print(format_str.format("Filename:", code_view.filename))
+        elif isinstance(debug, lief.PE.CodeView):
+            code_view: lief.PE.CodeView = debug
+            cv_signature = code_view.cv_signature
+            print(format_str.format("Code View Signature:", str(cv_signature).split(".")[-1]))
+        elif isinstance(debug, lief.PE.Pogo):
+            pogo: lief.PE.Pogo = debug
             sig_str = str(pogo.signature).split(".")[-1]
             print(format_str.format("Signature:", sig_str))
             print("Entries:")
@@ -292,7 +292,6 @@ def print_debug(binary):
                 print("    {:<20} 0x{:x} ({:d})".format(entry.name, entry.start_rva, entry.size))
 
         print("\n")
-
 
 @exceptions_handler(Exception)
 def print_signature(binary):
@@ -534,44 +533,39 @@ def main():
     verbosity.add_argument('--debug',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.DEBUG)
+            const=lief.logging.LEVEL.DEBUG)
 
     verbosity.add_argument('--trace',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.TRACE)
+            const=lief.logging.LEVEL.TRACE)
 
     verbosity.add_argument('--info',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.INFO)
+            const=lief.logging.LEVEL.INFO)
 
     verbosity.add_argument('--warn',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.WARNING)
+            const=lief.logging.LEVEL.WARN)
 
     verbosity.add_argument('--err',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.ERROR)
+            const=lief.logging.LEVEL.ERROR)
 
     verbosity.add_argument('--critical',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.CRITICAL)
+            const=lief.logging.LEVEL.CRITICAL)
 
-    parser.set_defaults(main_verbosity=lief.logging.LOGGING_LEVEL.WARNING)
+    parser.set_defaults(main_verbosity=lief.logging.LEVEL.WARN)
 
     args = parser.parse_args()
     lief.logging.set_level(args.main_verbosity)
 
-    binary = None
-    try:
-        binary = PE.parse(args.pe_file)
-    except lief.exception as e:
-        print(e)
-        sys.exit(1)
+    binary = PE.parse(args.pe_file)
 
     if binary is None:
         sys.exit(1)

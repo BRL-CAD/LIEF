@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,59 +15,40 @@
  */
 #include <string>
 #include <sstream>
+#include <nanobind/stl/string.h>
 
-#include "pyELF.hpp"
+#include "pyErr.hpp"
+#include "ELF/pyELF.hpp"
 
-#include "LIEF/ELF/hash.hpp"
 #include "LIEF/ELF/NoteDetails/core/CoreSigInfo.hpp"
 
-
-namespace LIEF {
-namespace ELF {
-
-template<class T>
-using getter_t = T (CoreSigInfo::*)(void) const;
-
-template<class T>
-using setter_t = void (CoreSigInfo::*)(T);
+namespace LIEF::ELF::py {
 
 template<>
-void create<CoreSigInfo>(py::module& m) {
+void create<CoreSigInfo>(nb::module_& m) {
 
-  py::class_<CoreSigInfo, NoteDetails>(m, "CoreSigInfo")
+  nb::class_<CoreSigInfo, Note>(m, "CoreSigInfo")
+    .def_prop_rw("signo",
+        [] (const CoreSigInfo& self) {
+          return LIEF::py::value_or_none(nb::overload_cast<>(&CoreSigInfo::signo, nb::const_), self);
+        },
+        nb::overload_cast<uint32_t>(&CoreSigInfo::signo),
+        "Signal number"_doc)
 
-    .def_property("signo",
-        static_cast<getter_t<int32_t>>(&CoreSigInfo::signo),
-        static_cast<setter_t<int32_t>>(&CoreSigInfo::signo),
-        "Signal number")
+    .def_prop_rw("sigcode",
+        [] (const CoreSigInfo& self) {
+          return LIEF::py::value_or_none(nb::overload_cast<>(&CoreSigInfo::sigcode, nb::const_), self);
+        },
+        nb::overload_cast<uint32_t>(&CoreSigInfo::sigcode),
+        "Signal code"_doc)
 
-    .def_property("sigcode",
-        static_cast<getter_t<int32_t>>(&CoreSigInfo::sigcode),
-        static_cast<setter_t<int32_t>>(&CoreSigInfo::sigcode),
-        "Signal code")
+    .def_prop_rw("sigerrno",
+        [] (const CoreSigInfo& self) {
+          return LIEF::py::value_or_none(nb::overload_cast<>(&CoreSigInfo::sigerrno, nb::const_), self);
+        },
+        nb::overload_cast<uint32_t>(&CoreSigInfo::sigerrno),
+        "If non-zero, an errno value associated with this signal"_doc)
 
-    .def_property("sigerrno",
-        static_cast<getter_t<int32_t>>(&CoreSigInfo::sigerrno),
-        static_cast<setter_t<int32_t>>(&CoreSigInfo::sigerrno),
-        "If non-zero, an errno value associated with this signal")
-
-    .def("__eq__", &CoreSigInfo::operator==)
-    .def("__ne__", &CoreSigInfo::operator!=)
-    .def("__hash__",
-        [] (const CoreSigInfo& note) {
-          return Hash::hash(note);
-        })
-
-    .def("__str__",
-        [] (const CoreSigInfo& note)
-        {
-          std::ostringstream stream;
-          stream << note;
-          std::string str = stream.str();
-          return str;
-        });
-
-
+    LIEF_DEFAULT_STR(CoreSigInfo);
 }
-} // namespace ELF
-} // namespace LIEF
+}

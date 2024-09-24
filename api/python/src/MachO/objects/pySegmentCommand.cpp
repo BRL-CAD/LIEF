@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,36 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "pyMachO.hpp"
-#include "pyIterators.hpp"
+#include "MachO/pyMachO.hpp"
+#include "pyIterator.hpp"
+#include "pySafeString.hpp"
+#include "nanobind/extra/memoryview.hpp"
 
-#include "LIEF/MachO/hash.hpp"
 #include "LIEF/MachO/SegmentCommand.hpp"
 #include "LIEF/MachO/Section.hpp"
+#include "LIEF/MachO/Relocation.hpp"
+#include "LIEF/MachO/LinkEdit.hpp"
 
 #include <string>
 #include <sstream>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
 
-namespace LIEF {
-namespace MachO {
+#include "enums_wrapper.hpp"
 
-template<class T>
-using getter_t = T (SegmentCommand::*)(void) const;
-
-template<class T>
-using setter_t = void (SegmentCommand::*)(T);
-
-template<class T>
-using no_const_getter = T (SegmentCommand::*)(void);
-
+namespace LIEF::MachO::py {
 
 template<>
-void create<SegmentCommand>(py::module& m) {
+void create<SegmentCommand>(nb::module_& m) {
+  using namespace LIEF::py;
 
-  py::class_<SegmentCommand, LoadCommand> seg_cmd(m, "SegmentCommand",
+
+  nb::class_<SegmentCommand, LoadCommand> seg_cmd(m, "SegmentCommand",
       R"delim(
-      Class which represents a LOAD_COMMAND_TYPES::LC_SEGMENT / LOAD_COMMAND_TYPES::LC_SEGMENT_64 command
-      )delim");
+      Class which represents a :attr:`~.LoadCommand.TYPE.SEGMENT` /
+      :attr:`~.LoadCommand.TYPE.SEGMENT_64` command
+      )delim"_doc);
 
     init_ref_iterator<SegmentCommand::it_sections>(seg_cmd, "it_sections");
 
@@ -53,120 +52,119 @@ void create<SegmentCommand>(py::module& m) {
     init_ref_iterator<SegmentCommand::it_relocations>(seg_cmd, "it_relocations");
   } catch (const std::runtime_error&) { }
 
+  enum_<SegmentCommand::VM_PROTECTIONS>(seg_cmd, "VM_PROTECTIONS")
+  #define PY_ENUM(x) to_string(x), x
+    .value(PY_ENUM(SegmentCommand::VM_PROTECTIONS::READ))
+    .value(PY_ENUM(SegmentCommand::VM_PROTECTIONS::WRITE))
+    .value(PY_ENUM(SegmentCommand::VM_PROTECTIONS::EXECUTE))
+  #undef PY_ENUM
+  ;
+
+  enum_<SegmentCommand::FLAGS>(seg_cmd, "FLAGS")
+  #define PY_ENUM(x) to_string(x), x
+    .value(PY_ENUM(SegmentCommand::FLAGS::HIGHVM))
+    .value(PY_ENUM(SegmentCommand::FLAGS::FVMLIB))
+    .value(PY_ENUM(SegmentCommand::FLAGS::NORELOC))
+    .value(PY_ENUM(SegmentCommand::FLAGS::PROTECTED_VERSION_1))
+    .value(PY_ENUM(SegmentCommand::FLAGS::READ_ONLY))
+  #undef PY_ENUM
+  ;
+
   seg_cmd
-    .def(py::init<>())
-    .def(py::init<const std::string&>())
-    .def(py::init<const std::string&, const SegmentCommand::content_t&>())
+    .def(nb::init<>())
+    .def(nb::init<const std::string&>())
+    .def(nb::init<const std::string&, const SegmentCommand::content_t&>())
 
-    .def_property("name",
+    .def_prop_rw("name",
         [] (const SegmentCommand& obj) {
-          return safe_string_converter(obj.name());
+          return safe_string(obj.name());
         },
-        static_cast<setter_t<const std::string&>>(&SegmentCommand::name),
-        "Segment's name")
+        nb::overload_cast<std::string>(&SegmentCommand::name),
+        "Segment's name"_doc)
 
-    .def_property("virtual_address",
-        static_cast<getter_t<uint64_t>>(&SegmentCommand::virtual_address),
-        static_cast<setter_t<uint64_t>>(&SegmentCommand::virtual_address),
-        "Segment's virtual address")
+    .def_prop_rw("virtual_address",
+        nb::overload_cast<>(&SegmentCommand::virtual_address, nb::const_),
+        nb::overload_cast<uint64_t>(&SegmentCommand::virtual_address),
+        "Segment's virtual address"_doc)
 
-    .def_property("virtual_size",
-        static_cast<getter_t<uint64_t>>(&SegmentCommand::virtual_size),
-        static_cast<setter_t<uint64_t>>(&SegmentCommand::virtual_size),
-        "Segment's virtual size")
+    .def_prop_rw("virtual_size",
+        nb::overload_cast<>(&SegmentCommand::virtual_size, nb::const_),
+        nb::overload_cast<uint64_t>(&SegmentCommand::virtual_size),
+        "Segment's virtual size"_doc)
 
-    .def_property("file_size",
-        static_cast<getter_t<uint64_t>>(&SegmentCommand::file_size),
-        static_cast<setter_t<uint64_t>>(&SegmentCommand::file_size),
-        "Segment's file size")
+    .def_prop_rw("file_size",
+        nb::overload_cast<>(&SegmentCommand::file_size, nb::const_),
+        nb::overload_cast<uint64_t>(&SegmentCommand::file_size),
+        "Segment's file size"_doc)
 
-    .def_property("file_offset",
-        static_cast<getter_t<uint64_t>>(&SegmentCommand::file_offset),
-        static_cast<setter_t<uint64_t>>(&SegmentCommand::file_offset),
-        "Segment's file offset")
+    .def_prop_rw("file_offset",
+        nb::overload_cast<>(&SegmentCommand::file_offset, nb::const_),
+        nb::overload_cast<uint64_t>(&SegmentCommand::file_offset),
+        "Segment's file offset"_doc)
 
-    .def_property("max_protection",
-        static_cast<getter_t<uint32_t>>(&SegmentCommand::max_protection),
-        static_cast<setter_t<uint32_t>>(&SegmentCommand::max_protection),
-        "Segment's max protection")
+    .def_prop_rw("max_protection",
+        nb::overload_cast<>(&SegmentCommand::max_protection, nb::const_),
+        nb::overload_cast<uint32_t>(&SegmentCommand::max_protection),
+        "Segment's max protection"_doc)
 
-    .def_property("init_protection",
-        static_cast<getter_t<uint32_t>>(&SegmentCommand::init_protection),
-        static_cast<setter_t<uint32_t>>(&SegmentCommand::init_protection),
-        "Segment's initial protection")
+    .def_prop_rw("init_protection",
+        nb::overload_cast<>(&SegmentCommand::init_protection, nb::const_),
+        nb::overload_cast<uint32_t>(&SegmentCommand::init_protection),
+        "Segment's initial protection"_doc)
 
-    .def_property("numberof_sections",
-        static_cast<getter_t<uint32_t>>(&SegmentCommand::numberof_sections),
-        static_cast<setter_t<uint32_t>>(&SegmentCommand::numberof_sections),
-        "Number of sections in this segment")
+    .def_prop_rw("numberof_sections",
+        nb::overload_cast<>(&SegmentCommand::numberof_sections, nb::const_),
+        nb::overload_cast<uint32_t>(&SegmentCommand::numberof_sections),
+        "Number of sections in this segment"_doc)
 
-    .def_property_readonly("sections",
-        static_cast<no_const_getter<SegmentCommand::it_sections>>(&SegmentCommand::sections),
-        "Segment's sections")
+    .def_prop_ro("sections", nb::overload_cast<>(&SegmentCommand::sections),
+        "Segment's sections"_doc,
+        nb::keep_alive<0, 1>())
 
-    .def_property_readonly("relocations",
-        static_cast<no_const_getter<SegmentCommand::it_relocations>>(&SegmentCommand::relocations),
-        "Segment's relocations")
+    .def_prop_ro("relocations",
+        nb::overload_cast<>(&SegmentCommand::relocations),
+        "Segment's relocations"_doc,
+        nb::keep_alive<0, 1>())
 
-    .def_property_readonly("index", &SegmentCommand::index,
-        "Relative index of the segment in the segment table")
+    .def_prop_ro("index", &SegmentCommand::index,
+        "Relative index of the segment in the segment table"_doc)
 
-    .def_property("content",
+    .def_prop_rw("content",
         [] (const SegmentCommand& self) {
-          span<const uint8_t> content = self.content();
-          return py::memoryview::from_memory(content.data(), content.size());
+          const span<const uint8_t> content = self.content();
+          return nb::memoryview::from_memory(content.data(), content.size());
         },
-        static_cast<setter_t<SegmentCommand::content_t>>(&SegmentCommand::content),
-        "Segment's content")
+        nb::overload_cast<SegmentCommand::content_t>(&SegmentCommand::content),
+        "Segment's content"_doc)
 
-    .def_property("flags",
-        static_cast<getter_t<uint32_t>>(&SegmentCommand::flags),
-        static_cast<setter_t<uint32_t>>(&SegmentCommand::flags),
-        "Segment's flags")
+    .def_prop_rw("flags",
+        nb::overload_cast<>(&SegmentCommand::flags, nb::const_),
+        nb::overload_cast<uint32_t>(&SegmentCommand::flags),
+        "Segment's flags"_doc)
 
     .def("has",
-        static_cast<bool(SegmentCommand::*)(const Section&) const>(&SegmentCommand::has),
-        "Check if the given " RST_CLASS_REF(lief.MachO.Section) " belongs to the current segment",
+        nb::overload_cast<const Section&>(&SegmentCommand::has, nb::const_),
+        "Check if the given " RST_CLASS_REF(lief.MachO.Section) " belongs to the current segment"_doc,
         "section"_a)
 
     .def("has_section",
-        static_cast<bool(SegmentCommand::*)(const std::string&) const>(&SegmentCommand::has_section),
-        "Check if the given section name belongs to the current segment",
+        nb::overload_cast<const std::string&>(&SegmentCommand::has_section, nb::const_),
+        "Check if the given section name belongs to the current segment"_doc,
         "section_name"_a)
 
     .def("add_section",
-        static_cast<Section& (SegmentCommand::*)(const Section&)>(&SegmentCommand::add_section),
-        "",
+        nb::overload_cast<const Section&>(&SegmentCommand::add_section),
         "section"_a,
-        py::return_value_policy::reference)
+        nb::rv_policy::reference_internal)
 
     .def("get_section",
-        py::overload_cast<const std::string&>(&SegmentCommand::get_section),
+        nb::overload_cast<const std::string&>(&SegmentCommand::get_section),
         R"delim(
         Get the :class:`~lief.MachO.Section` with the given name
-        )delim",
-        "name"_a,
-        py::return_value_policy::reference_internal)
+        )delim"_doc, "name"_a, nb::rv_policy::reference_internal)
 
-    .def("__eq__", &SegmentCommand::operator==)
-    .def("__ne__", &SegmentCommand::operator!=)
-    .def("__hash__",
-        [] (const SegmentCommand& segment_command) {
-          return Hash::hash(segment_command);
-        })
-
-
-    .def("__str__",
-        [] (const SegmentCommand& segment)
-        {
-          std::ostringstream stream;
-          stream << segment;
-          std::string str =  stream.str();
-          return str;
-        });
-
-}
-
+    LIEF_DEFAULT_STR(SegmentCommand);
+  nb::class_<LinkEdit, SegmentCommand>(m, "LinkEdit");
 }
 }
 

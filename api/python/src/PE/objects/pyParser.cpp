@@ -1,5 +1,6 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,46 +14,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "pyPE.hpp"
-
-#include "PyIOStream.hpp"
-#include "LIEF/PE/Parser.hpp"
-#include "LIEF/logging.hpp"
+#include "PE/pyPE.hpp"
 
 #include <string>
+#include <memory>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
+#include <nanobind/stl/unique_ptr.h>
 
-namespace LIEF {
-namespace PE {
+#include "typing/InputParser.hpp"
+#include "pyutils.hpp"
+#include "pyIOStream.hpp"
+#include "LIEF/logging.hpp"
+
+#include "LIEF/PE/Parser.hpp"
+#include "LIEF/PE/Binary.hpp"
+
+namespace LIEF::PE::py {
 
 template<>
-void create<Parser>(py::module& m) {
+void create<Parser>(nb::module_& m) {
+  using namespace LIEF::py;
 
-    m.def("parse",
-      static_cast<std::unique_ptr<Binary> (*) (const std::string&)>(&Parser::parse),
-      "Parse the PE binary from the given **file path** and return a " RST_CLASS_REF(lief.PE.Binary) " object",
-      "filename"_a,
-      py::return_value_policy::take_ownership);
+  m.def("parse",
+    static_cast<std::unique_ptr<Binary>(*)(const std::string&, const ParserConfig&)>(&Parser::parse),
+    "Parse the PE binary from the given **file path** and return a " RST_CLASS_REF(lief.PE.Binary) " object"_doc,
+    "filename"_a, "config"_a = ParserConfig::all(),
+    nb::rv_policy::take_ownership);
 
-    m.def("parse",
-      static_cast<std::unique_ptr<Binary> (*) (std::vector<uint8_t>, const std::string&)>(&Parser::parse),
-      "Parse the PE binary from the given **list of bytes** and return a :class:`lief.PE.Binary` object",
-      "raw"_a, "name"_a = "",
-      py::return_value_policy::take_ownership);
+  m.def("parse",
+      static_cast<std::unique_ptr<Binary>(*)(std::vector<uint8_t>, const ParserConfig&)>(&Parser::parse),
+    "Parse the PE binary from the given **list of bytes** and return a :class:`lief.PE.Binary` object"_doc,
+    "raw"_a, "config"_a = ParserConfig::all(),
+    nb::rv_policy::take_ownership);
 
-
-    m.def("parse",
-      [] (py::object byteio, const std::string& name) -> py::object {
-        if (auto stream = PyIOStream::from_python(byteio)) {
-          auto ptr = std::make_unique<PyIOStream>(std::move(*stream));
-          return py::cast(PE::Parser::parse(std::move(ptr), name));
-        }
-        logging::log(logging::LOG_ERR, "Can't create a LIEF stream interface over the provided io");
-        return py::none();
-      },
-      "Parse the PE binary from the given Python IO interface and return a :class:`lief.PE.Binary` object",
-      "io"_a, "name"_a = "",
-      py::return_value_policy::take_ownership);
+  m.def("parse",
+    [] (typing::InputParser obj, const ParserConfig&) -> std::unique_ptr<Binary> {
+      if (auto path_str = path_to_str(obj)) {
+        return Parser::parse(std::move(*path_str));
+      }
+      if (auto stream = PyIOStream::from_python(obj)) {
+        auto ptr = std::make_unique<PyIOStream>(std::move(*stream));
+        return PE::Parser::parse(std::move(ptr));
+      }
+      logging::log(logging::LEVEL::ERR,
+                   "LIEF parser interface does not support Python object: " +
+                   type2str(obj));
+      return nullptr;
+    },
+    "Parse the PE binary from the given parameter and return a :class:`lief.PE.Binary` object"_doc,
+    "obj"_a, "config"_a = ParserConfig::all(),
+    nb::rv_policy::take_ownership);
 }
 
-}
 }

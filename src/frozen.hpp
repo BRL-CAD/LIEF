@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,19 @@
 #include "compiler_support.h"
 
 #ifdef LIEF_FROZEN_ENABLED
-#include <frozen/map.h>
-#define CONST_MAP(KEY, VAL, NUM) constexpr frozen::map<KEY, VAL, NUM>
-#else
-#include <unordered_map>
-#define CONST_MAP(KEY, VAL, NUM) static const std::unordered_map<KEY, VAL>
+# include <frozen/map.h>
+# define CONST_MAP(KEY, VAL, NUM) constexpr frozen::map<KEY, VAL, NUM>
+# define STRING_MAP constexpr frozen::map
+# define CONST_MAP_ALT constexpr frozen::map
+namespace frozen {
+template <class Key, class Value, class... Args>
+map(std::pair<Key, Value>, Args...) -> map<Key, Value, sizeof...(Args) + 1>;
+}
+#else // !LIEF_FROZEN_ENABLED
+# include <unordered_map>
+# define CONST_MAP(KEY, VAL, NUM) static const std::unordered_map<KEY, VAL>
+# define STRING_MAP static const std::unordered_map
+# define CONST_MAP_ALT static const std::unordered_map
 #endif
 
 #endif

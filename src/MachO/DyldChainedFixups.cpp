@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 #include "LIEF/MachO/DyldChainedFixups.hpp"
 #include "LIEF/MachO/ChainedBindingInfo.hpp"
 #include "LIEF/MachO/hash.hpp"
-#include "LIEF/MachO/EnumToString.hpp"
 #include "LIEF/MachO/SegmentCommand.hpp"
 #include "LIEF/MachO/DylibCommand.hpp"
 #include "LIEF/MachO/RelocationFixup.hpp"
@@ -47,7 +46,7 @@ DyldChainedFixups::DyldChainedFixups(const DyldChainedFixups& other) :
 {}
 
 DyldChainedFixups::DyldChainedFixups(const details::linkedit_data_command& cmd) :
-  LoadCommand::LoadCommand{static_cast<LOAD_COMMAND_TYPES>(cmd.cmd), cmd.cmdsize},
+  LoadCommand::LoadCommand{LoadCommand::TYPE(cmd.cmd), cmd.cmdsize},
   data_offset_{cmd.dataoff},
   data_size_{cmd.datasize}
 {}
@@ -61,39 +60,6 @@ void DyldChainedFixups::update_with(const details::dyld_chained_fixups_header& h
   imports_count_   = header.imports_count;
   symbols_format_  = header.symbols_format;
   imports_format_  = static_cast<DYLD_CHAINED_FORMAT>(header.imports_format);
-}
-
-uint32_t DyldChainedFixups::data_offset() const {
-  return data_offset_;
-}
-uint32_t DyldChainedFixups::data_size() const {
-  return data_size_;
-}
-
-void DyldChainedFixups::data_offset(uint32_t offset) {
-  data_offset_ = offset;
-}
-
-void DyldChainedFixups::data_size(uint32_t size) {
-  data_size_ = size;
-}
-
-DyldChainedFixups* DyldChainedFixups::clone() const {
-  return new DyldChainedFixups(*this);
-}
-
-
-bool DyldChainedFixups::operator==(const DyldChainedFixups& rhs) const {
-  if (this == &rhs) {
-    return true;
-  }
-  size_t hash_lhs = Hash::hash(*this);
-  size_t hash_rhs = Hash::hash(rhs);
-  return hash_lhs == hash_rhs;
-}
-
-bool DyldChainedFixups::operator!=(const DyldChainedFixups& rhs) const {
-  return !(*this == rhs);
 }
 
 void DyldChainedFixups::accept(Visitor& visitor) const {
@@ -150,7 +116,7 @@ std::ostream& DyldChainedFixups::print(std::ostream& os) const {
 
     if (const auto* lib = bind.library()) {
       libname = lib->name();
-      auto pos = libname.rfind("/");
+      auto pos = libname.rfind('/');
       if (pos != std::string::npos) {
         libname = libname.substr(pos + 1);
       }
@@ -167,13 +133,6 @@ std::ostream& DyldChainedFixups::print(std::ostream& os) const {
   }
   return os;
 }
-
-bool DyldChainedFixups::classof(const LoadCommand* cmd) {
-  // This must be sync with BinaryParser.tcc
-  const LOAD_COMMAND_TYPES type = cmd->command();
-  return type == LOAD_COMMAND_TYPES::LC_DYLD_CHAINED_FIXUPS;
-}
-
 
 DyldChainedFixups::chained_starts_in_segment::chained_starts_in_segment(uint32_t offset, const details::dyld_chained_starts_in_segment& info,
                                                                         SegmentCommand& segment) :

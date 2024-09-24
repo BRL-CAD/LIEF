@@ -60,7 +60,6 @@ def print_information(binary):
     cpu = str(header.cpu_type).split('.')[-1]
 
 
-    print(format_str.format("Name:",         binary.name))
     print(format_hex.format("Address base:", binary.imagebase))
     print(format_str.format("PIE:",          str(binary.is_pie)))
     print(format_str.format("NX:",           str(binary.has_nx)))
@@ -174,19 +173,19 @@ def print_sections(binary):
                 name = reloc.symbol.name if reloc.has_symbol else ""
                 secname = " - " + reloc.section.name if reloc.has_section else ""
                 type = str(reloc.type)
-                if reloc.architecture == MachO.CPU_TYPES.x86:
+                if reloc.architecture == MachO.Header.CPU_TYPE.X86:
                     type = str(MachO.X86_RELOCATION(reloc.type))
 
-                if reloc.architecture == MachO.CPU_TYPES.x86_64:
+                if reloc.architecture == MachO.Header.CPU_TYPE.x86_64:
                     type = str(MachO.X86_64_RELOCATION(reloc.type))
 
-                if reloc.architecture == MachO.CPU_TYPES.ARM:
+                if reloc.architecture == MachO.Header.CPU_TYPE.ARM:
                     type = str(MachO.ARM_RELOCATION(reloc.type))
 
-                if reloc.architecture == MachO.CPU_TYPES.ARM64:
+                if reloc.architecture == MachO.Header.CPU_TYPE.ARM64:
                     type = str(MachO.ARM64_RELOCATION(reloc.type))
 
-                if reloc.architecture == MachO.CPU_TYPES.POWERPC:
+                if reloc.architecture == MachO.Header.CPU_TYPE.POWERPC:
                     type = str(MachO.PPC_RELOCATION(reloc.type))
 
 
@@ -599,26 +598,11 @@ def print_relocations(binary):
 
     for reloc in binary.relocations:
         type_str = ""
-        if reloc.origin == lief.MachO.RELOCATION_ORIGINS.DYLDINFO:
-            type_str = str(lief.MachO.REBASE_TYPES(reloc.type)).split(".")[-1]
-
-        if reloc.origin == lief.MachO.RELOCATION_ORIGINS.RELOC_TABLE:
-            if reloc.architecture == MachO.CPU_TYPES.x86:
-                type_str = str(MachO.X86_RELOCATION(reloc.type))
-
-            if reloc.architecture == MachO.CPU_TYPES.x86_64:
-                type_str = str(MachO.X86_64_RELOCATION(reloc.type))
-
-            if reloc.architecture == MachO.CPU_TYPES.ARM:
-                type_str = str(MachO.ARM_RELOCATION(reloc.type))
-
-            if reloc.architecture == MachO.CPU_TYPES.ARM64:
-                type_str = str(MachO.ARM64_RELOCATION(reloc.type))
-
-            if reloc.architecture == MachO.CPU_TYPES.POWERPC:
-                type_str = str(MachO.PPC_RELOCATION(reloc.type))
-
-            type_str = type_str.split(".")[-1]
+        rtype = reloc.type
+        if isinstance(rtype, int):
+            type_str = str(rtype)
+        else:
+            type_str = str(rtype).split(".")[-1]
 
         symbol_name = ""
         if reloc.has_symbol:
@@ -869,34 +853,34 @@ def main():
     verbosity.add_argument('--debug',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.DEBUG)
+            const=lief.logging.LEVEL.DEBUG)
 
     verbosity.add_argument('--trace',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.TRACE)
+            const=lief.logging.LEVEL.TRACE)
 
     verbosity.add_argument('--info',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.INFO)
+            const=lief.logging.LEVEL.INFO)
 
     verbosity.add_argument('--warn',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.WARNING)
+            const=lief.logging.LEVEL.WARN)
 
     verbosity.add_argument('--err',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.ERROR)
+            const=lief.logging.LEVEL.ERROR)
 
     verbosity.add_argument('--critical',
             dest='main_verbosity',
             action='store_const',
-            const=lief.logging.LOGGING_LEVEL.CRITICAL)
+            const=lief.logging.LEVEL.CRITICAL)
 
-    parser.set_defaults(main_verbosity=lief.logging.LOGGING_LEVEL.WARNING)
+    parser.set_defaults(main_verbosity=lief.logging.LEVEL.WARN)
 
     args = parser.parse_args()
 
@@ -1020,9 +1004,6 @@ def main():
         if args.show_chained_fixups or args.show_all:
             print_chained_fixups(binary)
 
-
-    sys.exit(EXIT_STATUS)
-
-
 if __name__ == "__main__":
     main()
+    sys.exit(EXIT_STATUS)

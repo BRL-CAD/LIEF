@@ -10,10 +10,11 @@ from utils import get_sample
     "ELF/ELF32_x86_binary_all.bin"
 ])
 def test_equal(tmp_path: Path, elf):
-    inelf = lief.parse(get_sample(elf))
-    output = tmp_path / Path(inelf.name).name
+    infile = get_sample(elf)
+    inelf = lief.ELF.parse(infile)
+    output = tmp_path / Path(infile).name
     inelf.write(output.as_posix())
-    newelf = lief.parse(output.as_posix())
+    newelf = lief.ELF.parse(output.as_posix())
 
     assert inelf.header == newelf.header
 

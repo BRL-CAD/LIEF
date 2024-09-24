@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ struct LIEF_API ParserConfig {
   bool parse_dyld_exports  = true; ///< Parse the Dyld export trie
   bool parse_dyld_bindings = true; ///< Parse the Dyld binding opcodes
   bool parse_dyld_rebases  = true; ///< Parse the Dyld rebase opcodes
+  bool parse_overlay = true; ///< Whether the overlay data should be parsed
 
   /// When parsing Mach-O from memory, this option
   /// can be used to *undo* relocations and symbols bindings.

@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import ctypes
 import lief
 import os
 import random
 import sys
 import stat
-import subprocess
-import time
 import zipfile
 
-from subprocess import Popen
+from utils import get_sample, is_64bits_platform, is_windows, win_exec
 
-from utils import get_sample, is_64bits_platform
+if is_windows():
+    SEM_NOGPFAULTERRORBOX = 0x0002  # From MSDN
+    ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX)
 
 def test_change_icons(tmp_path):
     mfc_path = get_sample('PE/PE64_x86-64_binary_mfc-application.exe')
@@ -24,11 +24,11 @@ def test_change_icons(tmp_path):
     cmd_resources_manger = cmd.resources_manager
 
     if not mfc_resources_manger.has_icons:
-        print("'{}' has no manifest. Abort!".format(mfc.name))
+        print(f"'{mfc_path.name}' has no manifest. Abort!")
         sys.exit(1)
 
     if not cmd_resources_manger.has_icons:
-        print("'{}' has no manifest. Abort!".format(mfc.name))
+        print(f"'{mfc_path.name}' has no manifest. Abort!")
         sys.exit(1)
 
     mfc_icons = mfc_resources_manger.icons
@@ -37,27 +37,16 @@ def test_change_icons(tmp_path):
     for i in range(min(len(mfc_icons), len(cmd_icons))):
         mfc_resources_manger.change_icon(mfc_icons[i], cmd_icons[i])
 
-
     output = tmp_path / "mfc_test_change_icon.exe"
     builder = lief.PE.Builder(mfc)
     builder.build_resources(True)
     builder.build()
     builder.write(output.as_posix())
 
-    if sys.platform.startswith("win"):
-        subprocess_flags = 0x8000000 # win32con.CREATE_NO_WINDOW?
-        p = Popen(["START", output.as_posix()], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, creationflags=subprocess_flags)
-        time.sleep(3)
-        q = Popen(["taskkill", "/im", "mfc_test_change_icon.exe"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        stdout, _ = p.communicate()
-        print(stdout.decode("utf8"))
-
-        stdout, _ = q.communicate()
-        print(stdout.decode("utf8"))
-
-        assert q.returncode == 0
-
+    if ret := win_exec(output):
+        ret_code, stdout = ret
+        print(stdout)
+        assert ret_code == 0
 
 def test_resource_string_table():
     sample_path = get_sample('PE/PE64_x86-64_binary_WinApp.exe')
@@ -138,7 +127,7 @@ def test_resource_version():
     langcode_item = string_file_info.langcode_items[0]
     assert langcode_item.type == 1
     assert langcode_item.lang == lief.PE.RESOURCE_LANGS.FRENCH
-    assert langcode_item.sublang == lief.PE.RESOURCE_SUBLANGS.FRENCH
+    assert langcode_item.sublang == 1
     assert langcode_item.code_page == lief.PE.CODE_PAGES.UTF_16
     items = langcode_item.items
     assert 'CompanyName' in items
@@ -197,7 +186,7 @@ def test_resource_dialogs():
     assert dialog.charset == 0x1
     assert dialog.style == 0x0
     assert dialog.lang == lief.PE.RESOURCE_LANGS.ENGLISH
-    assert dialog.sub_lang == lief.PE.RESOURCE_SUBLANGS.ENGLISH_US
+    assert dialog.sub_lang == 1
     assert len(dialog.items) == 6
 
     assert dialog.items[0].help_id == 0x0
@@ -255,20 +244,10 @@ def test_mfc_resource_builder(tmp_path):
     st = os.stat(output)
     os.chmod(output, st.st_mode | stat.S_IEXEC)
 
-    if sys.platform.startswith("win"):
-        subprocess_flags = 0x8000000 # win32con.CREATE_NO_WINDOW?
-        p = Popen(["START", output.as_posix()], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, creationflags=subprocess_flags)
-        time.sleep(3)
-        q = Popen(["taskkill", "/im", "mfc_test_rsrc.exe"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        stdout, _ = p.communicate()
-        print(stdout.decode("utf8"))
-
-        stdout, _ = q.communicate()
-        print(stdout.decode("utf8"))
-
-        assert q.returncode == 0
-
+    if ret := win_exec(output):
+        ret_code, stdout = ret
+        print(stdout)
+        assert ret_code == 0
 
 #def test_evince_resource_builder(self):
 #    sample_file = get_sample('PE/PE32_x86_binary_EvincePortable.zip')
@@ -325,20 +304,10 @@ def test_notepadpp_resource_builder(tmp_path):
     st = os.stat(output)
     os.chmod(output, st.st_mode | stat.S_IEXEC)
 
-    if sys.platform.startswith("win"):
-        subprocess_flags = 0x8000000 # win32con.CREATE_NO_WINDOW?
-        p = Popen(["START", output.as_posix()], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, creationflags=subprocess_flags)
-        time.sleep(3)
-        q = Popen(["taskkill", "/im", "notepad++_rsrc.exe"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        stdout, _ = p.communicate()
-        print(stdout.decode("utf8"))
-
-        stdout, _ = q.communicate()
-        print(stdout.decode("utf8"))
-
-        assert q.returncode == 0
-
+    if ret := win_exec(output):
+        ret_code, stdout = ret
+        print(stdout)
+        assert ret_code == 0
 
 def test_filezilla_resource_builder(tmp_path):
     sample_file = get_sample('PE/PE64_x86-64_binary_FileZilla.zip')
@@ -360,19 +329,10 @@ def test_filezilla_resource_builder(tmp_path):
     st = os.stat(output)
     os.chmod(output, st.st_mode | stat.S_IEXEC)
 
-    if sys.platform.startswith("win"):
-        subprocess_flags = 0x8000000 # win32con.CREATE_NO_WINDOW?
-        p = Popen(["START", output.as_posix()], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, creationflags=subprocess_flags)
-        time.sleep(3)
-        q = Popen(["taskkill", "/im", "filezilla_rsrc.exe"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        stdout, _ = p.communicate()
-        print(stdout.decode("utf8"))
-
-        stdout, _ = q.communicate()
-        print(stdout.decode("utf8"))
-
-        assert q.returncode == 0
+    if ret := win_exec(output):
+        ret_code, stdout = ret
+        print(stdout)
+        assert ret_code == 0
 
 def test_resource_directory_add_directory_node(tmp_path):
     sample_file = get_sample('PE/PE32_x86_binary_Notepad++.zip')
@@ -389,15 +349,15 @@ def test_resource_directory_add_directory_node(tmp_path):
         nodes = []
 
         node = lief.PE.ResourceDirectory()
-        node.id = lief.PE.RESOURCE_TYPES.HTML
+        node.id = lief.PE.ResourcesManager.TYPE.HTML
         nodes.append(node)
 
         node = lief.PE.ResourceDirectory()
-        node.id = lief.PE.RESOURCE_TYPES.RCDATA
+        node.id = lief.PE.ResourcesManager.TYPE.RCDATA
         nodes.append(node)
 
         node = lief.PE.ResourceDirectory()
-        node.id = lief.PE.RESOURCE_TYPES.FONT
+        node.id = lief.PE.ResourcesManager.TYPE.FONT
         nodes.append(node)
 
         # Deterministically shuffle the add order with the seed
@@ -412,10 +372,10 @@ def test_resource_directory_add_directory_node(tmp_path):
 
     for seed in (7, 23, 91):
         app = lief.parse(sample.as_posix())
-        assert lief.PE.RESOURCE_TYPES.RCDATA.value not in [child.id for child in app.resources.childs]
+        assert lief.PE.ResourcesManager.TYPE.RCDATA.value not in [child.id for child in app.resources.childs]
 
         node = lief.PE.ResourceDirectory()
-        node.id = lief.PE.RESOURCE_TYPES.RCDATA
+        node.id = lief.PE.ResourcesManager.TYPE.RCDATA
         rcdata_node = app.resources.add_directory_node(node)
         assert isinstance(rcdata_node, lief.PE.ResourceNode)
 
@@ -470,10 +430,10 @@ def test_resource_directory_add_data_node(tmp_path):
 
     for seed in (7, 23, 91):
         app = lief.parse(sample.as_posix())
-        assert lief.PE.RESOURCE_TYPES.RCDATA.value not in [child.id for child in app.resources.childs]
+        assert lief.PE.ResourcesManager.TYPE.RCDATA.value not in [child.id for child in app.resources.childs]
 
         node = lief.PE.ResourceDirectory()
-        node.id = lief.PE.RESOURCE_TYPES.RCDATA
+        node.id = lief.PE.ResourcesManager.TYPE.RCDATA
         rcdata_node = app.resources.add_directory_node(node)
         assert isinstance(rcdata_node, lief.PE.ResourceNode)
 
@@ -499,3 +459,47 @@ def test_resource_directory_add_data_node(tmp_path):
         # Should be in sorted order
         assert [child.name or child.id for child in lang_node.childs] == [0, 44, 500, 1033]
 
+def test_nodes(tmp_path):
+    sample_path = get_sample('PE/PE64_x86-64_binary_mfc-application.exe')
+    output      = tmp_path / "mfc_test_rsrc.exe"
+
+    mfc = lief.PE.parse(sample_path)
+    assert mfc.resources is not None
+    node = mfc.resources
+
+    assert mfc.resources_manager == lief.PE.ResourcesManager(mfc.resources)
+
+    assert isinstance(node, lief.PE.ResourceDirectory)
+    assert node.depth == 0
+    assert len(node.childs) == 10
+    assert node.name == ""
+    assert node.is_directory
+    assert not node.is_data
+    assert not node.has_name
+    node.delete_child(1000000)
+    node.name = "Hello"
+    assert node.name == "Hello"
+    assert node.copy() == node
+    assert hash(node.copy()) == hash(node)
+    print(node)
+
+    # Find data node
+    current = node
+    while not current.is_data:
+        if len(current.childs) == 0:
+            break
+        for child in current.childs:
+            current = child
+            break
+
+    assert current is not None
+    assert isinstance(current, lief.PE.ResourceData)
+    assert current.is_data
+    data_node: lief.PE.ResourceData = current
+    print(data_node)
+    assert data_node.reserved == 0
+    assert data_node.offset == 204224
+    assert data_node.code_page == 0
+    assert len(data_node.content) == 1064
+    assert data_node.copy() == data_node
+    assert hash(data_node.copy()) == hash(data_node)

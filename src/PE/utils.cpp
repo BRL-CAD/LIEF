@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@
 #include "utils/ordinals_lookup_tables_std/libraries_table.hpp"
 
 #include "hash_stream.hpp"
+#include "internal_utils.hpp"
 
 namespace LIEF {
 namespace PE {
@@ -88,7 +89,7 @@ result<PE_TYPE> get_type_from_stream(BinaryStream& stream) {
   auto dos_hdr = stream.read<details::pe_dos_header>();
   if (!dos_hdr) {
     LIEF_ERR("Can't read the DOS Header structure");
-    return dos_hdr.error();
+    return make_error_code(dos_hdr.error());
   }
   stream.setpos(dos_hdr->AddressOfNewExeHeader);
   if (!stream.can_read<details::pe_header>()) {
@@ -99,7 +100,7 @@ result<PE_TYPE> get_type_from_stream(BinaryStream& stream) {
   auto header = stream.read<details::pe_header>();
   if (!header) {
     LIEF_ERR("Can't read the PE header");
-    return header.error();
+    return make_error_code(header.error());
   }
 
   const size_t sizeof_opt_header = header->SizeOfOptionalHeader;
@@ -111,7 +112,7 @@ result<PE_TYPE> get_type_from_stream(BinaryStream& stream) {
   auto opt_hdr = stream.read<details::pe32_optional_header>();
   if (!opt_hdr) {
     LIEF_ERR("Can't read the PE optional header");
-    return opt_hdr.error();
+    return make_error_code(opt_hdr.error());
   }
   const auto type = static_cast<PE_TYPE>(opt_hdr->Magic);
   stream.setpos(cpos); // Restore the original position
@@ -193,7 +194,7 @@ std::string get_imphash_std(const Binary& binary) {
       if (!entries_string.empty()) {
         entries_string += ',';
       }
-      entries_string += name + '.' + funcname;
+      entries_string.append(name).append(".").append(funcname);
     }
     if (!first_entry) {
       lstr += ',';
@@ -236,9 +237,13 @@ std::string get_imphash_lief(const Binary& binary) {
     std::string entries_string;
     for (const ImportEntry& e : resolved.entries()) {
       if (e.is_ordinal()) {
-        entries_string += name_without_ext + ".#" + std::to_string(e.ordinal());
+        entries_string.append(name_without_ext)
+                      .append(".#")
+                      .append(std::to_string(e.ordinal()));
       } else {
-        entries_string += name_without_ext + "." + e.name();
+        entries_string.append(name_without_ext)
+                      .append(".")
+                      .append(e.name());
       }
     }
     import_list += to_lower(entries_string);
@@ -335,7 +340,7 @@ result<Import> resolve_ordinals(const Import& import, bool strict, bool use_std)
   Import resolved_import = import;
   for (ImportEntry& entry : resolved_import.entries()) {
     if (entry.is_ordinal()) {
-      LIEF_DEBUG("Dealing with: {}", entry);
+      LIEF_DEBUG("Dealing with: {}", to_string(entry));
       const char* entry_name = ordinal_resolver(static_cast<uint32_t>(entry.ordinal()));
       if (entry_name == nullptr) {
         if (strict) {

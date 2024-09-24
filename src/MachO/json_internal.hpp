@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,7 @@ class ThreadCommand;
 class TwoLevelHints;
 class UUIDCommand;
 class VersionMin;
+class UnknownCommand;
 
 //! Class that implements the Visitor pattern to output
 //! a JSON representation of a MachO object
@@ -109,6 +110,7 @@ class JsonVisitor : public LIEF::JsonVisitor {
   void visit(const TwoLevelHints& e)                      override;
   void visit(const UUIDCommand& uuid)                     override;
   void visit(const VersionMin& vmin)                      override;
+  void visit(const UnknownCommand& ukn)                   override;
 };
 
 }

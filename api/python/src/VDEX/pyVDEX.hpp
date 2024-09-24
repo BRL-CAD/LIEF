@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,38 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef PY_LIEF_VDEX_H_
-#define PY_LIEF_VDEX_H_
-
-#include "LIEF/VDEX.hpp"
+#ifndef PY_LIEF_VDEX_H
+#define PY_LIEF_VDEX_H
 
 #include "pyLIEF.hpp"
 
-#define SPECIALIZE_CREATE(X)      \
-  template<>                      \
-  void create<X>(py::module&)
-
-#define CREATE(X,Y) create<X>(Y)
-
-
-namespace LIEF {
-namespace VDEX {
-
+namespace LIEF::VDEX::py {
 template<class T>
-void create(py::module&);
-
-void init_python_module(py::module& m);
-
-void init_objects(py::module&);
-
-void init_utils(py::module&);
-
-
-SPECIALIZE_CREATE(Parser);
-SPECIALIZE_CREATE(File);
-SPECIALIZE_CREATE(Header);
-
-}
+void create(nb::module_&);
 }
 
 

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef LIEF_VISITABLE_H
-#define LIEF_VISITABLE_H
+#ifndef LIEF_OBJECT_H
+#define LIEF_OBJECT_H
 #include <type_traits>
 #include "LIEF/visibility.h"
 
@@ -50,6 +50,11 @@ class LIEF_API Object {
 
   template<class T>
   LIEF_LOCAL output_const_t<T> as() const;
+
+  virtual bool operator==(const Object& other) const;
+  virtual bool operator!=(const Object& other) const {
+    return !(*this == other);
+  }
 
   virtual ~Object();
   virtual void accept(Visitor& visitor) const = 0;

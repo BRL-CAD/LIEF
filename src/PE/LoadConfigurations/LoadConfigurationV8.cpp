@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,45 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <iomanip>
-
-#include "LIEF/PE/hash.hpp"
-
+#include <spdlog/fmt/fmt.h>
 #include "LIEF/PE/LoadConfigurations/LoadConfigurationV8.hpp"
+#include "LIEF/Visitor.hpp"
+
+#include "PE/Structures.hpp"
 
 namespace LIEF {
 namespace PE {
 
-LoadConfigurationV8& LoadConfigurationV8::operator=(const LoadConfigurationV8&) = default;
-LoadConfigurationV8::LoadConfigurationV8(const LoadConfigurationV8&) = default;
-LoadConfigurationV8::~LoadConfigurationV8() = default;
-
-LoadConfigurationV8::LoadConfigurationV8() = default;
+template<class T>
+LoadConfigurationV8::LoadConfigurationV8(const details::load_configuration_v8<T>& header) :
+  LoadConfigurationV7{static_cast<const details::load_configuration_v7<T>&>(header)},
+  volatile_metadata_pointer_{header.VolatileMetadataPointer}
+{
+}
 
 void LoadConfigurationV8::accept(Visitor& visitor) const {
   visitor.visit(*this);
 }
 
-bool LoadConfigurationV8::operator==(const LoadConfigurationV8& rhs) const {
-  if (this == &rhs) {
-    return true;
-  }
-  size_t hash_lhs = Hash::hash(*this);
-  size_t hash_rhs = Hash::hash(rhs);
-  return hash_lhs == hash_rhs;
-}
-
-bool LoadConfigurationV8::operator!=(const LoadConfigurationV8& rhs) const {
-  return !(*this == rhs);
-}
-
 std::ostream& LoadConfigurationV8::print(std::ostream& os) const {
   LoadConfigurationV7::print(os);
-
-  os << std::setw(LoadConfiguration::PRINT_WIDTH) << std::setfill(' ') <<
-        "Volatile Metadata Pointer:" << std::hex << volatile_metadata_pointer() << std::endl;
+  os << "LoadConfigurationV8:\n"
+     << fmt::format("  Volatile Metadata Pointer: 0x{:08x}\n", volatile_metadata_pointer());
   return os;
 }
+
+template
+LoadConfigurationV8::LoadConfigurationV8(const details::load_configuration_v8<uint32_t>& header);
+template
+LoadConfigurationV8::LoadConfigurationV8(const details::load_configuration_v8<uint64_t>& header);
 
 
 } // namespace PE

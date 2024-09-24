@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2023 Quarkslab
+/* Copyright 2017 - 2024 R. Thomas
+ * Copyright 2017 - 2024 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,15 @@
  */
 #include "ChainedBindingInfoList.hpp"
 #include "MachO/ChainedFixup.hpp"
-#include "LIEF/MachO/BindingInfo.hpp"
+
 #include "LIEF/MachO/ChainedBindingInfo.hpp"
 
 namespace LIEF {
 namespace MachO {
 
-ChainedBindingInfoList::ChainedBindingInfoList(ChainedBindingInfoList&&) = default;
-ChainedBindingInfoList::~ChainedBindingInfoList() = default;
-
-ChainedBindingInfoList::ChainedBindingInfoList(DYLD_CHAINED_FORMAT fmt, bool is_weak) :
-  ChainedBindingInfo(fmt, is_weak)
-{}
-
-void ChainedBindingInfoList::swap(ChainedBindingInfoList& other) {
+void ChainedBindingInfoList::swap(ChainedBindingInfoList& other) noexcept {
   ChainedBindingInfo::swap(other);
   std::swap(elements_, other.elements_);
-}
-
-bool ChainedBindingInfoList::classof(const BindingInfo& info) {
-  return info.type() == BindingInfo::TYPES::CHAINED_LIST;
 }
 
 }
