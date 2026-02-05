@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,18 @@
 #include "LIEF/PE/Parser.hpp"
 #include "LIEF/PE/ParserConfig.hpp"
 #include "LIEF/PE/RelocationEntry.hpp"
+#include "LIEF/PE/ExceptionInfo.hpp"
 #include "LIEF/PE/RichHeader.hpp"
 #include "LIEF/PE/TLS.hpp"
 #include "LIEF/PE/debug/CodeView.hpp"
 #include "LIEF/PE/debug/Repro.hpp"
+#include "LIEF/PE/debug/FPO.hpp"
+#include "LIEF/PE/debug/ExDllCharacteristics.hpp"
+#include "LIEF/PE/debug/VCFeature.hpp"
 #include "LIEF/PE/debug/CodeViewPDB.hpp"
 #include "LIEF/PE/debug/Pogo.hpp"
 #include "LIEF/PE/debug/PogoEntry.hpp"
-#include "LIEF/PE/resources/LangCodeItem.hpp"
+#include "LIEF/PE/debug/PDBChecksum.hpp"
 #include "LIEF/PE/resources/langs.hpp"
 #include "LIEF/PE/signature/attributes.hpp"
 #include "LIEF/PE/signature/PKCS9TSTInfo.hpp"
@@ -48,34 +52,21 @@ void init_resources(nb::module_& m) {
   CREATE(ResourceData, m);
   CREATE(ResourceDirectory, m);
   CREATE(ResourceVersion, m);
+  CREATE(ResourceStringTable, m);
   CREATE(ResourceStringFileInfo, m);
-  CREATE(ResourceFixedFileInfo, m);
+  CREATE(ResourceVar, m);
   CREATE(ResourceVarFileInfo, m);
-  CREATE(LangCodeItem, m);
   CREATE(ResourceIcon, m);
   CREATE(ResourceDialog, m);
-  CREATE(ResourceDialogItem, m);
-  CREATE(ResourceStringTable, m);
+  CREATE(ResourceDialogExtended, m);
+  CREATE(ResourceDialogRegular, m);
   CREATE(ResourceAccelerator, m);
   CREATE(RESOURCE_LANGS, m);
 }
 
 void init_load_configs(nb::module_& m) {
   CREATE(LoadConfiguration, m);
-  CREATE(LoadConfigurationV0, m);
-  CREATE(LoadConfigurationV1, m);
-  CREATE(LoadConfigurationV2, m);
-  CREATE(LoadConfigurationV3, m);
-  CREATE(LoadConfigurationV4, m);
-  CREATE(LoadConfigurationV5, m);
-  CREATE(LoadConfigurationV6, m);
-  CREATE(LoadConfigurationV7, m);
-  CREATE(LoadConfigurationV8, m);
-  CREATE(LoadConfigurationV9, m);
-  CREATE(LoadConfigurationV10, m);
-  CREATE(LoadConfigurationV11, m);
 }
-
 
 void init_debug(nb::module_& m) {
   CREATE(Debug, m);
@@ -84,6 +75,10 @@ void init_debug(nb::module_& m) {
   CREATE(Repro, m);
   CREATE(Pogo, m);
   CREATE(PogoEntry, m);
+  CREATE(PDBChecksum, m);
+  CREATE(VCFeature, m);
+  CREATE(ExDllCharacteristics, m);
+  CREATE(FPO, m);
 }
 
 void init_signature(nb::module_& m) {
@@ -128,11 +123,11 @@ void init_objects(nb::module_& m) {
   CREATE(Export, m);
   CREATE(ExportEntry, m);
   CREATE(TLS, m);
-  CREATE(Symbol, m);
   CREATE(Import, m);
   CREATE(ImportEntry, m);
   CREATE(DelayImport, m);
   CREATE(DelayImportEntry, m);
+  CREATE(ExceptionInfo, m);
   {
     init_debug(m);
     init_resources(m);
@@ -141,6 +136,7 @@ void init_objects(nb::module_& m) {
   }
   CREATE(Binary, m);
   CREATE(Builder, m);
+  CREATE(Factory, m);
 }
 
 void init(nb::module_& m) {

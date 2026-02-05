@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,9 @@ void create<ResourceDirectory>(nb::module_& m) {
   nb::class_<ResourceDirectory, ResourceNode>(m, "ResourceDirectory")
     .def(nb::init<>(),
         "Default constructor"_doc)
+
+    .def(nb::init<uint32_t>(),
+        "Constructor from an ID"_doc)
 
     .def_prop_rw("characteristics",
         nb::overload_cast<>(&ResourceDirectory::characteristics, nb::const_),

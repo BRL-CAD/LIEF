@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 #include "PE/pyPE.hpp"
-#include "nanobind/extra/memoryview.hpp"
+#include "nanobind/extra/stl/lief_span.h"
+#include "nanobind/utils.hpp"
 
 #include "LIEF/PE/ResourceData.hpp"
 
@@ -35,7 +36,7 @@ void create<ResourceData>(nb::module_& m) {
         "Default constructor"_doc)
 
     .def(nb::init<const std::vector<uint8_t>&, uint32_t>(),
-        "content"_a, "code_page"_a)
+        "content"_a, "code_page"_a = 0)
 
     .def_prop_rw("code_page",
         nb::overload_cast<>(&ResourceData::code_page, nb::const_),
@@ -46,12 +47,10 @@ void create<ResourceData>(nb::module_& m) {
         )delim"_doc)
 
     .def_prop_rw("content",
-        [] (const ResourceData& self) {
-          const span<const uint8_t> content = self.content();
-          return nb::memoryview::from_memory(content.data(), content.size());
-        },
-        nb::overload_cast<std::vector<uint8_t>>(&ResourceData::content),
-        "Resource content"_doc)
+        nb::overload_cast<>(&ResourceData::content, nb::const_),
+        [] (ResourceData& self, nb::bytes bytes) {
+          self.content(nanobind::to_vector(bytes));
+        }, "Resource content"_doc)
 
     .def_prop_rw("reserved",
         nb::overload_cast<>(&ResourceData::reserved, nb::const_),

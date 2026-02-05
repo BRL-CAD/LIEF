@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2024 R. Thomas
+/* Copyright 2022 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,11 +44,19 @@ class DWARF_Variable : private Mirror<LIEF::dwarf::Variable> {
     return get().is_constexpr();
   }
 
+  auto is_stack_based() const {
+    return get().is_stack_based();
+  }
+
   auto get_type() const {
     return details::try_unique<DWARF_Type>(get().type()); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
   }
 
   auto scope() const {
     return details::try_unique<DWARF_Scope>(get().scope());
+  }
+
+  auto description() const {
+    return get().description();
   }
 };

@@ -1,31 +1,33 @@
 target_sources(pyLIEF PRIVATE
-  pyParser.cpp
-  pyParserConfig.cpp
   pyBinary.cpp
+  pyBuilder.cpp
   pyCodeIntegrity.cpp
   pyDataDirectory.cpp
-  pyDosHeader.cpp
-  pyRichHeader.cpp
-  pyRichEntry.cpp
-  pyBuilder.cpp
-  pyOptionalHeader.cpp
-  pyRelocationEntry.cpp
-  pyResourcesManager.cpp
-  pyHeader.cpp
-  pySection.cpp
-  pyExport.cpp
-  pyImport.cpp
-  pyExportEntry.cpp
-  pyRelocation.cpp
-  pyImportEntry.cpp
   pyDelayImport.cpp
   pyDelayImportEntry.cpp
-  pySymbol.cpp
-  pyTLS.cpp
+  pyDosHeader.cpp
+  pyExceptionInfo.cpp
+  pyExport.cpp
+  pyExportEntry.cpp
+  pyFactory.cpp
+  pyHeader.cpp
+  pyImport.cpp
+  pyImportEntry.cpp
   pyLang.cpp
+  pyOptionalHeader.cpp
+  pyParser.cpp
+  pyParserConfig.cpp
+  pyRelocation.cpp
+  pyRelocationEntry.cpp
+  pyResourcesManager.cpp
+  pyRichEntry.cpp
+  pyRichHeader.cpp
+  pySection.cpp
+  pyTLS.cpp
 )
 
 add_subdirectory(resources)
 add_subdirectory(signature)
 add_subdirectory(LoadConfigurations)
 add_subdirectory(debug)
+add_subdirectory(exceptions_info)

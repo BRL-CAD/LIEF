@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,14 @@
  */
 #ifndef LIEF_UTILS_HEADER
 #define LIEF_UTILS_HEADER
-#include <vector>
+#include <ostream>
 #include <string>
+#include <vector>
 
-#include "LIEF/span.hpp"
-#include "LIEF/types.hpp"
 #include "LIEF/visibility.h"
+#include "LIEF/span.hpp"
 
 #include "LIEF/errors.hpp"
-
 
 namespace LIEF {
 inline uint64_t align(uint64_t value, uint64_t align_on) {
@@ -37,6 +36,20 @@ inline uint64_t align(uint64_t value, uint64_t align_on) {
   return value;
 }
 
+inline uint64_t align_down(uint64_t value, uint64_t align_on) {
+  if (align_on == 0) {
+    return value;
+  }
+  const auto r = value % align_on;
+  if (r > 0) {
+    return value - r;
+  }
+  return value;
+}
+
+inline uint64_t align_with_offset(uint64_t value, uint64_t align_on, uint64_t offset) {
+  return align(value - offset, align_on) + offset;
+}
 
 template<typename T>
 inline constexpr T round(T x) {
@@ -74,32 +87,75 @@ constexpr size_t operator ""_GB(unsigned long long gbs)
     return 1024LLU * 1024LLU * 1024LLU * gbs;
 }
 
+struct lief_version_t {
+  uint64_t major = 0;
+  uint64_t minor = 0;
+  uint64_t patch = 0;
+  uint64_t id    = 0;
 
-//! Convert a UTF-16 string to a UTF-8 one
+  LIEF_API std::string to_string() const;
+
+  friend LIEF_API
+    std::ostream& operator<<(std::ostream& os, const lief_version_t& version)
+  {
+    os << version.to_string();
+    return os;
+  }
+};
+
+/// Convert a UTF-16 string to a UTF-8 one
 LIEF_API std::string u16tou8(const std::u16string& string, bool remove_null_char = false);
 
-//! Convert a UTF-8 string to a UTF-16 one
+/// Convert a UTF-8 string to a UTF-16 one
 LIEF_API result<std::u16string> u8tou16(const std::string& string);
 
-LIEF_API std::string hex_str(uint8_t c);
-
-LIEF_API std::string hex_dump(const std::vector<uint8_t>& data,
-                              const std::string& sep = ":");
-
-LIEF_API std::string hex_dump(span<const uint8_t> data,
-                              const std::string& sep = ":");
-
-//! Check if the given number is a hex-like string
-LIEF_API bool is_hex_number(const std::string& nb);
-
-//! Whether this version of LIEF includes extended features
+/// Whether this version of LIEF includes extended features
 LIEF_API bool is_extended();
+
+/// Details about the extended version
+LIEF_API std::string extended_version_info();
+
+/// Return the extended version
+LIEF_API lief_version_t extended_version();
+
+/// Return the current version
+LIEF_API lief_version_t version();
+
+/// Demangle the given input.
+///
+/// This function only works with the extended version of LIEF
+LIEF_API result<std::string> demangle(const std::string& mangled);
+
+/// Hexdump the provided buffer.
+///
+/// For instance:
+///
+/// ```text
+/// +---------------------------------------------------------------------+
+/// | 88 56 05 00 00 00 00 00 00 00 00 00 22 58 05 00  | .V.........."X.. |
+/// | 10 71 02 00 78 55 05 00 00 00 00 00 00 00 00 00  | .q..xU.......... |
+/// | 68 5c 05 00 00 70 02 00 00 00 00 00 00 00 00 00  | h\...p.......... |
+/// | 00 00 00 00 00 00 00 00 00 00 00 00              | ............     |
+/// +---------------------------------------------------------------------+
+/// ```
+LIEF_API std::string dump(
+  const uint8_t* buffer, size_t size, const std::string& title = "",
+  const std::string& prefix = "", size_t limit = 0);
+
+inline std::string dump(span<const uint8_t> data, const std::string& title = "",
+                        const std::string& prefix = "", size_t limit = 0)
+{
+  return dump(data.data(), data.size(), title, prefix, limit);
 }
 
-namespace LIEF {
-namespace LEB128 {
-std::vector<uint8_t> uencode(uint64_t value);
+inline std::string dump(const std::vector<uint8_t>& data,
+                        const std::string& title = "",
+                        const std::string& prefix = "",
+                        size_t limit = 0)
+{
+  return dump(data.data(), data.size(), title, prefix, limit);
 }
 }
+
 
 #endif

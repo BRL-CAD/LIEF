@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ class MachO_Symbol : public AbstractSymbol {
   auto origin() const { return to_int(impl().origin()); };
   auto category() const { return to_int(impl().category()); };
   bool is_external() const { return impl().is_external(); };
+
+  auto demangled_name() const { return impl().demangled_name(); }
 
   LIEF_API std::unique_ptr<MachO_ExportInfo> export_info() const;
   LIEF_API std::unique_ptr<MachO_BindingInfo> binding_info() const;

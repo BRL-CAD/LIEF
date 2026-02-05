@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,47 @@ void create<BuildVersion>(nb::module_& m) {
     .value(PY_ENUM(BuildToolVersion::TOOLS::UNKNOWN))
     .value(PY_ENUM(BuildToolVersion::TOOLS::CLANG))
     .value(PY_ENUM(BuildToolVersion::TOOLS::SWIFT))
-    .value(PY_ENUM(BuildToolVersion::TOOLS::LD));
+    .value(PY_ENUM(BuildToolVersion::TOOLS::LD))
+    .value(PY_ENUM(BuildToolVersion::TOOLS::LLD))
+
+    .value(PY_ENUM(BuildToolVersion::TOOLS::METAL))
+    .value(PY_ENUM(BuildToolVersion::TOOLS::AIRLLD))
+    .value(PY_ENUM(BuildToolVersion::TOOLS::AIRNT))
+    .value(PY_ENUM(BuildToolVersion::TOOLS::AIRNT_PLUGIN))
+    .value(PY_ENUM(BuildToolVersion::TOOLS::AIRPACK))
+    .value(PY_ENUM(BuildToolVersion::TOOLS::GPUARCHIVER))
+    .value(PY_ENUM(BuildToolVersion::TOOLS::METAL_FRAMEWORK))
+  ;
+
+
+  enum_<BuildVersion::PLATFORMS>(cls, "PLATFORMS")
+    .value(PY_ENUM(BuildVersion::PLATFORMS::UNKNOWN))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::MACOS))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::IOS))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::TVOS))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::WATCHOS))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::BRIDGEOS))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::MAC_CATALYST))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::IOS_SIMULATOR))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::TVOS_SIMULATOR))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::WATCHOS_SIMULATOR))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::DRIVERKIT))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::VISIONOS))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::VISIONOS_SIMULATOR))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::FIRMWARE))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::SEPOS))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::MACOS_EXCLAVE_CORE))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::MACOS_EXCLAVE_KIT))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::IOS_EXCLAVE_CORE))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::IOS_EXCLAVE_KIT))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::TVOS_EXCLAVE_CORE))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::TVOS_EXCLAVE_KIT))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::WATCHOS_EXCLAVE_CORE))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::WATCHOS_EXCLAVE_KIT))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::VISIONOS_EXCLAVE_CORE))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::VISIONOS_EXCLAVE_KIT))
+    .value(PY_ENUM(BuildVersion::PLATFORMS::ANY))
+  ;
 
   cls
     .def_prop_rw("platform",
@@ -81,14 +121,6 @@ void create<BuildVersion>(nb::module_& m) {
         "List of " RST_CLASS_REF(BuildToolVersion) " used when while this binary"_doc)
 
     LIEF_DEFAULT_STR(BuildVersion);
-
-
-  enum_<BuildVersion::PLATFORMS>(cls, "PLATFORMS")
-    .value(PY_ENUM(BuildVersion::PLATFORMS::UNKNOWN))
-    .value(PY_ENUM(BuildVersion::PLATFORMS::MACOS))
-    .value(PY_ENUM(BuildVersion::PLATFORMS::IOS))
-    .value(PY_ENUM(BuildVersion::PLATFORMS::TVOS))
-    .value(PY_ENUM(BuildVersion::PLATFORMS::WATCHOS));
 
 }
 

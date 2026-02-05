@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2024 R. Thomas
+/* Copyright 2022 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,9 @@ class LIEF_API DebugInfo : public LIEF::DebugInfo {
   /// Iterator on the CompilationUnit embedded in this dwarf
   compilation_units_it compilation_units() const;
 
+  /// Attempt to resolve the address of the function specified by `name`.
+  optional<uint64_t> find_function_address(const std::string& name) const override;
+
   FORMAT format() const override {
     return LIEF::DebugInfo::FORMAT::DWARF;
   }
@@ -84,8 +87,8 @@ class LIEF_API DebugInfo : public LIEF::DebugInfo {
 
 
 /// Load DWARF file from the given path
-inline std::unique_ptr<DebugInfo> load(const std::string& pdb_path) {
-  return DebugInfo::from_file(pdb_path);
+inline std::unique_ptr<DebugInfo> load(const std::string& dwarf_path) {
+  return DebugInfo::from_file(dwarf_path);
 }
 
 }

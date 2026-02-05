@@ -1,6 +1,7 @@
 use super::Command;
 use lief_ffi as ffi;
 
+use crate::to_slice;
 use crate::macho::binding_info::{Chained, CHAINED_FORMAT};
 use crate::{common::FromFFI, declare_iterator};
 use std::marker::PhantomData;
@@ -87,8 +88,13 @@ impl DyldChainedFixups<'_> {
 
     /// Iterator over the bindings [`crate::macho::BindingInfo::Chained`]
     /// associated with this command
-    pub fn bindings(&self) -> Bindings {
+    pub fn bindings(&self) -> Bindings<'_> {
         Bindings::new(self.ptr.bindings())
+    }
+
+    /// Return the raw content of the command
+    pub fn payload(&self) -> &[u8] {
+        to_slice!(self.ptr.payload());
     }
 }
 

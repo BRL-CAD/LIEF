@@ -160,6 +160,7 @@ def test_unwind():
     functions = sorted(binary.functions, key=lambda f: f.address)
 
     assert len(functions) == 2619
+    assert binary.is_macos
 
     assert functions[0].address == 2624
     assert functions[0].size    == 0
@@ -172,9 +173,15 @@ def test_unwind():
 
 def test_build_version():
     binary = lief.MachO.parse(get_sample('MachO/FAT_MachO_arm-arm64-binary-helloworld.bin'))
+    assert binary is not None
+    assert binary[lief.MachO.Header.CPU_TYPE.ARM64] is not None
+    assert binary.get(lief.MachO.Header.CPU_TYPE.ARM) is not None
+    assert binary[lief.MachO.Header.CPU_TYPE.X86_64] is None
+
     target = binary[1]
 
     assert target.has_build_version
+    assert target.is_ios
     build_version = target.build_version
 
     assert build_version.minos == [12, 1, 0]
@@ -296,7 +303,67 @@ def test_unknown_command():
     print(hash(unknown_cmd))
     print(unknown_cmd)
 
+def test_subclients():
+    macho = lief.MachO.parse(get_sample("MachO/StocksAnalytics")).at(0)
+    assert len(macho.subclients) == 19
+
+    assert macho.subclients[0].client == "NewsArticles"
+    assert macho.subclients[-1].client == "StocksAppKitBundle"
+
+def test_bindings_iterator():
+    dyld = lief.MachO.parse(get_sample("MachO/MachO64_x86-64_binary_sshd.bin")).at(0)
+    chained = lief.MachO.parse(get_sample("MachO/PlugInKitDaemon")).at(0)
+    shared_cache = lief.MachO.parse(get_sample("MachO/liblog_srp.dylib")).at(0)
+
+    dyld_bindings = list(dyld.bindings)
+    chained_bindings = list(chained.bindings)
+    indirect_bindings = list(shared_cache.bindings)
+
+    assert len(dyld_bindings) == 323
+    assert len(chained_bindings) == 546
+    assert len(indirect_bindings) == 25
+
+    assert dyld_bindings[320].symbol.name == "_vfprintf"
+    assert chained_bindings[540].symbol.name == "__objc_empty_cache"
+
+    assert indirect_bindings[0].symbol.name == "___memcpy_chk"
+    assert indirect_bindings[-1].symbol.name == "_strcmp"
+
+def test_va_range():
+    macho = lief.MachO.parse(get_sample("MachO/macho-arm64-osx-chained-fixups.bin")).at(0)
+    va_ranges = macho.va_ranges
+    assert va_ranges.start == 0x100000000
+    assert va_ranges.end == 0x100010000
+
+@pytest.mark.skipif(not has_private_samples(), reason="needs private samples")
+def test_routine():
+    macho = lief.MachO.parse(get_sample("private/MachO/CoreFoundation")).at(0)
+    routine = macho.routine_command
+    assert routine is not None
+    assert routine.init_address == 0x00000001803f0aa4
+    assert routine.init_module == 0
+    assert routine.reserved1 == 0
+    assert routine.reserved2 == 0
+    assert routine.reserved3 == 0
+    assert routine.reserved4 == 0
+    assert routine.reserved5 == 0
+    assert routine.reserved6 == 0
+
 @pytest.mark.skipif(not has_private_samples(), reason="needs private samples")
 def test_arm64e():
     sample = lief.MachO.parse(get_sample("private/MachO/libCoreKE_arm64e.dylib")).at(0)
     assert sample.support_arm64_ptr_auth
+
+def test_find_library():
+    macho = lief.MachO.parse(get_sample("MachO/lief-dwarf-plugin-darwin-arm64.dylib")).at(0)
+    assert macho.find_library("/foo/lief-dwarf-plugin-darwin-arm64.dylib") is None
+    assert macho.find_library("lief-dwarf-plugin-darwin-arm64.dylib") is not None
+    assert macho.find_library("@rpath/lief-dwarf-plugin-darwin-arm64.dylib") is not None
+    assert macho.find_library("/usr/lib/libSystem.B.dylib") is not None
+
+def test_resolve_function():
+    macho = lief.MachO.parse(get_sample("MachO/lief-dwarf-plugin-darwin-arm64.dylib")).at(0)
+    assert macho.get_function_address("CorePluginABIVersion") == 0x1cf0
+
+    macho = lief.MachO.parse(get_sample("MachO/RNCryptor.bin")).at(0)
+    assert macho.get_function_address("_RNCryptorVersionString") == 0x00012988

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +29,11 @@ namespace details {
 struct build_tool_version;
 }
 
-//! Class that represents a tool's version that was
-//! involved in the build of the binary
+/// Class that represents a tool's version that was
+/// involved in the build of the binary
 class LIEF_API BuildToolVersion : public Object {
   public:
-  //! A version is an array of **3** integers
+  /// A version is an array of **3** integers
   using version_t = std::array<uint32_t, 3>;
 
   public:
@@ -42,18 +42,27 @@ class LIEF_API BuildToolVersion : public Object {
     CLANG   = 1,
     SWIFT   = 2,
     LD      = 3,
+    LLD     = 4,
+
+    METAL           = 1024,
+    AIRLLD          = 1025,
+    AIRNT           = 1026,
+    AIRNT_PLUGIN    = 1027,
+    AIRPACK         = 1028,
+    GPUARCHIVER     = 1031,
+    METAL_FRAMEWORK = 1032,
   };
 
   public:
   BuildToolVersion() = default;
   BuildToolVersion(const details::build_tool_version& tool);
 
-  //! The tools used
+  /// The tools used
   TOOLS tool() const {
     return tool_;
   }
 
-  //! Version associated with the tool
+  /// Version associated with the tool
   version_t version() const {
     return version_;
   }

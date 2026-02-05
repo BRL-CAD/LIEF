@@ -22,12 +22,17 @@ void create<objc::Metadata>(nb::module_& m) {
       R"doc(
       Generate a header-like of all the Objective-C metadata identified in the
       binary.
-      )doc"_doc
+
+      The generated output can be configured with the provided :class:`~.DeclOpt`
+      parameter.
+      )doc"_doc, "opt"_a = DeclOpt()
     )
     .def_prop_ro("classes",
         [] (objc::Metadata& self) {
           auto classes = self.classes();
-          return nb::make_iterator(nb::type<objc::Metadata>(), "classes_it", classes);
+          return nb::make_iterator<nb::rv_policy::reference_internal>(
+            nb::type<objc::Metadata>(), "classes_it", classes
+          );
         }, nb::keep_alive<0, 1>(),
         R"doc(
         Return an iterator over the different Objective-C classes (``@interface``).
@@ -36,7 +41,9 @@ void create<objc::Metadata>(nb::module_& m) {
     .def_prop_ro("protocols",
         [] (objc::Metadata& self) {
           auto protocols = self.protocols();
-          return nb::make_iterator(nb::type<objc::Metadata>(), "protocols_it", protocols);
+          return nb::make_iterator<nb::rv_policy::reference_internal>(
+            nb::type<objc::Metadata>(), "protocols_it", protocols
+          );
         }, nb::keep_alive<0, 1>(),
         R"doc(
         Return an iterator over the Objective-C protocols declared in this

@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ class PE_DelayImportEntry : public AbstractSymbol {
   uint16_t hint() const { return impl().hint(); };
   uint64_t iat_value() const { return impl().iat_value(); };
   uint64_t data() const { return impl().data(); };
+  auto demangled_name() const { return impl().demangled_name(); }
 
   private:
   const lief_t& impl() const { return as<lief_t>(this); }

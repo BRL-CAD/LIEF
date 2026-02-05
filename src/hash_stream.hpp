@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,12 +54,6 @@ class hashstream {
   hashstream& write_sized_int(uint64_t value, size_t size) {
     return write(reinterpret_cast<const uint8_t*>(&value), size);
   }
-
-  template<typename T>
-  hashstream& write_conv(const T& t);
-
-  template<typename T>
-  hashstream& write_conv_array(const std::vector<T>& v);
 
   hashstream& align(size_t size, uint8_t val = 0);
 

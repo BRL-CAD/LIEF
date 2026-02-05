@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,6 +183,7 @@ std::vector<uint8_t> Signature::hash(const uint8_t* buffer, size_t size, ALGORIT
           LIEF_ERR("Hashing {} bytes with SHA-384 failed! (ret: 0x{:x})", size, ret);
           return {};
         }
+        out.resize(48);
         return out;
       }
 
@@ -545,11 +546,10 @@ std::ostream& operator<<(std::ostream& os, const Signature& signature) {
   const ContentInfo& cinfo = signature.content_info();
   os << fmt::format("Version:             {:d}\n", signature.version());
   os << fmt::format("Digest Algorithm:    {}\n", to_string(signature.digest_algorithm()));
-  if (SpcIndirectData::classof(&cinfo.value())) {
-    const auto& spc_indirect_data = static_cast<const SpcIndirectData&>(cinfo.value());
-    os << fmt::format("Content Info Digest: {}\n", hex_dump(spc_indirect_data.digest()));
-    if (!spc_indirect_data.file().empty()) {
-      os << fmt::format("Content Info File:   {}\n", spc_indirect_data.file());
+  if (const auto* spc_indirect_data = cinfo.value().cast<SpcIndirectData>()) {
+    os << fmt::format("Content Info Digest: {}\n", hex_dump(spc_indirect_data->digest()));
+    if (!spc_indirect_data->file().empty()) {
+      os << fmt::format("Content Info File:   {}\n", spc_indirect_data->file());
     }
   }
 

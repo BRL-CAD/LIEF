@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,4 +39,8 @@ class ELF_Header : public Mirror<LIEF::ELF::Header> {
   uint32_t section_header_size() const { return get().section_header_size(); }
   uint32_t numberof_sections() const { return get().numberof_sections(); }
   uint32_t section_name_table_idx() const { return get().section_name_table_idx(); }
+
+  void set_osabi(uint32_t value) {
+    get().identity_os_abi((LIEF::ELF::Header::OS_ABI)value);
+  }
 };

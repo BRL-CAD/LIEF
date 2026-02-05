@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,30 +23,30 @@
 
 namespace LIEF {
 
-enum class PLATFORMS {
-  UNKNOWN = 0,
-  LINUX,
-  ANDROID_PLAT,
-  WINDOWS,
-  IOS,
-  OSX,
+enum PLATFORMS {
+  PLAT_UNKNOWN = 0,
+  PLAT_LINUX,
+  PLAT_ANDROID,
+  PLAT_WINDOWS,
+  PLAT_IOS,
+  PLAT_OSX,
 };
 
 constexpr PLATFORMS current_platform() {
 #if defined(__ANDROID__)
-  return PLATFORMS::ANDROID_PLAT;
+  return PLATFORMS::PLAT_ANDROID;
 #elif defined(__linux__)
-  return PLATFORMS::LINUX;
+  return PLATFORMS::PLAT_LINUX;
 #elif defined(_WIN64) || defined(_WIN32)
-  return PLATFORMS::WINDOWS;
+  return PLATFORMS::PLAT_WINDOWS;
 #elif defined(__APPLE__)
   #if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
-    return PLATFORMS::IOS;
+    return PLATFORMS::PLAT_IOS;
   #else
-    return PLATFORMS::OSX;
+    return PLATFORMS::PLAT_OSX;
   #endif
 #else
-  return PLATFORMS::UNKNOWN;
+  return PLATFORMS::PLAT_UNKNOWN;
 #endif
 
 }

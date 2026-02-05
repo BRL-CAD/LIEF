@@ -1,6 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
- * Copyright 2017 - 2021 K. Nakagawa
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +35,6 @@ class RelocationEntry;
 class Export;
 class ExportEntry;
 class TLS;
-class Symbol;
 class Debug;
 class CodeView;
 class CodeViewPDB;
@@ -50,12 +48,10 @@ class ResourceDirectory;
 class ResourcesManager;
 class ResourceVersion;
 class ResourceStringFileInfo;
-class ResourceFixedFileInfo;
 class ResourceVarFileInfo;
-class LangCodeItem;
 class ResourceIcon;
-class ResourceDialog;
-class ResourceDialogItem;
+class ResourceDialogExtended;
+class ResourceDialogRegular;
 class ResourceStringTable;
 class ResourceAccelerator;
 class Signature;
@@ -77,24 +73,12 @@ class SpcRelaxedPeMarkerCheck;
 class SigningCertificateV2;
 class CodeIntegrity;
 class LoadConfiguration;
-class LoadConfigurationV0;
-class LoadConfigurationV1;
-class LoadConfigurationV2;
-class LoadConfigurationV3;
-class LoadConfigurationV4;
-class LoadConfigurationV5;
-class LoadConfigurationV6;
-class LoadConfigurationV7;
-class LoadConfigurationV8;
-class LoadConfigurationV9;
-class LoadConfigurationV10;
-class LoadConfigurationV11;
 class Pogo;
 class PogoEntry;
 class Repro;
 
-//! Class which implements a visitor to compute
-//! a **deterministic** hash for LIEF PE objects
+/// Class which implements a visitor to compute
+/// a **deterministic** hash for LIEF PE objects
 class LIEF_API Hash : public LIEF::Hash {
   public:
   static LIEF::Hash::value_type hash(const Object& obj);
@@ -119,7 +103,6 @@ class LIEF_API Hash : public LIEF::Hash {
   void visit(const Export& export_)                       override;
   void visit(const ExportEntry& export_entry)             override;
   void visit(const TLS& tls)                              override;
-  void visit(const Symbol& Symbol)                        override;
   void visit(const Debug& debug)                          override;
   void visit(const CodeView& cv)                          override;
   void visit(const CodeViewPDB& cvpdb)                    override;
@@ -133,12 +116,10 @@ class LIEF_API Hash : public LIEF::Hash {
   void visit(const ResourcesManager& resources_manager)   override;
   void visit(const ResourceVersion& resource_version)     override;
   void visit(const ResourceStringFileInfo& resource_sfi)  override;
-  void visit(const ResourceFixedFileInfo& resource_ffi)   override;
   void visit(const ResourceVarFileInfo& resource_vfi)     override;
-  void visit(const LangCodeItem& resource_lci)            override;
   void visit(const ResourceIcon& resource_icon)           override;
-  void visit(const ResourceDialog& dialog)                override;
-  void visit(const ResourceDialogItem& dialog_item)       override;
+  void visit(const ResourceDialogExtended& dialog)        override;
+  void visit(const ResourceDialogRegular& dialog)         override;
   void visit(const ResourceStringTable& string_table)     override;
   void visit(const ResourceAccelerator& acc)              override;
   void visit(const Signature& signature)                  override;
@@ -163,19 +144,6 @@ class LIEF_API Hash : public LIEF::Hash {
   void visit(const SigningCertificateV2& attr)            override;
   void visit(const CodeIntegrity& code_integrity)         override;
   void visit(const LoadConfiguration& config)             override;
-  void visit(const LoadConfigurationV0& config)           override;
-  void visit(const LoadConfigurationV1& config)           override;
-  void visit(const LoadConfigurationV2& config)           override;
-  void visit(const LoadConfigurationV3& config)           override;
-  void visit(const LoadConfigurationV4& config)           override;
-  void visit(const LoadConfigurationV5& config)           override;
-  void visit(const LoadConfigurationV6& config)           override;
-  void visit(const LoadConfigurationV7& config)           override;
-  void visit(const LoadConfigurationV8& config)           override;
-  void visit(const LoadConfigurationV9& config)           override;
-  void visit(const LoadConfigurationV10& config)          override;
-  void visit(const LoadConfigurationV11& config)          override;
-
   void visit(const Pogo& pogo)        override;
   void visit(const PogoEntry& entry)  override;
   void visit(const Repro& entry)      override;

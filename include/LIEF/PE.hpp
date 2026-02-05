@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,19 +34,19 @@
 #include "LIEF/PE/ResourceData.hpp"
 #include "LIEF/PE/ResourceNode.hpp"
 #include "LIEF/PE/ResourceDirectory.hpp"
-#include "LIEF/PE/resources/LangCodeItem.hpp"
 #include "LIEF/PE/resources/ResourceAccelerator.hpp"
 #include "LIEF/PE/resources/ResourceDialog.hpp"
-#include "LIEF/PE/resources/ResourceDialogItem.hpp"
-#include "LIEF/PE/resources/ResourceFixedFileInfo.hpp"
+#include "LIEF/PE/resources/ResourceDialogRegular.hpp"
+#include "LIEF/PE/resources/ResourceDialogExtended.hpp"
+#include "LIEF/PE/resources/AcceleratorCodes.hpp"
 #include "LIEF/PE/resources/ResourceIcon.hpp"
 #include "LIEF/PE/resources/ResourceStringFileInfo.hpp"
 #include "LIEF/PE/resources/ResourceStringTable.hpp"
 #include "LIEF/PE/resources/ResourceVarFileInfo.hpp"
+#include "LIEF/PE/resources/ResourceVar.hpp"
 #include "LIEF/PE/resources/ResourceVersion.hpp"
 #include "LIEF/PE/RichEntry.hpp"
 #include "LIEF/PE/RichHeader.hpp"
-#include "LIEF/PE/Symbol.hpp"
 #include "LIEF/PE/Relocation.hpp"
 #include "LIEF/PE/RelocationEntry.hpp"
 #include "LIEF/PE/Builder.hpp"
@@ -56,8 +56,14 @@
 #include "LIEF/PE/Header.hpp"
 #include "LIEF/PE/OptionalHeader.hpp"
 #include "LIEF/PE/LoadConfigurations.hpp"
-#include "LIEF/PE/AuxiliarySymbol.hpp"
 #include "LIEF/PE/CodeIntegrity.hpp"
+#include "LIEF/PE/Factory.hpp"
+#include "LIEF/PE/ExceptionInfo.hpp"
+#include "LIEF/PE/exceptions_info/RuntimeFunctionAArch64.hpp"
+#include "LIEF/PE/exceptions_info/AArch64/PackedFunction.hpp"
+#include "LIEF/PE/exceptions_info/AArch64/UnpackedFunction.hpp"
+#include "LIEF/PE/exceptions_info/RuntimeFunctionX64.hpp"
+#include "LIEF/PE/exceptions_info/UnwindCodeX64.hpp"
 
 #include "LIEF/PE/signature/Attribute.hpp"
 #include "LIEF/PE/signature/ContentInfo.hpp"
@@ -77,6 +83,9 @@
 #include "LIEF/PE/enums.hpp"
 #include "LIEF/PE/EnumToString.hpp"
 #include "LIEF/PE/utils.hpp"
+
+#include "LIEF/COFF/Symbol.hpp"
+#include "LIEF/COFF/String.hpp"
 
 #endif
 

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,16 @@ void create<SymbolVersion>(nb::module_& m) {
         :class:`~lief.ELF.SymbolVersionAuxRequirement`.
         )delim"_doc,
         nb::rv_policy::reference_internal)
+
+    .def("drop_version", &SymbolVersion::drop_version,
+         "Drop the versioning requirement and replace the value (local/global)"_doc,
+         "value"_a)
+
+    .def("as_global", &SymbolVersion::as_global,
+         "Redefine this version as global by dropping its auxiliary version"_doc)
+
+    .def("as_local", &SymbolVersion::as_local,
+         "Redefine this version as local by dropping its auxiliary version"_doc)
 
     LIEF_DEFAULT_STR(SymbolVersion);
 

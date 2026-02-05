@@ -10,6 +10,14 @@ pub trait FromFFI<T: UniquePtrTarget> {
 }
 
 #[doc(hidden)]
+pub trait AsFFI<U> {
+    fn as_ffi(&self) -> &U;
+
+    #[allow(dead_code)]
+    fn as_mut_ffi(&mut self) -> std::pin::Pin<&mut U>;
+}
+
+#[doc(hidden)]
 pub fn into_optional<T: FromFFI<U>, U: UniquePtrTarget>(raw_ffi: cxx::UniquePtr<U>) -> Option<T> {
     if raw_ffi.is_null() {
         None
@@ -79,7 +87,7 @@ macro_rules! declare_iterator_conv {
 #[macro_export]
 macro_rules! declare_iterator {
     ($name:ident, $from:ty, $ffi:ty, $parent:ty, $ffi_iterator:ty) => {
-        crate::declare_iterator_conv!($name, $from, $ffi, $parent, $ffi_iterator, |n| {
+        $crate::declare_iterator_conv!($name, $from, $ffi, $parent, $ffi_iterator, |n| {
             Self::Item::from_ffi(n)
         });
     };
@@ -124,7 +132,7 @@ macro_rules! declare_fwd_iterator_conv {
 #[macro_export]
 macro_rules! declare_fwd_iterator {
     ($name:ident, $from:ty, $ffi:ty, $parent:ty, $ffi_iterator:ty) => {
-        crate::declare_fwd_iterator_conv!($name, $from, $ffi, $parent, $ffi_iterator, |n| {
+        $crate::declare_fwd_iterator_conv!($name, $from, $ffi, $parent, $ffi_iterator, |n| {
             Self::Item::from_ffi(n)
         });
     };
@@ -154,7 +162,7 @@ macro_rules! to_result {
 
         let value = $func(&$self.ptr, $($arg),*, std::pin::Pin::new(&mut err));
         if err > 0 {
-            return Err(crate::Error::from(err));
+            return Err($crate::Error::from(err));
         }
         return Ok(value);
     };
@@ -163,7 +171,7 @@ macro_rules! to_result {
         let value = $func(&$self.ptr, std::pin::Pin::new(&mut err));
 
         if err > 0 {
-            return Err(crate::Error::from(err));
+            return Err($crate::Error::from(err));
         }
         return Ok(value);
     };
@@ -176,7 +184,7 @@ macro_rules! to_conv_result {
         let mut err: u32 = 0;
         let value = $func(&$self, $($arg),*, std::pin::Pin::new(&mut err));
         if err > 0 {
-            return Err(crate::Error::from(err));
+            return Err($crate::Error::from(err));
         }
         return Ok($conv(value));
     };
@@ -184,8 +192,78 @@ macro_rules! to_conv_result {
         let mut err: u32 = 0;
         let value = $func(&$self, std::pin::Pin::new(&mut err));
         if err > 0 {
-            return Err(crate::Error::from(err));
+            return Err($crate::Error::from(err));
         }
         return Ok($conv(value));
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! to_opt {
+    ($func: expr, $self: expr, $($arg:tt)*) => {
+        let mut _is_set: u32 = 0;
+
+        let value = $func(&$self.ptr, $($arg),*, std::pin::Pin::new(&mut _is_set));
+        if _is_set == 0 {
+            return None;
+        }
+        return Some(value.into());
+    };
+    ($func: expr, $self: expr) => {
+        let mut _is_set: u32 = 0;
+        let value = $func(&$self.ptr, std::pin::Pin::new(&mut _is_set));
+
+        if _is_set == 0 {
+            return None;
+        }
+        return Some(value.into());
+    };
+}
+
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! to_conv_opt {
+    ($func: expr, $self: expr, $conv: expr, $($arg:tt)*) => {
+        let mut _is_set: u32 = 0;
+
+        let value = $func(&$self.ptr, $($arg),*, std::pin::Pin::new(&mut _is_set));
+        if _is_set == 0 {
+            return None;
+        }
+        return Some($conv(value.into()));
+    };
+    ($func: expr, $self: expr, $conv: expr) => {
+        let mut _is_set: u32 = 0;
+        let value = $func(&$self.ptr, std::pin::Pin::new(&mut _is_set));
+
+        if _is_set == 0 {
+            return None;
+        }
+        return Some($conv(value.into()));
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! to_opt_trait {
+    ($func: expr, $self: expr, $($arg:tt)*) => {
+        let mut _is_set: u32 = 0;
+
+        let value = $func(&$self, $($arg),*, std::pin::Pin::new(&mut _is_set));
+        if _is_set == 0 {
+            return None;
+        }
+        return Some(value.into());
+    };
+    ($func: expr, $self: expr) => {
+        let mut _is_set: u32 = 0;
+        let value = $func(&$self, std::pin::Pin::new(&mut _is_set));
+
+        if _is_set == 0 {
+            return None;
+        }
+        return Some(value.into());
     };
 }

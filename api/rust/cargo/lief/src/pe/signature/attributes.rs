@@ -249,7 +249,7 @@ impl<'a> FromFFI<ffi::PE_MsSpcNestedSignature> for MsSpcNestedSignature<'a> {
 
 impl MsSpcNestedSignature<'_> {
     /// Underlying Signature object
-    pub fn signature(&self) -> Signature {
+    pub fn signature(&self) -> Signature<'_> {
         Signature::from_ffi(self.ptr.sig())
     }
 }
@@ -371,7 +371,7 @@ impl<'a> FromFFI<ffi::PE_PKCS9CounterSignature> for PKCS9CounterSignature<'a> {
 
 impl PKCS9CounterSignature<'_> {
     /// SignerInfo as described in the RFC #2985
-    pub fn signer(&self) -> SignerInfo {
+    pub fn signer(&self) -> SignerInfo<'_> {
         SignerInfo::from_ffi(self.ptr.signer())
     }
 }
@@ -513,6 +513,7 @@ impl SpcSpOpusInfo<'_> {
 }
 
 pub struct SpcRelaxedPeMarkerCheck<'a> {
+    #[allow(dead_code)]
     ptr: cxx::UniquePtr<ffi::PE_SpcRelaxedPeMarkerCheck>,
     _owner: PhantomData<&'a ffi::PE_SignerInfo>,
 }
@@ -561,6 +562,7 @@ impl SpcRelaxedPeMarkerCheck<'_> {
 /// }
 /// ```
 pub struct SigningCertificateV2<'a> {
+    #[allow(dead_code)]
     ptr: cxx::UniquePtr<ffi::PE_SigningCertificateV2>,
     _owner: PhantomData<&'a ffi::PE_SignerInfo>,
 }
@@ -621,7 +623,7 @@ impl<'a> MsCounterSign<'a> {
         ContentInfo::from_ffi(self.ptr.content_info())
     }
 
-    /// Return list of [`crate::pe::X509`] certificates associated with this signature
+    /// Return list of [`crate::pe::signature::X509`] certificates associated with this signature
     pub fn certificates(&'a self) -> MsCounterCertificates<'a> {
         MsCounterCertificates::new(self.ptr.certificates())
     }

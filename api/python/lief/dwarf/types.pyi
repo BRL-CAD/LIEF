@@ -1,72 +1,186 @@
-from typing import Any, ClassVar, Optional
+import enum
+from typing import Iterator, Optional, Union as _Union
 
-import lief.dwarf # type: ignore
-import lief.dwarf.types.Base # type: ignore
-import lief.dwarf.types.ClassLike # type: ignore
+import lief.dwarf
 
-class Array(lief.dwarf.Type):
-    def __init__(self, *args, **kwargs) -> None: ...
+
+class ClassLike(lief.dwarf.Type):
+    class Member:
+        @property
+        def name(self) -> str: ...
+
+        @property
+        def type(self) -> Optional[lief.dwarf.Type]: ...
+
+        @property
+        def is_external(self) -> bool: ...
+
+        @property
+        def is_declaration(self) -> bool: ...
+
+        @property
+        def offset(self) -> Optional[int]: ...
+
+        @property
+        def bit_offset(self) -> Optional[int]: ...
+
+        @property
+        def bit_size(self) -> Optional[int]: ...
+
+    @property
+    def members(self) -> list[ClassLike.Member]: ...
+
+    def find_member(self, offset: int) -> Optional[ClassLike.Member]: ...
+
+    @property
+    def functions(self) -> Iterator[Optional[lief.dwarf.Function]]: ...
+
+class Structure(ClassLike):
+    pass
+
+class Class(ClassLike):
+    pass
+
+class Union(ClassLike):
+    pass
+
+class Packed(ClassLike):
+    pass
+
+class Pointer(lief.dwarf.Type):
+    @property
+    def underlying_type(self) -> lief.dwarf.Type: ...
+
+class Const(lief.dwarf.Type):
     @property
     def underlying_type(self) -> lief.dwarf.Type: ...
 
 class Base(lief.dwarf.Type):
-    class ENCODING:
-        ADDRESS: ClassVar[Base.ENCODING] = ...
-        BOOLEAN: ClassVar[Base.ENCODING] = ...
-        FLOAT: ClassVar[Base.ENCODING] = ...
-        NONE: ClassVar[Base.ENCODING] = ...
-        SIGNED: ClassVar[Base.ENCODING] = ...
-        SIGNED_CHAR: ClassVar[Base.ENCODING] = ...
-        UNSIGNED: ClassVar[Base.ENCODING] = ...
-        UNSIGNED_CHAR: ClassVar[Base.ENCODING] = ...
-        __name__: str
-        def __init__(self, *args, **kwargs) -> None: ...
-        def __ge__(self, other) -> bool: ...
-        def __gt__(self, other) -> bool: ...
-        def __hash__(self) -> int: ...
-        def __index__(self) -> Any: ...
-        def __int__(self) -> int: ...
-        def __le__(self, other) -> bool: ...
-        def __lt__(self, other) -> bool: ...
-    def __init__(self, *args, **kwargs) -> None: ...
+    class ENCODING(enum.Enum):
+        NONE = 0
+
+        SIGNED = 1
+
+        SIGNED_CHAR = 2
+
+        UNSIGNED = 3
+
+        UNSIGNED_CHAR = 4
+
+        FLOAT = 5
+
+        BOOLEAN = 6
+
+        ADDRESS = 7
+
     @property
-    def encoding(self) -> lief.dwarf.types.Base.ENCODING: ...
+    def encoding(self) -> Base.ENCODING: ...
 
-class Class(ClassLike):
-    def __init__(self, *args, **kwargs) -> None: ...
+class Array(lief.dwarf.Type):
+    class size_info_t:
+        @property
+        def type(self) -> lief.dwarf.Type: ...
 
-class ClassLike(lief.dwarf.Type):
-    class Member:
-        def __init__(self, *args, **kwargs) -> None: ...
-        @property
-        def bit_offset(self) -> Optional[int]: ...
-        @property
-        def is_declaration(self) -> bool: ...
-        @property
-        def is_external(self) -> bool: ...
         @property
         def name(self) -> str: ...
-        @property
-        def offset(self) -> Optional[int]: ...
-        @property
-        def type(self) -> Optional[lief.dwarf.Type]: ...
-    def __init__(self, *args, **kwargs) -> None: ...
-    def find_member(self, offset: int) -> Optional[lief.dwarf.types.ClassLike.Member]: ...
-    @property
-    def members(self) -> list[lief.dwarf.types.ClassLike.Member]: ...
 
-class Const(lief.dwarf.Type):
-    def __init__(self, *args, **kwargs) -> None: ...
+        @property
+        def size(self) -> int: ...
+
     @property
     def underlying_type(self) -> lief.dwarf.Type: ...
 
-class Pointer(lief.dwarf.Type):
-    def __init__(self, *args, **kwargs) -> None: ...
+    @property
+    def size_info(self) -> Array.size_info_t: ...
+
+class Typedef(lief.dwarf.Type):
     @property
     def underlying_type(self) -> lief.dwarf.Type: ...
 
-class Structure(ClassLike):
-    def __init__(self, *args, **kwargs) -> None: ...
+class Atomic(lief.dwarf.Type):
+    @property
+    def underlying_type(self) -> lief.dwarf.Type: ...
 
-class Union(ClassLike):
-    def __init__(self, *args, **kwargs) -> None: ...
+class Coarray(lief.dwarf.Type):
+    pass
+
+class Dynamic(lief.dwarf.Type):
+    pass
+
+class Enum(lief.dwarf.Type):
+    class Entry:
+        @property
+        def name(self) -> str: ...
+
+        @property
+        def value(self) -> int | None: ...
+
+    @property
+    def entries(self) -> list[Enum.Entry]: ...
+
+    @property
+    def underlying_type(self) -> lief.dwarf.Type: ...
+
+    def find_entry(self, value: int) -> Enum.Entry | None: ...
+
+class File(lief.dwarf.Type):
+    pass
+
+class Immutable(lief.dwarf.Type):
+    @property
+    def underlying_type(self) -> lief.dwarf.Type: ...
+
+class Interface(lief.dwarf.Type):
+    pass
+
+class PointerToMember(lief.dwarf.Type):
+    @property
+    def underlying_type(self) -> lief.dwarf.Type: ...
+
+    @property
+    def containing_type(self) -> Optional[lief.dwarf.Type]: ...
+
+class RValueReference(lief.dwarf.Type):
+    @property
+    def underlying_type(self) -> lief.dwarf.Type: ...
+
+class Reference(lief.dwarf.Type):
+    @property
+    def underlying_type(self) -> lief.dwarf.Type: ...
+
+class Restrict(lief.dwarf.Type):
+    @property
+    def underlying_type(self) -> lief.dwarf.Type: ...
+
+class SetTy(lief.dwarf.Type):
+    @property
+    def underlying_type(self) -> lief.dwarf.Type: ...
+
+class Shared(lief.dwarf.Type):
+    @property
+    def underlying_type(self) -> lief.dwarf.Type: ...
+
+class StringTy(lief.dwarf.Type):
+    pass
+
+class Subroutine(lief.dwarf.Type):
+    @property
+    def return_type(self) -> Optional[lief.dwarf.Type]: ...
+
+    @property
+    def parameters(self) -> list[Optional[lief.dwarf.Parameter]]: ...
+
+class TemplateAlias(lief.dwarf.Type):
+    @property
+    def parameters(self) -> list[Optional[lief.dwarf.Parameter]]: ...
+
+    @property
+    def underlying_type(self) -> lief.dwarf.Type: ...
+
+class Thrown(lief.dwarf.Type):
+    @property
+    def underlying_type(self) -> lief.dwarf.Type: ...
+
+class Volatile(lief.dwarf.Type):
+    @property
+    def underlying_type(self) -> lief.dwarf.Type: ...

@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2024 R. Thomas
+/* Copyright 2022 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,4 +26,6 @@ class PDB_PublicSymbol : private Mirror<LIEF::pdb::PublicSymbol> {
   auto demangled_name() const { return get().demangled_name(); }
   auto section_name() const { return get().section_name(); }
   auto RVA() const { return get().RVA(); }
+
+  auto to_string() const { return get().to_string(); }
 };

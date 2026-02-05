@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,4 +30,17 @@ public:                                                    \
         return Check(h.ptr());                             \
     }                                                      \
     NB_INLINE Type() : Parent() {}
+
+struct IntOrNone : public nanobind::object {
+  LIEF_PY_DEFAULT_CTOR(IntOrNone, nanobind::object);
+
+  static constexpr auto Name = nanobind::detail::const_name("Optional[int]");
+
+  NB_OBJECT_DEFAULT_NONAME(IntOrNone, object, check)
+  static bool check(handle h) {
+    return true;
+  }
+};
+
+
 #endif

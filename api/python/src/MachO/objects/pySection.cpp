@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,26 +30,29 @@
 
 namespace LIEF::MachO::py {
 
+
+// (rtti)Trick to avoid duplication clash with SegmentCommand::it_relocations
+class section_it_relocations : public Section::it_relocations {
+  public:
+  using Section::it_relocations::it_relocations;
+};
+
 template<>
 void create<Section>(nb::module_& m) {
   using namespace LIEF::py;
 
   nb::class_<Section, LIEF::Section> sec(m, "Section",
       "Class that represents a Mach-O section"_doc);
-  try {
-    /*
-     * it_relocations could be already registered by the SegmentCommand
-     */
-    init_ref_iterator<Section::it_relocations>(sec, "it_relocations");
-  } catch (const std::runtime_error&) { }
+
+  init_ref_iterator<section_it_relocations>(sec, "it_relocations");
 
   enum_<Section::TYPE>(sec, "TYPE")
   #define PY_ENUM(x) to_string(x), x
     .value(PY_ENUM(Section::TYPE::REGULAR))
     .value(PY_ENUM(Section::TYPE::ZEROFILL))
     .value(PY_ENUM(Section::TYPE::CSTRING_LITERALS))
-    .value(PY_ENUM(Section::TYPE::S_4BYTE_LITERALS))
-    .value(PY_ENUM(Section::TYPE::S_8BYTE_LITERALS))
+    .value(PY_ENUM(Section::TYPE::IS_4BYTE_LITERALS))
+    .value(PY_ENUM(Section::TYPE::IS_8BYTE_LITERALS))
     .value(PY_ENUM(Section::TYPE::LITERAL_POINTERS))
     .value(PY_ENUM(Section::TYPE::NON_LAZY_SYMBOL_POINTERS))
     .value(PY_ENUM(Section::TYPE::LAZY_SYMBOL_POINTERS))
@@ -59,7 +62,7 @@ void create<Section>(nb::module_& m) {
     .value(PY_ENUM(Section::TYPE::COALESCED))
     .value(PY_ENUM(Section::TYPE::GB_ZEROFILL))
     .value(PY_ENUM(Section::TYPE::INTERPOSING))
-    .value(PY_ENUM(Section::TYPE::S_16BYTE_LITERALS))
+    .value(PY_ENUM(Section::TYPE::IS_16BYTE_LITERALS))
     .value(PY_ENUM(Section::TYPE::DTRACE_DOF))
     .value(PY_ENUM(Section::TYPE::LAZY_DYLIB_SYMBOL_POINTERS))
     .value(PY_ENUM(Section::TYPE::THREAD_LOCAL_REGULAR))
@@ -71,7 +74,7 @@ void create<Section>(nb::module_& m) {
   #undef PY_ENUM
   ;
 
-  enum_<Section::FLAGS>(sec, "FLAGS", nb::is_arithmetic())
+  enum_<Section::FLAGS>(sec, "FLAGS", nb::is_flag())
   #define PY_ENUM(x) to_string(x), x
     .value(PY_ENUM(Section::FLAGS::PURE_INSTRUCTIONS))
     .value(PY_ENUM(Section::FLAGS::NO_TOC))

@@ -21,7 +21,7 @@ void create<pdb::types::ClassLike>(nb::module_& m) {
     .def_prop_ro("attributes",
       [] (pdb::types::ClassLike& self) {
         auto attrs = self.attributes();
-        return nb::make_iterator(
+        return nb::make_iterator<nb::rv_policy::reference_internal>(
             nb::type<pdb::types::ClassLike>(), "attributes_it", attrs);
       },
       R"doc(
@@ -31,7 +31,7 @@ void create<pdb::types::ClassLike>(nb::module_& m) {
     .def_prop_ro("methods",
       [] (pdb::types::ClassLike& self) {
         auto methods = self.methods();
-        return nb::make_iterator(
+        return nb::make_iterator<nb::rv_policy::reference_internal>(
             nb::type<pdb::types::ClassLike>(), "methods_it", methods);
       },
       R"doc(
@@ -52,7 +52,7 @@ void create<pdb::types::ClassLike>(nb::module_& m) {
 
     .def_prop_ro("size", &pdb::types::ClassLike::size,
       R"doc(
-      Size of the the type including all its attributes. This size should match
+      Size of the type including all its attributes. This size should match
       the ``sizeof(...)`` this type.
       )doc"_doc
     )

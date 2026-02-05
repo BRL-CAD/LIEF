@@ -1,5 +1,6 @@
 use lief_ffi as ffi;
 use std::fmt;
+use std::pin::Pin;
 use std::marker::PhantomData;
 
 use crate::common::{FromFFI, into_optional};
@@ -145,13 +146,18 @@ impl Symbol<'_> {
     }
 
     /// Section associated with the symbol (if any)
-    pub fn section(&self) -> Option<Section> {
+    pub fn section(&self) -> Option<Section<'_>> {
         into_optional(self.ptr.section())
     }
 
     /// Return the SymbolVersion associated with this symbol (if any)
-    pub fn symbol_version(&self) -> Option<SymbolVersion> {
+    pub fn symbol_version(&self) -> Option<SymbolVersion<'_>> {
         into_optional(self.ptr.symbol_version())
+    }
+
+    /// Try to demangle the symbol or return an empty string if it is not possible
+    pub fn demangled_name(&self) -> String {
+        self.ptr.demangled_name().to_string()
     }
 }
 
@@ -184,6 +190,17 @@ impl FromFFI<ffi::ELF_Symbol> for Symbol<'_> {
 impl generic::Symbol for Symbol<'_> {
     fn as_generic(&self) -> &ffi::AbstractSymbol {
         self.ptr.as_ref().unwrap().as_ref()
+    }
+
+    fn as_pin_mut_generic(&mut self) -> Pin<&mut ffi::AbstractSymbol> {
+        unsafe {
+            Pin::new_unchecked({
+                (self.ptr.as_ref().unwrap().as_ref() as *const ffi::AbstractSymbol
+                    as *mut ffi::AbstractSymbol)
+                    .as_mut()
+                    .unwrap()
+            })
+        }
     }
 }
 

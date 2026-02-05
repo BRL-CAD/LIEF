@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,11 @@ namespace PE {
 class Builder;
 class Parser;
 
-//! This class represents a reproducible build entry from the debug directory.
-//! (``IMAGE_DEBUG_TYPE_REPRO``).
-//! This entry is usually generated with the undocumented `/Brepro` linker flag.
-//!
-//! See: https://nikhilism.com/post/2020/windows-deterministic-builds/
+/// This class represents a reproducible build entry from the debug directory.
+/// (`IMAGE_DEBUG_TYPE_REPRO`).
+/// This entry is usually generated with the undocumented `/Brepro` linker flag.
+///
+/// See: https://nikhilism.com/post/2020/windows-deterministic-builds/
 class LIEF_API Repro : public Debug {
 
   friend class Builder;
@@ -48,15 +48,22 @@ class LIEF_API Repro : public Debug {
     hash_{std::move(hash)}
   {}
 
-  Repro(const details::pe_debug& dbg, std::vector<uint8_t> hash) :
-    Debug{dbg},
+  Repro(const details::pe_debug& dbg, std::vector<uint8_t> hash, Section* sec) :
+    Debug{dbg, sec},
     hash_{std::move(hash)}
+  {}
+
+  Repro(const details::pe_debug& dbg, Section* sec) :
+    Debug{dbg, sec}
   {}
 
   Repro(const Repro& other) = default;
   Repro& operator=(const Repro& other) = default;
 
-  //! The hash associated with the reproducible build
+  Repro(Repro&&) = default;
+  Repro& operator=(Repro&& other) = default;
+
+  /// The hash associated with the reproducible build
   span<const uint8_t> hash() const {
     return hash_;
   }
@@ -79,7 +86,7 @@ class LIEF_API Repro : public Debug {
 
   void accept(Visitor& visitor) const override;
 
-  LIEF_API friend std::ostream& operator<<(std::ostream& os, const Repro& entry);
+  std::string to_string() const override;
 
   ~Repro() override = default;
 

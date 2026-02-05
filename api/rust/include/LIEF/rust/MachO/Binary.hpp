@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,39 +17,51 @@
 #include <memory>
 #include <LIEF/MachO.hpp>
 
-#include "LIEF/rust/MachO/LoadCommand.hpp"
-#include "LIEF/rust/MachO/Header.hpp"
-#include "LIEF/rust/MachO/Symbol.hpp"
-#include "LIEF/rust/MachO/Dylib.hpp"
-#include "LIEF/rust/MachO/SegmentCommand.hpp"
-#include "LIEF/rust/MachO/Relocation.hpp"
-#include "LIEF/rust/MachO/DyldInfo.hpp"
-#include "LIEF/rust/MachO/UUIDCommand.hpp"
-#include "LIEF/rust/MachO/Main.hpp"
-#include "LIEF/rust/MachO/Dylinker.hpp"
-#include "LIEF/rust/MachO/SourceVersion.hpp"
-#include "LIEF/rust/MachO/ThreadCommand.hpp"
-#include "LIEF/rust/MachO/FunctionStarts.hpp"
-#include "LIEF/rust/MachO/RPathCommand.hpp"
-#include "LIEF/rust/MachO/SymbolCommand.hpp"
-#include "LIEF/rust/MachO/DynamicSymbolCommand.hpp"
+#include "LIEF/rust/MachO/AtomInfo.hpp"
+#include "LIEF/rust/MachO/BuildVersion.hpp"
 #include "LIEF/rust/MachO/CodeSignature.hpp"
 #include "LIEF/rust/MachO/CodeSignatureDir.hpp"
 #include "LIEF/rust/MachO/DataInCode.hpp"
-#include "LIEF/rust/MachO/SegmentSplitInfo.hpp"
-#include "LIEF/rust/MachO/EncryptionInfo.hpp"
-#include "LIEF/rust/MachO/SubFramework.hpp"
-#include "LIEF/rust/MachO/DyldEnvironment.hpp"
-#include "LIEF/rust/MachO/BuildVersion.hpp"
 #include "LIEF/rust/MachO/DyldChainedFixups.hpp"
+#include "LIEF/rust/MachO/DyldEnvironment.hpp"
 #include "LIEF/rust/MachO/DyldExportsTrie.hpp"
-#include "LIEF/rust/MachO/VersionMin.hpp"
-#include "LIEF/rust/MachO/TwoLevelHints.hpp"
+#include "LIEF/rust/MachO/DyldInfo.hpp"
+#include "LIEF/rust/MachO/Dylib.hpp"
+#include "LIEF/rust/MachO/Dylinker.hpp"
+#include "LIEF/rust/MachO/DynamicSymbolCommand.hpp"
+#include "LIEF/rust/MachO/EncryptionInfo.hpp"
+#include "LIEF/rust/MachO/FunctionStarts.hpp"
+#include "LIEF/rust/MachO/FunctionVariants.hpp"
+#include "LIEF/rust/MachO/FunctionVariantFixups.hpp"
+#include "LIEF/rust/MachO/Header.hpp"
 #include "LIEF/rust/MachO/LinkerOptHint.hpp"
+#include "LIEF/rust/MachO/LoadCommand.hpp"
+#include "LIEF/rust/MachO/Main.hpp"
+#include "LIEF/rust/MachO/NoteCommand.hpp"
+#include "LIEF/rust/MachO/RPathCommand.hpp"
+#include "LIEF/rust/MachO/Relocation.hpp"
+#include "LIEF/rust/MachO/Routine.hpp"
+#include "LIEF/rust/MachO/SegmentCommand.hpp"
+#include "LIEF/rust/MachO/SegmentSplitInfo.hpp"
+#include "LIEF/rust/MachO/SourceVersion.hpp"
+#include "LIEF/rust/MachO/Stub.hpp"
+#include "LIEF/rust/MachO/SubClient.hpp"
+#include "LIEF/rust/MachO/SubFramework.hpp"
+#include "LIEF/rust/MachO/Symbol.hpp"
+#include "LIEF/rust/MachO/SymbolCommand.hpp"
+#include "LIEF/rust/MachO/ThreadCommand.hpp"
+#include "LIEF/rust/MachO/TwoLevelHints.hpp"
+#include "LIEF/rust/MachO/UUIDCommand.hpp"
+#include "LIEF/rust/MachO/VersionMin.hpp"
 
 #include "LIEF/rust/Abstract/Binary.hpp"
 
 #include "LIEF/rust/ObjC/Metadata.hpp"
+
+class MachO_Binary_write_config_t {
+  public:
+  bool linkedit;
+};
 
 class MachO_Binary : public AbstractBinary {
   public:
@@ -115,7 +127,47 @@ class MachO_Binary : public AbstractBinary {
     auto size() const { return Iterator::size(); }
   };
 
+  class it_sub_clients :
+      public Iterator<MachO_SubClient, LIEF::MachO::Binary::it_const_sub_clients>
+  {
+    public:
+    it_sub_clients(const MachO_Binary::lief_t& src)
+      : Iterator(std::move(src.subclients())) { }
+    auto next() { return Iterator::next(); }
+    auto size() const { return Iterator::size(); }
+  };
+
+  class it_bindings_info :
+      public ForwardIterator<MachO_BindingInfo, LIEF::MachO::BindingInfoIterator>
+  {
+    public:
+    it_bindings_info(const MachO_Binary::lief_t& src)
+      : ForwardIterator(src.bindings()) { }
+    auto next() { return ForwardIterator::next(); }
+  };
+
+  class it_stubs :
+      public RandomRangeIterator<MachO_Stub, LIEF::MachO::Stub::Iterator>
+  {
+    public:
+    it_stubs(const MachO_Binary::lief_t& src)
+      : RandomRangeIterator(src.symbol_stubs()) { }
+    auto next() { return RandomRangeIterator::next(); }
+    auto size() const { return RandomRangeIterator::size(); }
+  };
+
+  class it_notes :
+      public Iterator<MachO_NoteCommand, LIEF::MachO::Binary::it_const_notes>
+  {
+    public:
+    it_notes(const MachO_Binary::lief_t& src)
+      : Iterator(std::move(src.notes())) { }
+    auto next() { return Iterator::next(); }
+    auto size() const { return Iterator::size(); }
+  };
+
   MachO_Binary(const lief_t& bin) : AbstractBinary(bin) {}
+  MachO_Binary(std::unique_ptr<lief_t> ptr) : AbstractBinary(std::move(ptr)) {}
 
   auto header() const {
     return std::make_unique<MachO_Header>(impl().header());
@@ -127,6 +179,9 @@ class MachO_Binary : public AbstractBinary {
   auto segments() const { return std::make_unique<it_segments>(impl()); }
   auto libraries() const { return std::make_unique<it_libraries>(impl()); }
   auto relocations() const { return std::make_unique<it_relocations>(impl()); }
+  auto bindings() const { return std::make_unique<it_bindings_info>(impl()); }
+  auto symbol_stubs() const { return std::make_unique<it_stubs>(impl()); }
+  auto notes() const { return std::make_unique<it_notes>(impl()); }
 
   auto dyld_info() const {
     return details::try_unique<MachO_DyldInfo>(impl().dyld_info());
@@ -154,6 +209,10 @@ class MachO_Binary : public AbstractBinary {
 
   auto thread_command() const {
     return details::try_unique<MachO_ThreadCommand>(impl().thread_command());
+  }
+
+  auto routine_command() const {
+    return details::try_unique<MachO_Routine>(impl().routine_command());
   }
 
   auto rpath() const {
@@ -192,6 +251,10 @@ class MachO_Binary : public AbstractBinary {
     return details::try_unique<MachO_SubFramework>(impl().sub_framework());
   }
 
+  auto subclients() const {
+    return std::make_unique<it_sub_clients>(impl());
+  }
+
   auto dyld_environment() const {
     return details::try_unique<MachO_DyldEnvironment>(impl().dyld_environment());
   }
@@ -216,6 +279,18 @@ class MachO_Binary : public AbstractBinary {
     return details::try_unique<MachO_LinkerOptHint>(impl().linker_opt_hint());
   }
 
+  auto atom_info() const {
+    return details::try_unique<MachO_AtomInfo>(impl().atom_info());
+  }
+
+  auto function_variants() const {
+    return details::try_unique<MachO_FunctionVariants>(impl().function_variants());
+  }
+
+  auto function_variant_fixups() const {
+    return details::try_unique<MachO_FunctionVariantFixups>(impl().function_variant_fixups());
+  }
+
   auto version_min() const {
     return details::try_unique<MachO_VersionMin>(impl().version_min());
   }
@@ -228,9 +303,37 @@ class MachO_Binary : public AbstractBinary {
     return details::try_unique<ObjC_Metadata>(impl().objc_metadata());
   }
 
+  auto platform() const {
+    return to_int(impl().platform());
+  }
+
+  auto functions() const {
+    return std::make_unique<AbstractBinary::it_functions>(impl().functions());
+  }
+
+  bool is_ios() const { return impl().is_ios(); }
+  bool is_macos() const { return impl().is_macos(); }
+
+  auto find_library(std::string name) const {
+    return details::try_unique<MachO_Dylib>(impl().find_library(name));
+  }
+
+  void write(std::string output) { impl().write(output); }
+  void write_with_config(std::string output, MachO_Binary_write_config_t config) {
+    impl().write(output, {
+      config.linkedit
+    });
+  }
+
+  auto add_library(std::string name) {
+    return details::try_unique<MachO_Dylib>(impl().add_library(name)->cast<LIEF::MachO::DylibCommand>());
+  }
+
   static bool is_exported(const MachO_Symbol& symbol) {
     return lief_t::is_exported(static_cast<const LIEF::MachO::Symbol&>(symbol.get()));
   }
+
   private:
   const lief_t& impl() const { return as<lief_t>(this); }
+  lief_t& impl() { return as<lief_t>(this); }
 };

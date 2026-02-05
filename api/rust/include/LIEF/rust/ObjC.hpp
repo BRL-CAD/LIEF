@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2024 R. Thomas
+/* Copyright 2022 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,3 +19,4 @@
 #include "LIEF/rust/ObjC/Method.hpp"
 #include "LIEF/rust/ObjC/IVar.hpp"
 #include "LIEF/rust/ObjC/Property.hpp"
+#include "LIEF/rust/ObjC/DeclOpt.hpp"

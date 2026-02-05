@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,11 @@
 
 namespace LIEF {
 namespace MachO {
-class Symbol;
 class BinaryParser;
 class Builder;
+class DyldChainedFixupsCreator;
+class ChainedBindingInfoList;
+class Symbol;
 
 namespace details {
 struct dyld_chained_ptr_arm64e_bind;
@@ -36,40 +38,43 @@ struct dyld_chained_ptr_64_bind;
 struct dyld_chained_ptr_32_bind;
 }
 
-//! This class represents a symbol binding operation associated with
-//! the LC_DYLD_CHAINED_FIXUPS command.
-//!
-//! This class does not represent a structure that exists in the Mach-O format
-//! specifications but it provides a *view* on an entry.
-//!
-//! @see: BindingInfo
+/// This class represents a symbol binding operation associated with
+/// the LC_DYLD_CHAINED_FIXUPS command.
+///
+/// This class does not represent a structure that exists in the Mach-O format
+/// specifications but it provides a *view* on an entry.
+///
+/// @see: BindingInfo
 class LIEF_API ChainedBindingInfo : public BindingInfo {
 
   friend class BinaryParser;
   friend class Builder;
+  friend class DyldChainedFixupsCreator;
+  friend class ChainedBindingInfoList;
 
   public:
-
   ChainedBindingInfo() = delete;
   explicit ChainedBindingInfo(DYLD_CHAINED_FORMAT fmt, bool is_weak);
 
   ChainedBindingInfo& operator=(ChainedBindingInfo other);
   ChainedBindingInfo(const ChainedBindingInfo& other);
+
   ChainedBindingInfo(ChainedBindingInfo&&) noexcept;
+  ChainedBindingInfo& operator=(ChainedBindingInfo&&) noexcept;
 
   void swap(ChainedBindingInfo& other) noexcept;
 
-  //! Format of the imports
+  /// Format of the imports
   DYLD_CHAINED_FORMAT format() const {
     return format_;
   }
 
-  //! Format of the pointer
+  /// Format of the pointer
   DYLD_CHAINED_PTR_FORMAT ptr_format() const {
     return ptr_format_;
   }
 
-  //! Original offset in the chain of this binding
+  /// Original offset in the chain of this binding
   uint32_t offset() const {
     return offset_;
   }
@@ -79,26 +84,24 @@ class LIEF_API ChainedBindingInfo : public BindingInfo {
   }
 
   uint64_t address() const override {
-    return /* imagebase */ address_ + offset_;
+    return address_;
   }
 
   void address(uint64_t address) override {
-    offset_ = address - /* imagebase */ address_;
+    address_ = address;
   }
 
   uint64_t sign_extended_addend() const;
 
-  BindingInfo::TYPES type() const override {
-    return BindingInfo::TYPES::CHAINED;
+  TYPES type() const override {
+    return TYPES::CHAINED;
   }
 
   static bool classof(const BindingInfo* info) {
-    return info->type() == BindingInfo::TYPES::CHAINED;
+    return info->type() == TYPES::CHAINED;
   }
 
-  ~ChainedBindingInfo() override {
-    clear();
-  }
+  ~ChainedBindingInfo() override;
 
   void accept(Visitor& visitor) const override;
 
@@ -108,8 +111,8 @@ class LIEF_API ChainedBindingInfo : public BindingInfo {
     return os;
   }
 
-  private:
-  void clear();
+  protected:
+  LIEF_LOCAL void clear();
   enum class BIND_TYPES {
     UNKNOWN = 0,
 
@@ -123,12 +126,12 @@ class LIEF_API ChainedBindingInfo : public BindingInfo {
     PTR32_BIND,
   };
 
-  void set(const details::dyld_chained_ptr_arm64e_bind& bind);
-  void set(const details::dyld_chained_ptr_arm64e_auth_bind& bind);
-  void set(const details::dyld_chained_ptr_arm64e_bind24& bind);
-  void set(const details::dyld_chained_ptr_arm64e_auth_bind24& bind);
-  void set(const details::dyld_chained_ptr_64_bind& bind);
-  void set(const details::dyld_chained_ptr_32_bind& bind);
+  LIEF_LOCAL void set(const details::dyld_chained_ptr_arm64e_bind& bind);
+  LIEF_LOCAL void set(const details::dyld_chained_ptr_arm64e_auth_bind& bind);
+  LIEF_LOCAL void set(const details::dyld_chained_ptr_arm64e_bind24& bind);
+  LIEF_LOCAL void set(const details::dyld_chained_ptr_arm64e_auth_bind24& bind);
+  LIEF_LOCAL void set(const details::dyld_chained_ptr_64_bind& bind);
+  LIEF_LOCAL void set(const details::dyld_chained_ptr_32_bind& bind);
 
   DYLD_CHAINED_FORMAT format_;
   DYLD_CHAINED_PTR_FORMAT ptr_format_;

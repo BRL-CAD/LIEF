@@ -1,6 +1,6 @@
 
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 #include <string>
 #include <sstream>
 #include <nanobind/stl/string.h>
-#include <nanobind/extra/memoryview.hpp>
+#include <nanobind/extra/stl/lief_span.h>
 
 namespace LIEF::PE::py {
 
@@ -34,11 +34,10 @@ void create<SpcIndirectData>(nb::module_& m) {
                  :attr:`~lief.PE.SignerInfo.digest_algorithm`
                  )delim"_doc)
 
-    .def_prop_ro("digest", [] (const SpcIndirectData& sid) {
-                   const span<const uint8_t> digest = sid.digest();
-                   return nb::memoryview::from_memory(digest.data(), digest.size());
-                 })
+    .def_prop_ro("digest",
+                 nb::overload_cast<>(&SpcIndirectData::digest, nb::const_))
     .def_prop_ro("file", &SpcIndirectData::file)
+    .def_prop_ro("url", &SpcIndirectData::url)
     LIEF_DEFAULT_STR(SpcIndirectData);
 }
 

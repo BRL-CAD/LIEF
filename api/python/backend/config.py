@@ -18,10 +18,15 @@ def cmake_serialize(field: Any):
 
 class EnvStringValidator:
     def _get_env_string(self, string: str) -> str:
+        winpy_architecture = os.getenv("LIEF_TARGET_ARCHITECTURE", "")
+        if winpy_architecture == "x86_64":
+            winpy_architecture = "amd64"
         formatted = string.format(
                 python_version=os.getenv("LIEF_TARGET_PYTHON_VERSION", ""),
                 python_version_alt=os.getenv("LIEF_TARGET_PYTHON_VERSION", "").replace('.', ''),
                 architecture=os.getenv("LIEF_TARGET_ARCHITECTURE", ""),
+                winpy_architecture=winpy_architecture,
+                ci_project_dir=os.getenv("CI_PROJECT_DIR", ""),
         )
         return formatted
 
@@ -40,6 +45,7 @@ class BuildConfig(BaseModel):
     ninja: bool = False
     default_target: str = Field("pyLIEF", alias="default-target")
     parallel_jobs: int = Field(0, alias="parallel-jobs")
+    compilation_flags: List[str] = Field([], alias="compilation-flags")
     build_dir: Optional[EnvString] = Field(None, alias="build-dir")
     extra_targets: Union[List[EnvString], EnvString] = Field(None, alias="extra-targets")
     extra_cmake: Union[List[EnvString], EnvString] = Field(None, alias="extra-cmake-opt")
@@ -89,10 +95,18 @@ class BuildConfig(BaseModel):
                 f"-DCMAKE_CXX_COMPILER={self.cxx_compiler}"
             )
 
+        if len(self.compilation_flags) > 0:
+            flags = " ".join(self.compilation_flags)
+            out.extend((
+                f'-DCMAKE_CXX_FLAGS={flags}',
+                f'-DCMAKE_C_FLAGS={flags}',
+            ))
+
         return out
 
-class ThridParty(BaseModel):
+class ThirdParty(BaseModel):
     spdlog: Optional[EnvString] = None
+    nanobind: Optional[EnvString] = None
 
     def cmake_dump(self) -> List[str]:
         out: List[str] = []
@@ -100,6 +114,12 @@ class ThridParty(BaseModel):
             out.extend((
                 "-DLIEF_EXTERNAL_SPDLOG=ON",
                 f"-Dspdlog_DIR={self.spdlog}"
+            ))
+
+        if self.nanobind is not None:
+            out.extend((
+                "-DLIEF_OPT_NANOBIND_EXTERNAL=ON",
+                f"-Dnanobind_DIR={self.nanobind}"
             ))
 
         return out
@@ -122,6 +142,7 @@ class Formats(BaseModel):
     elf: bool = True
     pe: bool = True
     macho: bool = True
+    coff: bool = True
     dex: bool = True
     art: bool = True
     oat: bool = True
@@ -132,6 +153,7 @@ class Formats(BaseModel):
             f"-DLIEF_ELF={cmake_serialize(self.elf)}",
             f"-DLIEF_PE={cmake_serialize(self.pe)}",
             f"-DLIEF_MACHO={cmake_serialize(self.macho)}",
+            f"-DLIEF_COFF={cmake_serialize(self.coff)}",
             f"-DLIEF_DEX={cmake_serialize(self.dex)}",
             f"-DLIEF_OAT={cmake_serialize(self.oat)}",
             f"-DLIEF_ART={cmake_serialize(self.art)}",
@@ -162,7 +184,7 @@ class Features(BaseModel):
 class ConfigT(BaseModel):
     build: BuildConfig = BuildConfig()
     formats: Formats = Formats()
-    third_party: ThridParty = Field(ThridParty(), alias="third-party")
+    third_party: ThirdParty = Field(ThirdParty(), alias="third-party")
     features: Features = Features()
     logging: Logging = Logging()
     cross_compilation: CrossCompilation = Field(CrossCompilation(),

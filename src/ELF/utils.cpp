@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ namespace ELF {
 
 bool is_elf(BinaryStream& stream) {
   using magic_t = std::array<char, sizeof(details::ElfMagic)>;
-  stream.setpos(0);
-  if (auto res = stream.peek<magic_t>()) {
+  ScopedStream scoped(stream, 0);
+  if (auto res = scoped->peek<magic_t>()) {
     const auto magic = *res;
     return std::equal(std::begin(magic), std::end(magic),
                       std::begin(details::ElfMagic));
@@ -51,7 +51,7 @@ bool is_elf(const std::vector<uint8_t>& raw) {
   return false;
 }
 
-//! SYSV hash function
+/// SYSV hash function
 unsigned long hash32(const char* name) {
   unsigned long h = 0, g;
   while (*name != 0) {
@@ -64,8 +64,8 @@ unsigned long hash32(const char* name) {
   return h;
 }
 
-//! SYSV hash function
-//! https://blogs.oracle.com/ali/entry/gnu_hash_elf_sections
+/// SYSV hash function
+/// https://blogs.oracle.com/ali/entry/gnu_hash_elf_sections
 unsigned long hash64(const char* name) {
   unsigned long h = 0, g;
   while (*name != 0) {

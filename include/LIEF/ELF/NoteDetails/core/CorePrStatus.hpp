@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ class Parser;
 class Builder;
 class Binary;
 
-//! Class representing core PrPsInfo object
+/// Class representing core PrPsInfo object
 class LIEF_API CorePrStatus : public Note {
   public:
   struct siginfo_t {
@@ -77,7 +77,7 @@ class LIEF_API CorePrStatus : public Note {
     enum class X86_64 {
       R15 = 0, R14, R13, R12, RBP, RBX, R11, R10,
       R9, R8, RAX, RCX, RDX, RSI, RDI, ORIG_RAX,
-      RIP, CS, EFLAGS, RSP, SS,
+      RIP, CS, EFLAGS, RSP, SS, FS_BASE, GS_BASE, DS, ES,
       _COUNT
     };
 

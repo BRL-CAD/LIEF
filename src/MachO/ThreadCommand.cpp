@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,6 +79,25 @@ uint64_t ThreadCommand::pc() const {
         entry = reinterpret_cast<const details::arm_thread_state64_t*>(state_.data())->pc;
         break;
       }
+
+    case Header::CPU_TYPE::POWERPC:
+      {
+        if (state_.size() < sizeof(details::ppc_thread_state_t)) {
+          return entry;
+        }
+        entry = reinterpret_cast<const details::ppc_thread_state_t*>(state_.data())->srr0;
+        break;
+      }
+
+    case Header::CPU_TYPE::POWERPC64:
+      {
+        if (state_.size() < sizeof(details::ppc_thread_state64_t)) {
+          return entry;
+        }
+        entry = reinterpret_cast<const details::ppc_thread_state64_t*>(state_.data())->srr0;
+        break;
+      }
+
     default:
       {
         LIEF_ERR("Unknown architecture");
@@ -92,9 +111,9 @@ void ThreadCommand::accept(Visitor& visitor) const {
 }
 
 std::ostream& ThreadCommand::print(std::ostream& os) const {
-  LoadCommand::print(os);
+  LoadCommand::print(os) << '\n';
   os << fmt::format("flavor=0x{:x}, count=0x{:x}, pc=0x{:06x}",
-                    flavor(), count(), pc()) << '\n';
+                    flavor(), count(), pc());
   return os;
 }
 

@@ -1,4 +1,5 @@
 import lief
+from ctypes import sizeof, c_uint8, c_uint16, c_int32, c_uint64
 from utils import get_sample
 
 lief.logging.set_level(lief.logging.LEVEL.INFO)
@@ -8,30 +9,36 @@ def test_endianness():
     binary = elf.abstract
     header = binary.header
 
-    assert header.endianness == lief.ENDIANNESS.LITTLE
+    assert header.endianness == lief.Header.ENDIANNESS.LITTLE
 
     macho = lief.parse(get_sample('MachO/MachO64_x86-64_binary_id.bin'))
     binary = macho.abstract
     header = binary.header
 
-    header.endianness == lief.ENDIANNESS.LITTLE
+    assert header.endianness == lief.Header.ENDIANNESS.LITTLE
 
     pe = lief.parse(get_sample('PE/PE64_x86-64_binary_ConsoleApplication1.exe'))
     binary = pe.abstract
     header = binary.header
 
-    header.endianness == lief.ENDIANNESS.LITTLE
+    assert pe.get_int_from_virtual_address(0x140001004, sizeof(c_uint8)) == 0x48
+    assert pe.get_int_from_virtual_address(0x140002CC8, sizeof(c_uint16)) == 0x552
+    assert pe.get_int_from_virtual_address(0x1400040FC, sizeof(c_int32)) == 0x1878
+    assert pe.get_int_from_virtual_address(0x140001AFC, sizeof(c_uint64)) == 0x8b485510245c8948
+    assert pe.get_int_from_virtual_address(0x140001AFC, 3443) is None
+    assert pe.get_int_from_virtual_address(0x1840001AFC, 1) is None
 
+    assert header.endianness == lief.Header.ENDIANNESS.LITTLE
 
 def test_format():
     binary = lief.parse(get_sample('ELF/ELF32_x86_binary_ls.bin'))
-    binary.abstract.format == lief.Binary.FORMATS.ELF
+    assert binary.abstract.format == lief.Binary.FORMATS.ELF
 
     binary = lief.parse(get_sample('MachO/MachO64_x86-64_binary_id.bin'))
-    binary.abstract.format == lief.Binary.FORMATS.MACHO
+    assert binary.abstract.format == lief.Binary.FORMATS.MACHO
 
     binary = lief.parse(get_sample('PE/PE64_x86-64_binary_ConsoleApplication1.exe'))
-    binary.abstract.format == lief.Binary.FORMATS.PE
+    assert binary.abstract.format == lief.Binary.FORMATS.PE
 
 def test_pie():
     binary = lief.parse(get_sample('ELF/ELF32_ARM_binary-pie_ls.bin'))
@@ -94,6 +101,8 @@ def test_function():
     assert binary.get_function_address("foo") == lief.lief_errors.not_found
     assert binary.get_function_address("add") == 0x6a0
 
+    binary: lief.ELF.Binary = lief.parse(get_sample('ELF/libip4tc.so.2.0.0'))
+    assert binary.get_function_address("iptc_commit") == 0x3070
 
 def test_entropy():
     """
@@ -106,3 +115,18 @@ def test_entropy():
 
     assert weird_section_0 >= 0
     assert weird_section_1 >= 0
+
+def test_issue_1217():
+    elf = lief.ELF.parse(get_sample("ELF/bitcoin_ppc_be"))
+    assert elf.abstract.header.architecture == lief.Header.ARCHITECTURES.PPC64
+
+def test_pagesize():
+    assert lief.parse(get_sample('ELF/ELF64_x86-64_library_libadd.so')).page_size == 0x1000
+    assert lief.parse(get_sample('PE/win11_arm64x_api-ms-win-security-base-l1-1-0.dll')).page_size == 0x1000
+    assert lief.parse(get_sample('MachO/MachO64_AArch64_weak-sym-fc.bin')).page_size == 0x4000
+
+    config = lief.ELF.ParserConfig()
+    config.page_size = 0xdeadc0de
+
+    assert lief.ELF.parse(get_sample('ELF/bitcoin_ppc_be'), config).page_size == config.page_size
+

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 namespace LIEF {
 namespace MachO {
 
+class AtomInfo;
 class Binary;
 class BinaryParser;
 class Builder;
@@ -33,6 +34,8 @@ class DyldChainedFixups;
 class DyldExportsTrie;
 class DyldInfo;
 class FunctionStarts;
+class FunctionVariants;
+class FunctionVariantFixups;
 class LinkerOptHint;
 class SymbolCommand;
 class TwoLevelHints;
@@ -73,17 +76,20 @@ class LIEF_API LinkEdit : public SegmentCommand {
                               size_t where, size_t size) override;
 
   //x-ref to keep the spans in a consistent state
-  DyldInfo* dyld_                    = nullptr;
+  DyldInfo* dyld_ = nullptr;
   DyldChainedFixups* chained_fixups_ = nullptr;
-  DyldExportsTrie* exports_trie_     = nullptr;
-  SegmentSplitInfo* seg_split_       = nullptr;
-  FunctionStarts* fstarts_           = nullptr;
-  DataInCode* data_code_             = nullptr;
-  CodeSignatureDir* code_sig_dir_    = nullptr;
-  LinkerOptHint* linker_opt_         = nullptr;
-  SymbolCommand* symtab_             = nullptr;
-  TwoLevelHints* two_lvl_hint_       = nullptr;
-  CodeSignature* code_sig_           = nullptr;
+  DyldExportsTrie* exports_trie_ = nullptr;
+  SegmentSplitInfo* seg_split_ = nullptr;
+  FunctionStarts* fstarts_ = nullptr;
+  DataInCode* data_code_ = nullptr;
+  CodeSignatureDir* code_sig_dir_ = nullptr;
+  LinkerOptHint* linker_opt_ = nullptr;
+  SymbolCommand* symtab_ = nullptr;
+  TwoLevelHints* two_lvl_hint_ = nullptr;
+  CodeSignature* code_sig_ = nullptr;
+  AtomInfo* atom_info_ = nullptr;
+  FunctionVariants*  func_variants_ = nullptr;
+  FunctionVariantFixups* func_variant_fixups_ = nullptr;
 };
 
 }

@@ -1,4 +1,5 @@
 target_sources(LIB_LIEF PRIVATE
+  endianness_support.cpp
   Object.tcc
   Visitor.cpp
   errors.cpp
@@ -33,6 +34,10 @@ if(LIEF_MACHO)
   add_subdirectory(MachO)
 endif()
 
+if(LIEF_COFF)
+  add_subdirectory(COFF)
+endif()
+
 if(LIEF_OAT)
   add_subdirectory(OAT)
 endif()
@@ -56,5 +61,13 @@ endif()
 
 if(NOT LIEF_OBJC_SUPPORT)
   add_subdirectory(ObjC)
+endif()
+
+if(NOT LIEF_DYLD_SHARED_CACHE_SUPPORT)
+  add_subdirectory(dyld-shared-cache)
+endif()
+
+if(NOT LIEF_ASM)
+  add_subdirectory(asm)
 endif()
 

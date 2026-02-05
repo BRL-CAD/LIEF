@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,21 +38,24 @@ struct nlist_32;
 struct nlist_64;
 }
 
-//! Class that represents a Symbol in a Mach-O file.
-//!
-//! A Mach-O symbol can come from:
-//! 1. The symbols command (LC_SYMTAB / SymbolCommand)
-//! 2. The Dyld Export trie
-//! 3. The Dyld Symbol bindings
+/// Class that represents a Symbol in a Mach-O file.
+///
+/// A Mach-O symbol can come from:
+/// 1. The symbols command (LC_SYMTAB / SymbolCommand)
+/// 2. The Dyld Export trie
+/// 3. The Dyld Symbol bindings
 class LIEF_API Symbol : public LIEF::Symbol {
 
   friend class BinaryParser;
   friend class Binary;
 
   public:
+  static constexpr int SELF_LIBRARY_ORD = 0x0; // Mirror SELF_LIBRARY_ORDINAL
+  static constexpr int MAIN_EXECUTABLE_ORD = 0xff; // Mirror DYNAMIC_LOOKUP_ORDINAL
+  static constexpr int DYNAMIC_LOOKUP_ORD = 0xfe; // EXECUTABLE_ORDINAL
 
-  //! Category of the symbol when the symbol comes from the `LC_SYMTAB` command.
-  //! The category is defined according to the `LC_DYSYMTAB` (DynamicSymbolCommand) command.
+  /// Category of the symbol when the symbol comes from the `LC_SYMTAB` command.
+  /// The category is defined according to the `LC_DYSYMTAB` (DynamicSymbolCommand) command.
   enum class CATEGORY : uint32_t {
     NONE = 0,
     LOCAL,
@@ -61,13 +64,14 @@ class LIEF_API Symbol : public LIEF::Symbol {
 
     INDIRECT_ABS,
     INDIRECT_LOCAL,
+    INDIRECT_ABS_LOCAL,
   };
 
   enum class ORIGIN : uint32_t {
     UNKNOWN     = 0,
     DYLD_EXPORT = 1,
     DYLD_BIND   = 2, /// The symbol comes from the binding opcodes
-    LC_SYMTAB   = 3,
+    SYMTAB      = 3, /// The symbol comes from the LC_SYMTAB command
   };
 
   enum class TYPE : uint32_t{
@@ -78,13 +82,22 @@ class LIEF_API Symbol : public LIEF::Symbol {
     INDIRECT      = 0xau  ///< The symbol is defined to be the same as another symbol. The n_value field is an index into the string table specifying the name of the other symbol. When that symbol is linked, both this and the other symbol point to the same defined type and value.
   };
 
-  //! Same as N_TYPE
+
+  /// Same as N_TYPE
   static constexpr uint32_t TYPE_MASK = 0x0e;
 
   Symbol() = default;
 
   Symbol(const details::nlist_32& cmd);
   Symbol(const details::nlist_64& cmd);
+  Symbol(uint8_t n_type, uint8_t n_sect, uint8_t n_desc, uint64_t value) :
+    type_{n_type},
+    numberof_sections_{n_sect},
+    description_{n_desc},
+    origin_{ORIGIN::SYMTAB}
+  {
+    value_ = value;
+  }
 
   Symbol& operator=(Symbol other);
   Symbol(const Symbol& other);
@@ -92,35 +105,45 @@ class LIEF_API Symbol : public LIEF::Symbol {
 
   ~Symbol() override = default;
 
-  //! Raw value of `nlist_xx.n_type`
+
+  static bool is_valid_index_ordinal(int idx) {
+    return idx != SELF_LIBRARY_ORD && idx != MAIN_EXECUTABLE_ORD &&
+           idx != DYNAMIC_LOOKUP_ORD;
+  }
+
+  int library_ordinal() const {
+    return (description() >> 8) & 0xff;
+  }
+
+  /// Raw value of `nlist_xx.n_type`
   uint8_t raw_type() const {
     return type_;
   }
 
-  //! Type as defined by `nlist_xx.n_type & N_TYPE`
+  /// Type as defined by `nlist_xx.n_type & N_TYPE`
   TYPE type() const {
     return TYPE(type_ & TYPE_MASK);
   }
 
-  //! It returns the number of sections in which this symbol can be found.
-  //! If the symbol can't be found in any section, it returns 0 (NO_SECT)
+  /// It returns the number of sections in which this symbol can be found.
+  /// If the symbol can't be found in any section, it returns 0 (NO_SECT)
   uint8_t numberof_sections() const {
     return numberof_sections_;
   }
 
-  //! Return information about the symbol (SYMBOL_DESCRIPTIONS)
+  /// Return information about the symbol (SYMBOL_DESCRIPTIONS)
   uint16_t description() const {
     return description_;
   }
 
-  //! True if the symbol is associated with an ExportInfo
-  //! This value is set when the symbol comes from the Dyld Export trie
+  /// True if the symbol is associated with an ExportInfo
+  /// This value is set when the symbol comes from the Dyld Export trie
   bool has_export_info() const {
     return export_info() != nullptr;
   }
 
-  //! Return the ExportInfo associated with this symbol (or nullptr if not present)
-  //! @see has_export_info
+  /// Return the ExportInfo associated with this symbol (or nullptr if not present)
+  /// @see has_export_info
   const ExportInfo* export_info() const {
     return export_info_;
   }
@@ -128,14 +151,14 @@ class LIEF_API Symbol : public LIEF::Symbol {
     return export_info_;
   }
 
-  //! True if the symbol is associated with a BindingInfo
-  //! This value is set when the symbol comes from the Dyld symbol bindings
+  /// True if the symbol is associated with a BindingInfo
+  /// This value is set when the symbol comes from the Dyld symbol bindings
   bool has_binding_info() const {
     return binding_info() != nullptr;
   }
 
-  //! Return the BindingInfo associated with this symbol (or nullptr if not present)
-  //! @see has_binding_info
+  /// Return the BindingInfo associated with this symbol (or nullptr if not present)
+  /// @see has_binding_info
   const BindingInfo* binding_info() const {
     return binding_info_;
   }
@@ -144,16 +167,16 @@ class LIEF_API Symbol : public LIEF::Symbol {
     return binding_info_;
   }
 
-  //! Try to demangle the symbol or return an empty string if it is not possible
+  /// Try to demangle the symbol or return an empty string if it is not possible
   std::string demangled_name() const;
 
-  //! True if the symbol is defined as an external symbol.
+  /// True if the symbol is defined as an external symbol.
   bool is_external() const {
     return type() == TYPE::UNDEFINED;
   }
 
-  //! Return the library in which the symbol is defined.
-  //! It returns a null pointer if the library can't be resolved
+  /// Return the library in which the symbol is defined.
+  /// It returns a null pointer if the library can't be resolved
   const DylibCommand* library() const {
     return library_;
   }
@@ -162,12 +185,12 @@ class LIEF_API Symbol : public LIEF::Symbol {
     return library_;
   }
 
-  //! Return the origin of the symbol: from LC_SYMTAB command or from the Dyld information
+  /// Return the origin of the symbol: from LC_SYMTAB command or from the Dyld information
   ORIGIN origin() const {
     return origin_;
   }
 
-  //! Category of the symbol according to the `LC_DYSYMTAB` command
+  /// Category of the symbol according to the `LC_DYSYMTAB` command
   CATEGORY category() const {
     return category_;
   }
@@ -188,6 +211,7 @@ class LIEF_API Symbol : public LIEF::Symbol {
 
   static const Symbol& indirect_abs();
   static const Symbol& indirect_local();
+  static const Symbol& indirect_abs_local();
 
   private:
   Symbol(CATEGORY cat) :

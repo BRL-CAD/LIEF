@@ -1,8 +1,8 @@
 target_sources(LIB_LIEF PRIVATE
-  BinaryStream.cpp
   ASN1Reader.cpp
-  VectorStream.cpp
+  BinaryStream.cpp
   FileStream.cpp
   MemoryStream.cpp
-  Convert.cpp
+  SpanStream.cpp
+  VectorStream.cpp
 )

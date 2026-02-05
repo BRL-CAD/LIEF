@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include <string>
 #include <ostream>
 #include <vector>
+#include <memory>
 
 #include "LIEF/utils.hpp"
 #include "LIEF/visibility.h"
@@ -28,6 +29,7 @@
 #include "LIEF/iterators.hpp"
 
 namespace LIEF {
+class SpanStream;
 namespace ELF {
 
 namespace DataHandler {
@@ -42,7 +44,7 @@ class ExeLayout;
 class ObjectFileLayout;
 
 
-//! Class wich represents an ELF Section
+/// Class which represents an ELF Section
 class LIEF_API Section : public LIEF::Section {
   friend class Parser;
   friend class Binary;
@@ -58,7 +60,7 @@ class LIEF_API Section : public LIEF::Section {
   static constexpr uint32_t MAX_SECTION_SIZE = 2_GB;
 
   enum class TYPE : uint64_t {
-    SHT_NULL            = 0,  /**< No associated section (inactive entry). */
+    SHT_NULL_           = 0,  /**< No associated section (inactive entry). */
     PROGBITS            = 1,  /**< Program-defined contents. */
     SYMTAB              = 2,  /**< Symbol table. */
     STRTAB              = 3,  /**< String table. */
@@ -89,7 +91,7 @@ class LIEF_API Section : public LIEF::Section {
 
     _ID_SHIFT_ = 32,
     _ARM_ID_ = 1LLU, _HEX_ID_ = 2LLU, _X86_64_ID_ = 2LLU,
-    _MIPS_ID_ = 3LLU,
+    _MIPS_ID_ = 3LLU, _RISCV_ID_ = 4LLU,
 
     ARM_EXIDX           = 0x70000001U + (_ARM_ID_ << _ID_SHIFT_), /**< Exception Index table */
     ARM_PREEMPTMAP      = 0x70000002U + (_ARM_ID_ << _ID_SHIFT_), /**< BPABI DLL dynamic linking pre-emption map */
@@ -102,9 +104,49 @@ class LIEF_API Section : public LIEF::Section {
     /* this section based on their sizes */
     X86_64_UNWIND       = 0x70000001 + (_X86_64_ID_ << _ID_SHIFT_), /**< Unwind information */
 
-    MIPS_REGINFO        = 0x70000006 + (_MIPS_ID_ << _ID_SHIFT_), /**< Register usage information */
-    MIPS_OPTIONS        = 0x7000000d + (_MIPS_ID_ << _ID_SHIFT_), /**< General options */
-    MIPS_ABIFLAGS       = 0x7000002a + (_MIPS_ID_ << _ID_SHIFT_), /**< ABI information. */
+    MIPS_LIBLIST       = 0x70000000 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_MSYM          = 0x70000001 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_CONFLICT      = 0x70000002 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_GPTAB         = 0x70000003 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_UCODE         = 0x70000004 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_DEBUG         = 0x70000005 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_REGINFO       = 0x70000006 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_PACKAGE       = 0x70000007 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_PACKSYM       = 0x70000008 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_RELD          = 0x70000009 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_IFACE         = 0x7000000b + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_CONTENT       = 0x7000000c + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_OPTIONS       = 0x7000000d + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_SHDR          = 0x70000010 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_FDESC         = 0x70000011 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_EXTSYM        = 0x70000012 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_DENSE         = 0x70000013 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_PDESC         = 0x70000014 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_LOCSYM        = 0x70000015 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_AUXSYM        = 0x70000016 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_OPTSYM        = 0x70000017 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_LOCSTR        = 0x70000018 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_LINE          = 0x70000019 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_RFDESC        = 0x7000001a + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_DELTASYM      = 0x7000001b + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_DELTAINST     = 0x7000001c + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_DELTACLASS    = 0x7000001d + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_DWARF         = 0x7000001e + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_DELTADECL     = 0x7000001f + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_SYMBOL_LIB    = 0x70000020 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_EVENTS        = 0x70000021 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_TRANSLATE     = 0x70000022 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_PIXIE         = 0x70000023 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_XLATE         = 0x70000024 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_XLATE_DEBUG   = 0x70000025 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_WHIRL         = 0x70000026 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_EH_REGION     = 0x70000027 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_XLATE_OLD     = 0x70000028 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_PDR_EXCEPTION = 0x70000029 + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_ABIFLAGS      = 0x7000002a + (_MIPS_ID_ << _ID_SHIFT_),
+    MIPS_XHASH         = 0x7000002b + (_MIPS_ID_ << _ID_SHIFT_),
+
+    RISCV_ATTRIBUTES    = 0x70000003 + (_RISCV_ID_ << _ID_SHIFT_),
   };
 
   enum class FLAGS : uint64_t {
@@ -173,26 +215,26 @@ class LIEF_API Section : public LIEF::Section {
     return type_;
   }
 
-  //! Section's content
+  /// Section's content
   span<const uint8_t> content() const override;
 
-  //! Set section content
+  /// Set section content
   void content(const std::vector<uint8_t>& data) override;
 
   void content(std::vector<uint8_t>&& data);
 
-  //! Section flags
+  /// Section flags
   uint64_t flags() const {
     return flags_;
   }
 
-  //! ``True`` if the section has the given flag
+  /// ``True`` if the section has the given flag
   bool has(FLAGS flag) const;
 
-  //! ``True`` if the section is wrapped by the given Segment
+  /// ``True`` if the section is wrapped by the given Segment
   bool has(const Segment& segment) const;
 
-  //! Return section flags as a ``std::set``
+  /// Return section flags as a ``std::set``
   std::vector<FLAGS> flags_list() const;
 
   uint64_t size() const override {
@@ -207,52 +249,52 @@ class LIEF_API Section : public LIEF::Section {
     return offset_;
   }
 
-  //! @see offset
+  /// @see offset
   uint64_t file_offset() const {
     return this->offset();
   }
 
-  //! Original size of the section's data.
-  //!
-  //! This value is used by the ELF::Builder to determines if it needs
-  //! to be relocated to avoid an override of the data
+  /// Original size of the section's data.
+  ///
+  /// This value is used by the ELF::Builder to determine if it needs
+  /// to be relocated to avoid an override of the data
   uint64_t original_size() const {
     return original_size_;
   }
 
-  //! Section file alignment
+  /// Section file alignment
   uint64_t alignment() const {
     return address_align_;
   }
 
-  //! Section information.
-  //! The meaning of this value depends on the section's type
+  /// Section information.
+  /// The meaning of this value depends on the section's type
   uint64_t information() const {
     return info_;
   }
 
-  //! This function returns the size of an element in the case of a section that contains
-  //! an array.
-  //!
-  //! For instance, the `.dynamic` section contains an array of DynamicEntry. As the
-  //! size of the raw C structure of this entry is 0x10 (`sizeoe(Elf64_Dyn)`)
-  //! in a ELF64, the `entry_size` is set to this value.
+  /// This function returns the size of an element in the case of a section that contains
+  /// an array.
+  ///
+  /// For instance, the `.dynamic` section contains an array of DynamicEntry. As the
+  /// size of the raw C structure of this entry is 0x10 (`sizeoe(Elf64_Dyn)`)
+  /// in a ELF64, the `entry_size` is set to this value.
   uint64_t entry_size() const {
     return entry_size_;
   }
 
-  //! Index to another section
+  /// Index to another section
   uint32_t link() const {
     return link_;
   }
 
-  //! Clear the content of the section with the given ``value``
+  /// Clear the content of the section with the given ``value``
   Section& clear(uint8_t value = 0);
 
-  //! Add the given ELF_SECTION_FLAGS
+  /// Add the given ELF_SECTION_FLAGS
   void add(FLAGS flag);
 
-  //! Remove the given ELF_SECTION_FLAGS
+  /// Remove the given ELF_SECTION_FLAGS
   void remove(FLAGS flag);
 
   void type(TYPE type) {
@@ -316,15 +358,18 @@ class LIEF_API Section : public LIEF::Section {
     return *this;
   }
 
+  /// Return a stream over the content of this section
+  std::unique_ptr<SpanStream> stream() const;
+
   LIEF_API friend std::ostream& operator<<(std::ostream& os, const Section& section);
 
   private:
   template<class T>
   LIEF_LOCAL Section(const T& header, ARCH arch);
 
-  span<uint8_t> writable_content();
+  LIEF_LOCAL span<uint8_t> writable_content();
   ARCH arch_ = ARCH::NONE;
-  TYPE type_ = TYPE::SHT_NULL;
+  TYPE type_ = TYPE::SHT_NULL_;
   uint64_t flags_ = 0;
   uint64_t original_size_ = 0;
   uint32_t link_ = 0;
@@ -343,6 +388,6 @@ LIEF_API const char* to_string(Section::FLAGS e);
 }
 }
 
-ENABLE_BITMASK_OPERATORS(LIEF::ELF::Section::FLAGS)
+ENABLE_BITMASK_OPERATORS(LIEF::ELF::Section::FLAGS);
 
 #endif

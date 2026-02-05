@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,9 @@
 #include "mbedtls/md5.h"
 
 #include "LIEF/PE/utils.hpp"
-#define LIEF_PE_FORCE_UNDEF
-#include "LIEF/PE/undef.h"
 #include "LIEF/PE/Binary.hpp"
 #include "LIEF/PE/Import.hpp"
+#include "LIEF/PE/Section.hpp"
 #include "LIEF/PE/ImportEntry.hpp"
 #include "LIEF/BinaryStream/SpanStream.hpp"
 #include "LIEF/BinaryStream/FileStream.hpp"
@@ -52,13 +51,13 @@ inline std::string to_lower(std::string str) {
 
 bool is_pe(BinaryStream& stream) {
   using signature_t = std::array<char, sizeof(details::PE_Magic)>;
-  stream.setpos(0);
-  if (auto dos_header = stream.read<details::pe_dos_header>()) {
+  ScopedStream scoped(stream, 0);
+  if (auto dos_header = scoped->read<details::pe_dos_header>()) {
     if (dos_header->Magic != /* MZ */0x5a4d) {
       return false;
     }
-    stream.setpos(dos_header->AddressOfNewExeHeader);
-    if (auto res_sig = stream.read<signature_t>()) {
+    scoped->setpos(dos_header->AddressOfNewExeHeader);
+    if (auto res_sig = scoped->read<signature_t>()) {
       const auto signature = *res_sig;
       return std::equal(std::begin(signature), std::end(signature),
                         std::begin(details::PE_Magic));
@@ -166,7 +165,6 @@ std::string get_imphash_std(const Binary& binary) {
   bool first_entry = true;
   hashstream hs(hashstream::HASH::MD5);
   for (const Import& imp : binary.imports()) {
-    std::string libname = imp.name();
     Import resolved = imp;
     if (auto resolution = resolve_ordinals(imp, /* strict */ false, /* use_std */ true)) {
       resolved = std::move(*resolution);
@@ -389,7 +387,6 @@ ALGORITHMS algo_from_oid(const std::string& oid) {
   }
   return it->second;
 }
-
 
 }
 }

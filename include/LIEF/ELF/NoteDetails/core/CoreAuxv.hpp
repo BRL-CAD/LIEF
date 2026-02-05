@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 #ifndef LIEF_ELF_CORE_AUXV_H
 #define LIEF_ELF_CORE_AUXV_H
 
-#include <vector>
 #include <ostream>
 #include <map>
 #include <utility>
@@ -28,12 +27,12 @@
 namespace LIEF {
 namespace ELF {
 
-//! Class representing core auxv object
+/// Class representing core auxv object
 class LIEF_API CoreAuxv : public Note {
   public:
   enum class TYPE {
     END = 0,       /**< End of vector */
-    IGNORE,        /**< Entry should be ignored */
+    IGNORE_TY,     /**< Entry should be ignored */
     EXECFD,        /**< File descriptor of program */
     PHDR,          /**< Program headers for program */
     PHENT,         /**< Size of program header entry */

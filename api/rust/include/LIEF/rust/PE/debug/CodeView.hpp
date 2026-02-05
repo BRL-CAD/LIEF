@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ class PE_CodeView : public PE_Debug {
   public:
   using lief_t = LIEF::PE::CodeView;
   PE_CodeView(const lief_t& obj) : PE_Debug(obj) {}
+  PE_CodeView(std::unique_ptr<lief_t> obj) : PE_Debug(std::move(obj)) {}
 
   uint32_t signature() const { return to_int(impl().signature()); }
 

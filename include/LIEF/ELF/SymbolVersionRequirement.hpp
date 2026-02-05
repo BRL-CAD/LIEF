@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 #ifndef LIEF_ELF_SYMBOL_VERSION_REQUIREMENTS_H
 #define LIEF_ELF_SYMBOL_VERSION_REQUIREMENTS_H
 
+#include <cstdint>
 #include <string>
 #include <ostream>
 #include <vector>
@@ -35,7 +36,7 @@ struct Elf64_Verneed;
 struct Elf32_Verneed;
 }
 
-//! Class which represents an entry in the `DT_VERNEED` or `.gnu.version_r` table
+/// Class which represents an entry in the `DT_VERNEED` or `.gnu.version_r` table
 class LIEF_API SymbolVersionRequirement : public Object {
   friend class Parser;
 
@@ -53,20 +54,20 @@ class LIEF_API SymbolVersionRequirement : public Object {
   SymbolVersionRequirement(const SymbolVersionRequirement& other);
   void swap(SymbolVersionRequirement& other);
 
-  //! Version revision
-  //!
-  //! This field should always have the value ``1``. It will be changed
-  //! if the versioning implementation has to be changed in an incompatible way.
+  /// Version revision
+  ///
+  /// This field should always have the value ``1``. It will be changed
+  /// if the versioning implementation has to be changed in an incompatible way.
   uint16_t version() const {
     return version_;
   }
 
-  //! Number of auxiliary entries
+  /// Number of auxiliary entries
   size_t cnt() const {
     return aux_requirements_.size();
   }
 
-  //! Auxiliary entries as an iterator over SymbolVersionAuxRequirement
+  /// Auxiliary entries as an iterator over SymbolVersionAuxRequirement
   it_aux_requirement auxiliary_symbols() {
     return aux_requirements_;
   }
@@ -75,7 +76,7 @@ class LIEF_API SymbolVersionRequirement : public Object {
     return aux_requirements_;
   }
 
-  //! Return the library name associated with this requirement (e.g. ``libc.so.6``)
+  /// Return the library name associated with this requirement (e.g. ``libc.so.6``)
   const std::string& name() const {
     return name_;
   }
@@ -88,8 +89,38 @@ class LIEF_API SymbolVersionRequirement : public Object {
     name_ = name;
   }
 
-  //! Add a version auxiliary requirement to the existing list
+  /// Add a version auxiliary requirement to the existing list
   SymbolVersionAuxRequirement& add_aux_requirement(const SymbolVersionAuxRequirement& aux_requirement);
+
+  /// Try to find the SymbolVersionAuxRequirement with the given name (e.g. `GLIBC_2.27`)
+  const SymbolVersionAuxRequirement* find_aux(const std::string& name) const;
+
+  SymbolVersionAuxRequirement* find_aux(const std::string& name) {
+    return const_cast<SymbolVersionAuxRequirement*>(static_cast<const SymbolVersionRequirement*>(this)->find_aux(name));
+  }
+
+  /// Try to remove the auxiliary requirement symbol with the given name.
+  /// The function returns true if the operation succeed, false otherwise.
+  ///
+  /// \warning this function invalidates all the references (pointers) of
+  ///          SymbolVersionAuxRequirement. Therefore, the user is responsible
+  ///          to ensure that the auxiliary requirement is no longer used in the
+  ///          ELF binary (e.g. in SymbolVersion)
+  bool remove_aux_requirement(const std::string& name) {
+    if (SymbolVersionAuxRequirement* aux = find_aux(name)) {
+      return remove_aux_requirement(*aux);
+    }
+    return false;
+  }
+
+  /// Try to remove the given auxiliary requirement symbol.
+  /// The function returns true if the operation succeed, false otherwise.
+  ///
+  /// \warning this function invalidates all the references (pointers) of
+  ///          SymbolVersionAuxRequirement. Therefore, the user is responsible
+  ///          to ensure that the auxiliary requirement is no longer used in the
+  ///          ELF binary (e.g. in SymbolVersion)
+  bool remove_aux_requirement(SymbolVersionAuxRequirement& aux);
 
   void accept(Visitor& visitor) const override;
 

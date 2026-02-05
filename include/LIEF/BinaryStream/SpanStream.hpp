@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,16 @@
 #include <vector>
 #include <array>
 #include <cstddef>
+#include <memory>
 
 #include "LIEF/errors.hpp"
 #include "LIEF/span.hpp"
+#include "LIEF/visibility.h"
 #include "LIEF/BinaryStream/BinaryStream.hpp"
 
 namespace LIEF {
-class SpanStream : public BinaryStream {
+class VectorStream;
+class LIEF_API SpanStream : public BinaryStream {
   public:
   using BinaryStream::p;
   using BinaryStream::end;
@@ -58,10 +61,14 @@ class SpanStream : public BinaryStream {
     SpanStream(data.data(), data.size())
   {}
 
+  std::unique_ptr<SpanStream> clone() const {
+    return std::unique_ptr<SpanStream>(new SpanStream(*this));
+  }
+
   SpanStream() = delete;
 
-  SpanStream(const SpanStream&) = delete;
-  SpanStream& operator=(const SpanStream&) = delete;
+  SpanStream(const SpanStream& other) = default;
+  SpanStream& operator=(const SpanStream& other) = default;
 
   SpanStream(SpanStream&& other) noexcept = default;
   SpanStream& operator=(SpanStream&& other) noexcept = default;
@@ -99,6 +106,8 @@ class SpanStream : public BinaryStream {
     return data_.subspan(offset, data_.size() - offset);
   }
 
+  std::unique_ptr<VectorStream> to_vector() const;
+
   static bool classof(const BinaryStream& stream) {
     return stream.type() == BinaryStream::STREAM_TYPE::SPAN;
   }
@@ -106,7 +115,7 @@ class SpanStream : public BinaryStream {
   ~SpanStream() override = default;
 
   protected:
-  result<const void*> read_at(uint64_t offset, uint64_t size) const override {
+  result<const void*> read_at(uint64_t offset, uint64_t size, uint64_t /*va*/) const override {
     const uint64_t stream_size = this->size();
     if (offset > stream_size || (offset + size) > stream_size) {
       return make_error_code(lief_errors::read_error);

@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use crate::common::{FromFFI, into_optional};
 use crate::declare_fwd_iterator;
 
-use super::{Class, Protocol};
+use super::{Class, Protocol, DeclOpt};
 
 
 /// This structure is the main interface to inspect Objective-C metadata
@@ -26,22 +26,22 @@ impl FromFFI<ffi::ObjC_Metadata> for Metadata<'_> {
 
 impl Metadata<'_> {
     /// Return an iterator over the different Objective-C classes (`@interface`)
-    pub fn classes(&self) -> Classes {
+    pub fn classes(&self) -> Classes<'_> {
         Classes::new(self.ptr.classes())
     }
 
     /// Return an iterator over the Objective-C protocols declared in this binary (`@protocol`).
-    pub fn protocols(&self) -> Protocols {
+    pub fn protocols(&self) -> Protocols<'_> {
         Protocols::new(self.ptr.protocols())
     }
 
     /// Try to find the Objective-C class with the given **mangled** name
-    pub fn class_by_name(&self, name: &str) -> Option<Class> {
+    pub fn class_by_name(&self, name: &str) -> Option<Class<'_>> {
         into_optional(self.ptr.get_class(name))
     }
 
     /// Try to find the Objective-C protocol with the given **mangled** name
-    pub fn protocol_by_name(&self, name: &str) -> Option<Protocol> {
+    pub fn protocol_by_name(&self, name: &str) -> Option<Protocol<'_>> {
         into_optional(self.ptr.get_protocol(name))
     }
 
@@ -49,6 +49,12 @@ impl Metadata<'_> {
     /// binary.
     pub fn to_decl(&self) -> String {
         self.ptr.to_decl().to_string()
+    }
+
+    /// Same behavior as [`Metadata::to_decl`] but with an additional
+    /// [`DeclOpt`] parameter to customize the output
+    pub fn to_decl_with_opt(&self, opt: &DeclOpt) -> String {
+        self.ptr.to_decl_with_opt(opt.to_ffi()).to_string()
     }
 }
 

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@
         "Duplicate the current instance of this object"_doc, \
         nb::rv_policy::take_ownership)
 
-constexpr const char* operator "" _doc(const char* value, size_t) {
+constexpr const char* operator ""_doc(const char* value, size_t) {
   return value;
 }
 
@@ -56,5 +56,10 @@ namespace nb = nanobind;
 extern nb::module_* lief_mod;
 
 using namespace nb::literals;
+
+namespace LIEF::py {
+template<class T>
+void create(nb::module_&);
+}
 
 #endif

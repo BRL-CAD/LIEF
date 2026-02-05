@@ -1,6 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
- * Copyright 2017 - 2021 K. Nakagawa
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +22,6 @@
 namespace LIEF {
 
 class Binary;
-class Symbol;
 class Section;
 
 namespace PE {
@@ -41,7 +39,6 @@ class RelocationEntry;
 class Export;
 class ExportEntry;
 class TLS;
-class Symbol;
 class Debug;
 class CodeView;
 class CodeViewPDB;
@@ -55,14 +52,12 @@ class ResourceDirectory;
 class ResourcesManager;
 class ResourceVersion;
 class ResourceStringFileInfo;
-class ResourceFixedFileInfo;
 class ResourceVarFileInfo;
 class ResourceStringTable;
 class ResourceAccelerator;
-class LangCodeItem;
 class ResourceIcon;
-class ResourceDialog;
-class ResourceDialogItem;
+class ResourceDialogExtended;
+class ResourceDialogRegular;
 class Signature;
 class x509;
 class SignerInfo;
@@ -82,24 +77,12 @@ class SpcRelaxedPeMarkerCheck;
 class SigningCertificateV2;
 class CodeIntegrity;
 class LoadConfiguration;
-class LoadConfigurationV0;
-class LoadConfigurationV1;
-class LoadConfigurationV2;
-class LoadConfigurationV3;
-class LoadConfigurationV4;
-class LoadConfigurationV5;
-class LoadConfigurationV6;
-class LoadConfigurationV7;
-class LoadConfigurationV8;
-class LoadConfigurationV9;
-class LoadConfigurationV10;
-class LoadConfigurationV11;
 class Pogo;
 class PogoEntry;
 class Repro;
 
-//! Class that implements the Visitor pattern to output
-//! a JSON representation of a PE object
+/// Class that implements the Visitor pattern to output
+/// a JSON representation of a PE object
 class JsonVisitor : public LIEF::JsonVisitor {
   public:
   using LIEF::JsonVisitor::JsonVisitor;
@@ -118,7 +101,6 @@ class JsonVisitor : public LIEF::JsonVisitor {
   void visit(const Export& export_)                       override;
   void visit(const ExportEntry& export_entry)             override;
   void visit(const TLS& tls)                              override;
-  void visit(const Symbol& Symbol)                        override;
   void visit(const Debug& debug)                          override;
   void visit(const CodeView& dv)                          override;
   void visit(const CodeViewPDB& cvpdb)                    override;
@@ -132,14 +114,12 @@ class JsonVisitor : public LIEF::JsonVisitor {
   void visit(const ResourcesManager& resources_manager)   override;
   void visit(const ResourceVersion& resource_version)     override;
   void visit(const ResourceStringFileInfo& resource_sfi)  override;
-  void visit(const ResourceFixedFileInfo& resource_ffi)   override;
   void visit(const ResourceVarFileInfo& resource_vfi)     override;
   void visit(const ResourceStringTable& resource_st)      override;
   void visit(const ResourceAccelerator& resource_acc)     override;
-  void visit(const LangCodeItem& resource_lci)            override;
   void visit(const ResourceIcon& resource_icon)           override;
-  void visit(const ResourceDialog& dialog)                override;
-  void visit(const ResourceDialogItem& dialog_item)       override;
+  void visit(const ResourceDialogExtended& dialog)        override;
+  void visit(const ResourceDialogRegular& dialog)         override;
   void visit(const Signature& signature)                  override;
   void visit(const x509& x509)                            override;
   void visit(const SignerInfo& signerinfo)                override;
@@ -162,25 +142,12 @@ class JsonVisitor : public LIEF::JsonVisitor {
   void visit(const SigningCertificateV2& attr)            override;
   void visit(const CodeIntegrity& code_integrity)         override;
   void visit(const LoadConfiguration& config)             override;
-  void visit(const LoadConfigurationV0& config)           override;
-  void visit(const LoadConfigurationV1& config)           override;
-  void visit(const LoadConfigurationV2& config)           override;
-  void visit(const LoadConfigurationV3& config)           override;
-  void visit(const LoadConfigurationV4& config)           override;
-  void visit(const LoadConfigurationV5& config)           override;
-  void visit(const LoadConfigurationV6& config)           override;
-  void visit(const LoadConfigurationV7& config)           override;
-  void visit(const LoadConfigurationV8& config)           override;
-  void visit(const LoadConfigurationV9& config)           override;
-  void visit(const LoadConfigurationV10& config)          override;
-  void visit(const LoadConfigurationV11& config)          override;
 
   void visit(const Pogo& pogo)        override;
   void visit(const PogoEntry& entry)  override;
   void visit(const Repro& entry)      override;
 
   void visit(const LIEF::Binary& binary)   override;
-  void visit(const LIEF::Symbol& symbol)   override;
   void visit(const LIEF::Section& section) override;
 };
 

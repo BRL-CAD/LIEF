@@ -4,6 +4,7 @@
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/unique_ptr.h>
+#include <nanobind/make_iterator.h>
 
 #include "pyErr.hpp"
 
@@ -76,6 +77,15 @@ void create<dw::types::ClassLike>(nb::module_& m) {
       If the offset can't be resolved it returns None
       )doc"_doc
     )
+
+    .def_prop_ro("bit_size",
+      [] (const dw::types::ClassLike::Member& self) {
+        return LIEF::py::value_or_none(&dw::types::ClassLike::Member::bit_size, self);
+      },
+      R"doc(
+      If the current member is a bit-field, this function returns its size in bits.
+      )doc"_doc
+    )
   ;
 
   class_like
@@ -88,6 +98,15 @@ void create<dw::types::ClassLike>(nb::module_& m) {
       R"doc(
       Try to find the attribute at the given offset
       )doc"_doc, "offset"_a
+    )
+    .def_prop_ro("functions",
+        [] (dw::types::ClassLike& self) {
+          auto funcs = self.functions();
+          return nb::make_iterator<nb::rv_policy::reference_internal>(
+            nb::type<dw::types::ClassLike>(), "functions_it", funcs
+          );
+        }, nb::keep_alive<0, 1>(),
+        R"doc(Iterator over the functions defined by the class-like.)doc"_doc
     )
   ;
 
@@ -106,6 +125,13 @@ void create<dw::types::ClassLike>(nb::module_& m) {
   nb::class_<dw::types::Union, dw::types::ClassLike> Union(m, "Union",
     R"doc(
     This class represents a DWARF ``union`` type (``DW_TAG_union_type``)
+    )doc"_doc
+  );
+
+
+  nb::class_<dw::types::Packed, dw::types::ClassLike> Packed(m, "Packed",
+    R"doc(
+    This class represents a DWARF ``packed`` type (``DW_TAG_packed_type``)
     )doc"_doc
   );
 }

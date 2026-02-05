@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@ namespace LIEF::MachO::py {
 void init_enums(nb::module_& m) {
 
   enum_<MACHO_TYPES>(m, "MACHO_TYPES")
-    .value(PY_ENUM(MACHO_TYPES::MH_MAGIC))
-    .value(PY_ENUM(MACHO_TYPES::MH_CIGAM))
-    .value(PY_ENUM(MACHO_TYPES::MH_MAGIC_64))
-    .value(PY_ENUM(MACHO_TYPES::MH_CIGAM_64))
-    .value(PY_ENUM(MACHO_TYPES::FAT_MAGIC))
-    .value(PY_ENUM(MACHO_TYPES::FAT_CIGAM))
+    .value(PY_ENUM(MACHO_TYPES::MAGIC))
+    .value(PY_ENUM(MACHO_TYPES::CIGAM))
+    .value(PY_ENUM(MACHO_TYPES::MAGIC_64))
+    .value(PY_ENUM(MACHO_TYPES::CIGAM_64))
+    .value(PY_ENUM(MACHO_TYPES::MAGIC_FAT))
+    .value(PY_ENUM(MACHO_TYPES::CIGAM_FAT))
     .value(PY_ENUM(MACHO_TYPES::NEURAL_MODEL))
   ;
 
@@ -104,6 +104,7 @@ void init_enums(nb::module_& m) {
     .value(PY_ENUM(DYLD_CHAINED_FORMAT::IMPORT_ADDEND64));
 
   enum_<DYLD_CHAINED_PTR_FORMAT>(m, "DYLD_CHAINED_PTR_FORMAT")
+    .value(PY_ENUM(DYLD_CHAINED_PTR_FORMAT::NONE))
     .value(PY_ENUM(DYLD_CHAINED_PTR_FORMAT::PTR_ARM64E))
     .value(PY_ENUM(DYLD_CHAINED_PTR_FORMAT::PTR_64))
     .value(PY_ENUM(DYLD_CHAINED_PTR_FORMAT::PTR_32))
@@ -115,7 +116,9 @@ void init_enums(nb::module_& m) {
     .value(PY_ENUM(DYLD_CHAINED_PTR_FORMAT::PTR_ARM64E_USERLAND))
     .value(PY_ENUM(DYLD_CHAINED_PTR_FORMAT::PTR_ARM64E_FIRMWARE))
     .value(PY_ENUM(DYLD_CHAINED_PTR_FORMAT::PTR_X86_64_KERNEL_CACHE))
-    .value(PY_ENUM(DYLD_CHAINED_PTR_FORMAT::PTR_ARM64E_USERLAND24));
+    .value(PY_ENUM(DYLD_CHAINED_PTR_FORMAT::PTR_ARM64E_USERLAND24))
+    .value(PY_ENUM(DYLD_CHAINED_PTR_FORMAT::PTR_ARM64E_SHARED_CACHE))
+    .value(PY_ENUM(DYLD_CHAINED_PTR_FORMAT::PTR_ARM64E_SEGMENTED));
 
 }
 }

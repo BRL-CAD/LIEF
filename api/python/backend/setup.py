@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import sys
 import sysconfig
+import platform
 from functools import lru_cache
 from typing import Optional, Union, List
 
@@ -44,6 +45,18 @@ def _compute_best(cls, *arg, **kwargs):
 
     return WheelTag(pyvers, abis, archs)
 
+def _get_vc_env(vc_arch: str) -> dict[str, str]:
+    try:
+        from setuptools import distutils  # type: ignore[import,attr-defined]
+
+        return distutils._msvccompiler._get_vc_env(vc_arch)  # type: ignore[no-any-return]
+    except AttributeError:
+        from setuptools._distutils import (
+            _msvccompiler,  # type: ignore[import,attr-defined]
+        )
+
+        return _msvccompiler._get_vc_env(vc_arch)  # type: ignore[no-any-return,attr-defined]
+
 def _fix_env():
     config = get_config()
     if sys.platform.startswith("win"):
@@ -51,7 +64,7 @@ def _fix_env():
             from setuptools import msvc
             is64 = sys.maxsize > 2**32
             arch = 'x64' if is64 else 'x86'
-            ninja_env = msvc.msvc14_get_vc_env(arch)
+            ninja_env = _get_vc_env(arch)
             os.environ.update(ninja_env)
 
     if sys.platform.startswith("darwin"):
@@ -101,12 +114,12 @@ def _get_hooked_config(is_editable: bool) -> Optional[dict[str, Union[str, List[
     config_settings = {
         "logging.level": "DEBUG",
         "build-dir": config.build_dir,
+        "build.targets": config.build.targets,
         "install.strip": config.strip,
         "backport.find-python": "0",
         "wheel.py-api":  config.build.py_api,
         "cmake.source-dir": SRC_DIR.as_posix(),
         "cmake.build-type": config.build.build_type,
-        "cmake.targets": config.build.targets,
         "cmake.args": [
             *config.cmake_generator,
             *config.get_cmake_args(is_editable),
@@ -117,6 +130,10 @@ def _get_hooked_config(is_editable: bool) -> Optional[dict[str, Union[str, List[
 
 def _get_build_requirements(is_editable: bool) -> List[str]:
     build_req_file = BINDING_DIR / "build-requirements.txt"
+    if not build_req_file.is_file() and not (BINDING_DIR / "src").is_dir():
+        # By convention this is an mocked sdist
+        print(f"LIEF does not provide precompiled wheels for '{sys.platform} - {platform.machine()}'", file=sys.stderr)
+        sys.exit(1)
     reqs = [line for line in build_req_file.read_text().splitlines() if not line.startswith("#")]
     return reqs
 
@@ -168,4 +185,16 @@ def build_sdist(
     sdist_directory: str,
     config_settings: Optional[dict[str, Union[str, List[str]]]] = None,
 ) -> str:
-    raise RuntimeError("LIEF does not support Python source distribution ('sdist')")
+    from scikit_build_core.build.sdist import build_sdist as _impl
+    config_settings = _get_hooked_config(is_editable=False)
+    config_settings['sdist.exclude'].extend([
+        '*'
+    ])
+    config_settings['sdist.include'] = [
+        'pyproject.toml',
+        'backend/setup.py',
+        'backend/versioning.py',
+        'backend/config.py',
+        'backend/dynamic_provider.py',
+    ]
+    return _impl(sdist_directory, config_settings)

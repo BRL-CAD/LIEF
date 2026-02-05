@@ -1,4 +1,4 @@
-/* Copyright 2021 - 2024 R. Thomas
+/* Copyright 2021 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,8 +72,8 @@ inline Relocation::TYPE relative_from_arch(ARCH arch) {
   return TYPE::UNKNOWN;
 }
 
-//! Compute the size and the offset of the elements
-//! needed to rebuild the ELF file.
+/// Compute the size and the offset of the elements
+/// needed to rebuild the ELF file.
 class LIEF_LOCAL ExeLayout : public Layout {
   public:
   struct sym_verdef_info_t {
@@ -112,7 +112,7 @@ class LIEF_LOCAL ExeLayout : public Layout {
     }
 
     // Start with dynamic entries: NEEDED / SONAME etc
-    vector_iostream raw_dynstr;
+    vector_iostream raw_dynstr(should_swap());
     raw_dynstr.write<uint8_t>(0);
 
     std::vector<std::string> opt_list;
@@ -223,20 +223,20 @@ class LIEF_LOCAL ExeLayout : public Layout {
       return raw_notes_.size();
     }
 
-    vector_iostream raw_notes/*(should_swap())*/;
+    vector_iostream raw_notes(should_swap());
     for (const Note& note : binary_->notes()) {
       size_t pos = raw_notes.tellp();
       // First we have to write the length of the Note's name
       const auto namesz = static_cast<uint32_t>(note.name().size() + 1);
-      raw_notes.write_conv<uint32_t>(namesz);
+      raw_notes.write<uint32_t>(namesz);
 
       // Then the length of the Note's description
       const auto descsz = static_cast<uint32_t>(note.description().size());
-      raw_notes.write_conv<uint32_t>(descsz);
+      raw_notes.write<uint32_t>(descsz);
 
       // Then the note's type
       const uint32_t type = note.original_type();
-      raw_notes.write_conv<uint32_t>(type);
+      raw_notes.write<uint32_t>(type);
 
       // Then we write the note's name
       const std::string& name = note.name();
@@ -250,13 +250,13 @@ class LIEF_LOCAL ExeLayout : public Layout {
       const auto* desc_ptr = reinterpret_cast<const uint32_t*>(description.data());
       size_t i = 0;
       for (; i < description.size() / sizeof(uint32_t); i++) {
-        raw_notes.write_conv<uint32_t>(desc_ptr[i]);
+        raw_notes.write<uint32_t>(desc_ptr[i]);
       }
       if (description.size() % sizeof(uint32_t) != 0) {
         uint32_t padded = 0;
         auto *ptr = reinterpret_cast<uint8_t*>(&padded);
         memcpy(ptr, desc_ptr + i, description.size() % sizeof(uint32_t));
-        raw_notes.write_conv<uint32_t>(padded);
+        raw_notes.write<uint32_t>(padded);
       }
       notes_off_map_.emplace(&note, pos);
     }
@@ -339,7 +339,7 @@ class LIEF_LOCAL ExeLayout : public Layout {
       });
     Binary::it_dynamic_symbols dynamic_symbols = binary_->dynamic_symbols();
 
-    vector_iostream raw_gnuhash;
+    vector_iostream raw_gnuhash(should_swap());
     raw_gnuhash.reserve(
         4 * sizeof(uint32_t) +          // header
         maskwords * sizeof(uint) +    // bloom filters
@@ -349,10 +349,10 @@ class LIEF_LOCAL ExeLayout : public Layout {
     // Write header
     // =================================
     raw_gnuhash
-      .write_conv<uint32_t>(nb_buckets)
-      .write_conv<uint32_t>(symndx)
-      .write_conv<uint32_t>(maskwords)
-      .write_conv<uint32_t>(shift2);
+      .write<uint32_t>(nb_buckets)
+      .write<uint32_t>(symndx)
+      .write<uint32_t>(maskwords)
+      .write<uint32_t>(shift2);
 
     // Compute Bloom filters
     // =================================
@@ -370,7 +370,7 @@ class LIEF_LOCAL ExeLayout : public Layout {
      LIEF_DEBUG("Bloom filter [{:d}]: 0x{:x}", idx, bloom_filters[idx]);
     }
 
-    raw_gnuhash.write_conv_array(bloom_filters);
+    raw_gnuhash.write(bloom_filters);
 
     // Write buckets and hash
     // =================================
@@ -407,8 +407,8 @@ class LIEF_LOCAL ExeLayout : public Layout {
     }
 
     raw_gnuhash
-      .write_conv_array<uint32_t>(buckets)
-      .write_conv_array<uint32_t>(hash_values);
+      .write(buckets)
+      .write(hash_values);
     raw_gnuhash.move(raw_gnu_hash_);
     return raw_gnu_hash_.size();
   }
@@ -594,7 +594,7 @@ class LIEF_LOCAL ExeLayout : public Layout {
     uint64_t offset = 0;
     uint64_t addend = 0;
 
-    vector_iostream ios;
+    vector_iostream ios(should_swap());
     ios.write('A')
        .write('P')
        .write('S')
@@ -706,7 +706,7 @@ class LIEF_LOCAL ExeLayout : public Layout {
     const size_t wordsize = sizeof(Elf_Addr);
     const size_t nbits = wordsize * 8 - 1;
 
-    vector_iostream raw_relr;
+    vector_iostream raw_relr(should_swap());
 
     for (size_t i = 0, e = relr_relocs.size(); i != e;) {
       raw_relr.write<Elf_Addr>(offsets[i]);
@@ -717,7 +717,7 @@ class LIEF_LOCAL ExeLayout : public Layout {
         uint64_t bitmap = 0;
         for (; i != e; ++i) {
           uint64_t d = offsets[i] - base;
-          if (nbits <= (d * wordsize) || (d % wordsize) != 0) {
+          if (d >= (nbits * wordsize) || (d % wordsize) != 0) {
             break;
           }
           bitmap |= uint64_t(1) << (d / wordsize);
@@ -876,7 +876,6 @@ class LIEF_LOCAL ExeLayout : public Layout {
      *    .rela.plt
      *    .relr.dyn
      * Perm: READ ONLY
-     * Align: 0x1000
      */
     uint64_t read_segment = interp_size_ +  sysv_size_ + dynsym_size_ +
                             sver_size_ + sverd_size_ + sverr_size_ +
@@ -905,7 +904,6 @@ class LIEF_LOCAL ExeLayout : public Layout {
 
     if (read_segment > 0) {
       Segment rsegment;
-      rsegment.alignment(0x1000);
       rsegment.type(Segment::TYPE::LOAD);
       rsegment.add(Segment::FLAGS::R);
       rsegment.content(std::vector<uint8_t>(read_segment));
@@ -928,14 +926,12 @@ class LIEF_LOCAL ExeLayout : public Layout {
      *  .got
      *  .got.plt
      * Perm: READ | WRITE
-     * Align: 0x1000
      */
     const uint64_t read_write_segment = init_size_ + preinit_size_ + fini_size_ + dynamic_size_ ;
 
     Segment* new_rwsegment = nullptr;
     Segment rwsegment;
     if (read_write_segment > 0) {
-      rwsegment.alignment(0x1000);
       rwsegment.type(Segment::TYPE::LOAD);
       rwsegment.add(Segment::FLAGS::R | Segment::FLAGS::W);
       rwsegment.content(std::vector<uint8_t>(read_write_segment));
@@ -962,7 +958,8 @@ class LIEF_LOCAL ExeLayout : public Layout {
       binary_->remove(*string_names_section, /* clear */ true);
       Section sec_str_section(sec_name, Section::TYPE::STRTAB);
       sec_str_section.content(std::vector<uint8_t>(raw_shstrtab_.size()));
-      binary_->add(sec_str_section, /* loaded */ false);
+      binary_->add(sec_str_section, /*loaded=*/false,
+                   /*pos=*/Binary::SEC_INSERT_POS::POST_SECTION);
 
       // Default behavior: push_back => index = binary_->sections_.size() - 1
       hdr.section_name_table_idx(binary_->sections_.size() - 1);
@@ -1560,16 +1557,17 @@ class LIEF_LOCAL ExeLayout : public Layout {
       }
       if (strtab_section_ != nullptr) {
         LIEF_DEBUG("Removing the old section: {} 0x{:x} (size: 0x{:x})",
-                   strtab_section_->name(), strtab_section_->file_offset(), strtab_section_->size());
+                   strtab_section_->name(), strtab_section_->file_offset(),
+                   strtab_section_->size());
         binary_->remove(*strtab_section_, /* clear */ true);
-        strtab_idx = binary_->sections().size() - 1;
-      } else {
-        strtab_idx = binary_->sections().size();
       }
       Section strtab{".strtab", Section::TYPE::STRTAB};
       strtab.content(raw_strtab_);
       strtab.alignment(1);
-      Section* new_strtab = binary_->add(strtab, /* loaded */ false);
+      Section* new_strtab = binary_->add(
+        strtab, /*loaded=*/false, /*pos=*/Binary::SEC_INSERT_POS::POST_SECTION);
+
+      strtab_idx = binary_->sections().size() - 1;
 
       if (new_strtab == nullptr) {
         LIEF_ERR("Can't add a new .strtab section");
@@ -1596,14 +1594,24 @@ class LIEF_LOCAL ExeLayout : public Layout {
     if (symtab_size_ > 0) {
       LIEF_DEBUG("Relocate .symtab");
 
-      Section* sec_symtab = binary_->get(Section::TYPE::SYMTAB);
-      if (sec_symtab != nullptr) {
+      const auto sections = binary_->sections();
+      auto it_sec_symtab = std::find_if(sections.begin(), sections.end(),
+          [] (const Section& sec) { return sec.type() == Section::TYPE::SYMTAB; }
+      );
+
+      if (it_sec_symtab != sections.end()) {
+        const size_t pos = std::distance(sections.begin(), it_sec_symtab);
+
         if (strtab_idx == 0) {
-          strtab_idx = sec_symtab->link();
+          strtab_idx = it_sec_symtab->link();
         }
+
         LIEF_DEBUG("Removing the old section: {} 0x{:x} (size: 0x{:x})",
-                   sec_symtab->name(), sec_symtab->file_offset(), sec_symtab->size());
-        binary_->remove(*sec_symtab, /* clear */ true);
+                   it_sec_symtab->name(), it_sec_symtab->file_offset(), it_sec_symtab->size());
+        binary_->remove(*it_sec_symtab, /* clear */ true);
+        if (pos < strtab_idx) {
+          --strtab_idx;
+        }
       }
 
       Section symtab{".symtab", Section::TYPE::SYMTAB};
@@ -1614,7 +1622,8 @@ class LIEF_LOCAL ExeLayout : public Layout {
       symtab.entry_size(sizeof_sym);
       symtab.alignment(8);
       symtab.link(strtab_idx);
-      Section* new_symtab = binary_->add(symtab, /* loaded */ false);
+      Section* new_symtab = binary_->add(
+        symtab, /*loaded=*/false, /*pos=*/Binary::SEC_INSERT_POS::POST_SECTION);
       if (new_symtab == nullptr) {
         LIEF_ERR("Can't add a new .symbtab section");
         return make_error_code(lief_errors::build_error);
@@ -1654,7 +1663,8 @@ class LIEF_LOCAL ExeLayout : public Layout {
           Section section{sec_name, Section::TYPE::NOTE};
           section += Section::FLAGS::ALLOC;
 
-          Section* section_added = binary_->add(section, /*loaded */ false);
+          Section* section_added = binary_->add(
+            section, /*loaded=*/false, /*pos=*/Binary::SEC_INSERT_POS::POST_SECTION);
           if (section_added == nullptr) {
             LIEF_ERR("Can't add SHT_NOTE section");
             return make_error_code(lief_errors::build_error);

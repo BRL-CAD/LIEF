@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2024 R. Thomas
+/* Copyright 2022 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ class LIEF_API Const : public Type {
   using Type::Type;
 
   static bool classof(const Type* type) {
-    return type->kind() == Type::KIND::CONST;
+    return type->kind() == Type::KIND::CONST_KIND;
   }
 
   /// The underlying type being const-ed

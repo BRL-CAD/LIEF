@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ void create<DynamicEntry>(nb::module_& m) {
   #define ENTRY(X) .value(to_string(DynamicEntry::TAG::X), DynamicEntry::TAG::X)
   enum_<DynamicEntry::TAG>(entry, "TAG")
     ENTRY(UNKNOWN)
-    .value("NULL", DynamicEntry::TAG::DT_NULL)
+    .value("NULL", DynamicEntry::TAG::DT_NULL_)
     ENTRY(NEEDED)
     ENTRY(PLTRELSZ)
     ENTRY(PLTGOT)
@@ -159,6 +159,42 @@ void create<DynamicEntry>(nb::module_& m) {
     ENTRY(PPC64_OPT)
 
     ENTRY(RISCV_VARIANT_CC)
+
+    ENTRY(X86_64_PLT)
+    ENTRY(X86_64_PLTSZ)
+    ENTRY(X86_64_PLTENT)
+
+    ENTRY(IA_64_PLT_RESERVE)
+    ENTRY(IA_64_VMS_SUBTYPE)
+    ENTRY(IA_64_VMS_IMGIOCNT)
+    ENTRY(IA_64_VMS_LNKFLAGS)
+    ENTRY(IA_64_VMS_VIR_MEM_BLK_SIZ)
+    ENTRY(IA_64_VMS_IDENT)
+    ENTRY(IA_64_VMS_NEEDED_IDENT)
+    ENTRY(IA_64_VMS_IMG_RELA_CNT)
+    ENTRY(IA_64_VMS_SEG_RELA_CNT)
+    ENTRY(IA_64_VMS_FIXUP_RELA_CNT)
+    ENTRY(IA_64_VMS_FIXUP_NEEDED)
+    ENTRY(IA_64_VMS_SYMVEC_CNT)
+    ENTRY(IA_64_VMS_XLATED)
+    ENTRY(IA_64_VMS_STACKSIZE)
+    ENTRY(IA_64_VMS_UNWINDSZ)
+    ENTRY(IA_64_VMS_UNWIND_CODSEG)
+    ENTRY(IA_64_VMS_UNWIND_INFOSEG)
+    ENTRY(IA_64_VMS_LINKTIME)
+    ENTRY(IA_64_VMS_SEG_NO)
+    ENTRY(IA_64_VMS_SYMVEC_OFFSET)
+    ENTRY(IA_64_VMS_SYMVEC_SEG)
+    ENTRY(IA_64_VMS_UNWIND_OFFSET)
+    ENTRY(IA_64_VMS_UNWIND_SEG)
+    ENTRY(IA_64_VMS_STRTAB_OFFSET)
+    ENTRY(IA_64_VMS_SYSVER_OFFSET)
+    ENTRY(IA_64_VMS_IMG_RELA_OFF)
+    ENTRY(IA_64_VMS_SEG_RELA_OFF)
+    ENTRY(IA_64_VMS_FIXUP_RELA_OFF)
+    ENTRY(IA_64_VMS_PLTGOT_OFFSET)
+    ENTRY(IA_64_VMS_PLTGOT_SEG)
+    ENTRY(IA_64_VMS_FPMODE)
   ;
   #undef ENTRY
 

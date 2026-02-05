@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,10 @@ namespace details {
 struct pe_dos_header;
 }
 
-//! Class which represents the DosHeader, the **first**
-//! structure presents at the beginning of a PE file.
-//!
-//! Most of the attributes of this structures are no longer relevant.
+/// Class which represents the DosHeader, the **first**
+/// structure presents at the beginning of a PE file.
+///
+/// Most of the attributes of this structures are no longer relevant.
 class LIEF_API DosHeader : public Object {
   public:
   using reserved_t  = std::array<uint16_t, 4>;
@@ -51,7 +51,7 @@ class LIEF_API DosHeader : public Object {
 
   ~DosHeader() override = default;
 
-  //! Magic bytes identifying a DOS/PE binary
+  /// Magic bytes identifying a DOS/PE binary
   uint16_t magic() const {
     return magic_;
   }
@@ -124,7 +124,7 @@ class LIEF_API DosHeader : public Object {
     return reserved2_;
   }
 
-  //! Return the offset to the PE::Header structure.
+  /// Return the offset to the PE::Header structure.
   uint32_t addressof_new_exeheader() const {
     return addr_new_exe_header_;
   }
@@ -211,9 +211,10 @@ class LIEF_API DosHeader : public Object {
 
   static DosHeader create(PE_TYPE type);
 
-  private:
-  DosHeader() = default;
+  /// \private
+  LIEF_LOCAL DosHeader() = default;
 
+  private:
   uint16_t    magic_ = 0;
   uint16_t    used_bytes_in_last_page_ = 0;
   uint16_t    file_sz_in_pages_ = 0;
@@ -228,10 +229,10 @@ class LIEF_API DosHeader : public Object {
   uint16_t    init_rel_cs_ = 0;
   uint16_t    addr_reloc_table_ = 0;
   uint16_t    overlay_number_ = 0;
-  reserved_t  reserved_;
+  reserved_t  reserved_ = {0};
   uint16_t    oem_id_ = 0;
   uint16_t    oem_info_ = 0;
-  reserved2_t reserved2_;
+  reserved2_t reserved2_ = {0};
   uint32_t    addr_new_exe_header_ = 0;
 };
 }

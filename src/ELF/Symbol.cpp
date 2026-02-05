@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@
 #ifdef __unix__
   #include <cxxabi.h>
 #endif
-
+#include "LIEF/utils.hpp"
+#include "LIEF/config.h"
 #include "LIEF/ELF/Symbol.hpp"
 #include "LIEF/ELF/SymbolVersion.hpp"
 #include "LIEF/Visitor.hpp"
@@ -84,21 +85,25 @@ void Symbol::information(uint8_t info) {
 }
 
 std::string Symbol::demangled_name() const {
+  if constexpr (lief_extended) {
+    return LIEF::demangle(name()).value_or("");
+  } else {
 #if defined(__unix__)
-  int status;
-  const std::string& name = this->name().c_str();
-  char* demangled_name = abi::__cxa_demangle(name.c_str(), nullptr, nullptr, &status);
+    int status;
+    const std::string& name = this->name().c_str();
+    char* demangled_name = abi::__cxa_demangle(name.c_str(), nullptr, nullptr, &status);
 
-  if (status == 0) {
-    std::string realname = demangled_name;
-    free(demangled_name);
-    return realname;
-  }
+    if (status == 0) {
+      std::string realname = demangled_name;
+      free(demangled_name);
+      return realname;
+    }
 
-  return name;
+    return name;
 #else
-  return "";
+    return "";
 #endif
+  }
 }
 
 bool Symbol::is_exported() const {
@@ -136,8 +141,10 @@ bool Symbol::is_imported() const {
                        arch_ == ARCH::MIPS_RS3_LE;
   const bool is_ppc = arch_ == ARCH::PPC || arch_ == ARCH::PPC64;
 
+  const bool is_riscv = arch_ == ARCH::RISCV;
+
   // An import must not have an address (except for some architectures like Mips/PPC)
-  if (!is_mips && !is_ppc) {
+  if (!is_mips && !is_ppc && !is_riscv) {
     is_imported = is_imported && value() == 0;
   }
 

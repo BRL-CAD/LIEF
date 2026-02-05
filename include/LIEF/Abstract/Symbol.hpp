@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,38 +24,42 @@
 
 namespace LIEF {
 
-//! This class represents a symbol in an executable format.
+/// This class represents a symbol in an executable format.
 class LIEF_API Symbol : public Object {
   public:
   Symbol() = default;
   Symbol(std::string name) :
     name_(std::move(name))
   {}
+
   Symbol(std::string name, uint64_t value) :
-    name_(std::move(name)),
-    value_(value)
+    name_(std::move(name)), value_(value)
   {}
+
   Symbol(std::string name, uint64_t value, uint64_t size) :
-    name_(std::move(name)),
-    value_(value),
-    size_(size)
+    name_(std::move(name)), value_(value), size_(size)
   {}
 
   Symbol(const Symbol&) = default;
   Symbol& operator=(const Symbol&) = default;
+
+  Symbol(Symbol&&) = default;
+  Symbol& operator=(Symbol&&) = default;
+
   ~Symbol() override = default;
 
   void swap(Symbol& other) noexcept;
 
-  //! Return the symbol's name
+  /// Return the symbol's name
   virtual const std::string& name() const {
     return name_;
   }
+
   virtual std::string& name() {
     return name_;
   }
 
-  //! Set symbol name
+  /// Set symbol name
   virtual void name(std::string name) {
     name_ = std::move(name);
   }
@@ -68,7 +72,7 @@ class LIEF_API Symbol : public Object {
     value_ = value;
   }
 
-  //! This size of the symbol (when applicable)
+  /// This size of the symbol (when applicable)
   virtual uint64_t size() const {
     return size_;
   }
@@ -77,7 +81,7 @@ class LIEF_API Symbol : public Object {
     size_ = value;
   }
 
-  //! Method so that the ``visitor`` can visit us
+  /// Method so that the ``visitor`` can visit us
   void accept(Visitor& visitor) const override;
 
   LIEF_API friend std::ostream& operator<<(std::ostream& os, const Symbol& entry);

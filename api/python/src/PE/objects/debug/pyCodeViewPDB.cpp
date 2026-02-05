@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,10 @@ template<>
 void create<CodeViewPDB>(nb::module_& m) {
   nb::class_<CodeViewPDB, CodeView>(m, "CodeViewPDB",
     R"delim(CodeView PDB specialization)delim"_doc)
-    .def(nb::init<>())
+    .def(nb::init<>(), "Default constructor"_doc)
+    .def(nb::init<std::string>(),
+         "Filename-based constructor"_doc,
+         "filename"_a)
 
     .def_prop_ro("parent",
         [] (nb::object& self) -> nb::object {
@@ -43,7 +46,7 @@ void create<CodeViewPDB>(nb::module_& m) {
         R"delim(
         Return a reference to the parent :class:`lief.PE.CodeView`
         )delim"_doc,
-        "parent(self) -> lief.PE.CodeView"_p,
+        nb::sig("def parent(self) -> lief.PE.CodeView"),
         nb::rv_policy::reference_internal)
 
     .def_prop_ro("guid", &CodeViewPDB::guid,

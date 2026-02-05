@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ template<>
 void create<DynamicEntryRunPath>(nb::module_& m) {
   nb::class_<DynamicEntryRunPath, DynamicEntry>(m, "DynamicEntryRunPath",
       R"delim(
-      Class that represents a ``DT_RUNPATH`` wich is used by the loader
+      Class that represents a ``DT_RUNPATH`` which is used by the loader
       to resolve libraries (:class:`~lief.ELF.DynamicEntryLibrary`).
       )delim"_doc)
 

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,9 @@
 
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
+#include <nanobind/extra/memoryview.hpp>
 
+#include "LIEF/utils.hpp"
 #include "LIEF/hash.hpp"
 #include "LIEF/Object.hpp"
 #include "LIEF/range.hpp"
@@ -37,6 +39,11 @@
 #include "DWARF/init.hpp"
 #include "PDB/init.hpp"
 #include "ObjC/init.hpp"
+#include "DyldSharedCache/init.hpp"
+#include "asm/init.hpp"
+#include "BinaryStream/init.hpp"
+
+#include "pyWriteStream.hpp"
 
 #if defined(LIEF_ELF_SUPPORT)
   #include "ELF/init.hpp"
@@ -66,6 +73,10 @@
   #include "ART/init.hpp"
 #endif
 
+#if defined(LIEF_COFF_SUPPORT)
+  #include "COFF/init.hpp"
+#endif
+
 
 nb::module_* lief_mod = nullptr;
 
@@ -87,8 +98,8 @@ void init_object(nb::module_& m) {
 }
 
 void init_python_sink() {
-  auto sink = std::make_shared<spdlog::sinks::python_stderr_sink_mt>();
-  spdlog::logger logger("LIEF", std::move(sink));
+  spdlog::details::registry::instance().drop("LIEF");
+  std::shared_ptr<spdlog::logger> logger = spdlog::stderr_python_mt("LIEF");
   LIEF::logging::set_logger(std::move(logger));
 }
 
@@ -97,6 +108,7 @@ void init_logger(nb::module_& m) {
 
   #define PY_ENUM(x) LIEF::logging::to_string(x), x
   nb::enum_<logging::LEVEL>(logging, "LEVEL")
+    .value(PY_ENUM(logging::LEVEL::OFF))
     .value(PY_ENUM(logging::LEVEL::TRACE))
     .value(PY_ENUM(logging::LEVEL::DEBUG))
     .value(PY_ENUM(logging::LEVEL::CRITICAL))
@@ -105,16 +117,19 @@ void init_logger(nb::module_& m) {
     .value(PY_ENUM(logging::LEVEL::INFO));
   #undef PY_ENUM
 
-  logging.def("disable", &logging::disable,
+  logging.def("disable", nb::overload_cast<>(&logging::disable),
               "Disable the logger globally"_doc);
 
-  logging.def("enable", &logging::enable,
+  logging.def("enable", nb::overload_cast<>(&logging::enable),
               "Enable the logger globally"_doc);
 
-  logging.def("set_level", &logging::set_level,
+  logging.def("set_level", nb::overload_cast<logging::LEVEL>(&logging::set_level),
               "Change logging level", "level"_a);
 
-  logging.def("set_path", &logging::set_path,
+  logging.def("get_level", nb::overload_cast<>(&logging::get_level),
+              "Get current logging level");
+
+  logging.def("set_path", nb::overload_cast<const std::string&>(&logging::set_path),
               "Change the logger as a file-base logging and set its path"_doc,
               "path"_a);
 
@@ -122,6 +137,29 @@ void init_logger(nb::module_& m) {
               static_cast<void(*)(LIEF::logging::LEVEL, const std::string&)>(&logging::log),
               "Log a message with the LIEF's logger"_doc,
               "level"_a, "msg"_a);
+
+  logging.def("debug",
+              static_cast<void(*)(const std::string&)>(&logging::debug),
+              "Log a :attr:`~.LEVEL.DEBUG` message"_doc, "msg"_a);
+
+  logging.def("info",
+              static_cast<void(*)(const std::string&)>(&logging::info),
+              "Log an :attr:`~.LEVEL.INFO` message"_doc, "msg"_a);
+
+  logging.def("warn",
+              static_cast<void(*)(const std::string&)>(&logging::warn),
+              "Log a :attr:`~.LEVEL.WARN` message"_doc, "msg"_a);
+
+  logging.def("err",
+              static_cast<void(*)(const std::string&)>(&logging::err),
+              "Log an :attr:`~.LEVEL.ERROR` message"_doc, "msg"_a);
+
+  logging.def("critical",
+              static_cast<void(*)(const std::string&)>(&logging::critical),
+              "Log an :attr:`~.LEVEL.CRITICAL` message"_doc, "msg"_a);
+
+  logging.def("enable_debug", nb::overload_cast<>(&logging::enable_debug),
+              "Enable :attr:`~.LEVEL.DEBUG` log level"_doc);
 
   logging.def("reset", [] {
     logging::reset();
@@ -187,6 +225,24 @@ void init(nb::module_& m) {
   m.attr("__is_tagged__") = bool(LIEF_TAGGED);
   m.doc() = "LIEF Python API";
 
+  nb::class_<LIEF::lief_version_t>(m, "lief_version_t")
+    .def_rw("major", &LIEF::lief_version_t::major)
+    .def_rw("minor", &LIEF::lief_version_t::minor)
+    .def_rw("patch", &LIEF::lief_version_t::patch)
+    .def_rw("id",    &LIEF::lief_version_t::id)
+    .def("__repr__",
+      [] (const LIEF::lief_version_t& version) {
+        return fmt::format("<lief_version_t: {}>", version.to_string());
+      }
+    )
+    .def("__str__",
+      [] (const LIEF::lief_version_t& version) {
+         return version.to_string();
+      }
+    )
+  ;
+
+
   m.def("disable_leak_warning", [] {
     nb::set_leak_warnings(false);
   }, R"doc(
@@ -204,7 +260,46 @@ void init(nb::module_& m) {
        - leaked function "export_symbol"
        - ... skipped remainder
       nanobind: this is likely caused by a reference counting issue in the binding code.
-  )doc");
+  )doc"_doc);
+
+  m.def("demangle",
+    [] (const std::string& mangled) {
+      return LIEF::py::value_or_none(&LIEF::demangle, mangled);
+    },
+    R"doc(
+    Demangle the given input.
+
+    .. warning::
+
+        This function only works with the extended version of LIEF
+    )doc"_doc,
+    "mangled"_a
+  );
+
+  m.def("dump", [] (nb::memoryview view, const std::string& title,
+                    const std::string& prefix, size_t limit)
+    {
+      return LIEF::dump(view.data(), view.size(), title, prefix, limit);
+    }, "buffer"_a, "title"_a = "", "prefix"_a = "", "limit"_a = 0,
+    R"doc(
+    Hexdump the provided buffer:
+
+    .. code-block:: text
+
+      +---------------------------------------------------------------------+
+      | 88 56 05 00 00 00 00 00 00 00 00 00 22 58 05 00  | .V.........."X.. |
+      | 10 71 02 00 78 55 05 00 00 00 00 00 00 00 00 00  | .q..xU.......... |
+      | 68 5c 05 00 00 70 02 00 00 00 00 00 00 00 00 00  | h\...p.......... |
+      | 00 00 00 00 00 00 00 00 00 00 00 00              | ............     |
+      +---------------------------------------------------------------------+
+    )doc"_doc
+  );
+
+  m.def("extended_version_info", &LIEF::extended_version_info,
+        "Details about the extended version"_doc);
+
+  m.def("extended_version", &LIEF::extended_version,
+        "Return the extended version"_doc);
 
   LIEF::py::init_extension(m);
 
@@ -219,11 +314,17 @@ void init(nb::module_& m) {
   LIEF::py::init_hash(m);
   LIEF::py::init_json(m);
 
+  LIEF::py::init_binarystream(m);
+  LIEF::py::init_writerstream(m);
+
+  LIEF::assembly::py::init(m);
+
   LIEF::py::init_abstract(m);
 
   LIEF::dwarf::py::init(m);
   LIEF::pdb::py::init(m);
   LIEF::objc::py::init(m);
+  LIEF::dsc::py::init(m);
 
 #if defined(LIEF_ELF_SUPPORT)
   LIEF::ELF::py::init(m);
@@ -251,6 +352,10 @@ void init(nb::module_& m) {
 
 #if defined(LIEF_ART_SUPPORT)
   LIEF::ART::py::init(m);
+#endif
+
+#if defined(LIEF_COFF_SUPPORT)
+  LIEF::COFF::py::init(m);
 #endif
 
 }

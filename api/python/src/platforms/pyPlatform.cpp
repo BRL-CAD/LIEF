@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ namespace LIEF::py {
 
 void init_platforms(nb::module_& m) {
   LIEF::enum_<PLATFORMS>(m, "PLATFORMS")
-    .value("UNKNOWN", PLATFORMS::UNKNOWN)
-    .value("LINUX",   PLATFORMS::LINUX)
-    .value("ANDROID", PLATFORMS::ANDROID_PLAT)
-    .value("WINDOWS", PLATFORMS::WINDOWS)
-    .value("IOS",     PLATFORMS::IOS)
-    .value("OSX",     PLATFORMS::OSX);
+    .value("UNKNOWN", PLATFORMS::PLAT_WINDOWS)
+    .value("LINUX",   PLATFORMS::PLAT_LINUX)
+    .value("ANDROID", PLATFORMS::PLAT_ANDROID)
+    .value("WINDOWS", PLATFORMS::PLAT_WINDOWS)
+    .value("IOS",     PLATFORMS::PLAT_IOS)
+    .value("OSX",     PLATFORMS::PLAT_OSX);
 
   m.def("current_platform", &current_platform,
       "Return the current plaform (Linux, Windows, ...) as a :attr:`lief.PLATFORMS` enum"_doc);

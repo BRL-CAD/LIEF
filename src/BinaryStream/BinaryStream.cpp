@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,38 +20,9 @@
 #include <mbedtls/x509.h>
 #include <mbedtls/x509_crt.h>
 
-#include "intmem.h"
-
 #include <algorithm>
 
-#define TMPL_DECL(T) template T BinaryStream::swap_endian<T>(T u)
-
 namespace LIEF {
-
-template<typename T>
-T BinaryStream::swap_endian(T u) {
-  return intmem::bswap(u);
-}
-
-template<>
-char16_t BinaryStream::swap_endian<char16_t>(char16_t u) {
-  return intmem::bswap(static_cast<uint16_t>(u));
-}
-
-template<>
-char BinaryStream::swap_endian<char>(char u) {
-  return intmem::bswap(static_cast<uint8_t>(u));
-}
-
-TMPL_DECL(uint8_t);
-TMPL_DECL(uint16_t);
-TMPL_DECL(uint32_t);
-TMPL_DECL(uint64_t);
-
-TMPL_DECL(int8_t);
-TMPL_DECL(int16_t);
-TMPL_DECL(int32_t);
-TMPL_DECL(int64_t);
 
 
 result<int64_t> BinaryStream::read_dwarf_encoded(uint8_t encoding) const {
@@ -94,10 +65,13 @@ result<int64_t> BinaryStream::read_dwarf_encoded(uint8_t encoding) const {
 
 }
 
-result<uint64_t> BinaryStream::read_uleb128() const {
+result<uint64_t> BinaryStream::read_uleb128(size_t* size) const {
   uint64_t value = 0;
   unsigned shift = 0;
   result<uint8_t> byte_read = 0;
+
+  const uint64_t opos = pos();
+
   do {
     byte_read = read<uint8_t>();
     if (!byte_read) {
@@ -107,13 +81,18 @@ result<uint64_t> BinaryStream::read_uleb128() const {
     shift += 7;
   } while (byte_read && *byte_read >= 128);
 
+  if (size != nullptr) {
+    *size = pos() - opos;
+  }
+
   return value;
 }
 
-result<uint64_t> BinaryStream::read_sleb128() const {
+result<uint64_t> BinaryStream::read_sleb128(size_t* size) const {
   int64_t  value = 0;
   unsigned shift = 0;
   result<uint8_t> byte_read = 0;
+  const uint64_t opos = pos();
   do {
     byte_read = read<uint8_t>();
     if (!byte_read) {
@@ -127,6 +106,10 @@ result<uint64_t> BinaryStream::read_sleb128() const {
   // Sign extend
   if ((*byte_read & 0x40) != 0) {
     value |= -1llu << shift;
+  }
+
+  if (size != nullptr) {
+    *size = pos() - opos;
   }
 
   return value;
@@ -222,7 +205,7 @@ result<std::u16string> BinaryStream::peek_u16string(size_t length) const {
   if (peek_in(raw_u16str.data(), pos(), length * sizeof(char16_t))) {
     if (endian_swap_) {
       for (char16_t& x : raw_u16str) {
-        LIEF::Convert::swap_endian(&x);
+        LIEF::swap_endian(&x);
       }
     }
     return std::u16string{std::begin(raw_u16str), std::end(raw_u16str)};

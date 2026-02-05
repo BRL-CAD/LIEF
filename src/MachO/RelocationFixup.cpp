@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,10 +38,12 @@ inline uint64_t unpack_target(const details::dyld_chained_ptr_arm64e_rebase& reb
 
 RelocationFixup::~RelocationFixup() {
   switch (rtypes_) {
-    case REBASE_TYPES::ARM64E_REBASE:      delete arm64_rebase_;      break;
-    case REBASE_TYPES::ARM64E_AUTH_REBASE: delete arm64_auth_rebase_; break;
-    case REBASE_TYPES::PTR64_REBASE:       delete p64_rebase_;        break;
-    case REBASE_TYPES::PTR32_REBASE:       delete p32_rebase_;        break;
+    case REBASE_TYPES::ARM64E_REBASE:      delete arm64_rebase_;           break;
+    case REBASE_TYPES::ARM64E_AUTH_REBASE: delete arm64_auth_rebase_;      break;
+    case REBASE_TYPES::PTR64_REBASE:       delete p64_rebase_;             break;
+    case REBASE_TYPES::PTR32_REBASE:       delete p32_rebase_;             break;
+    case REBASE_TYPES::SEGMENTED:          delete segmented_rebase_;       break;
+    case REBASE_TYPES::AUTH_SEGMENTED:     delete auth_segmented_rebase_;  break;
     case REBASE_TYPES::UNKNOWN: {}
   }
 }
@@ -65,6 +67,8 @@ RelocationFixup& RelocationFixup::operator=(const RelocationFixup& other) {
     case REBASE_TYPES::ARM64E_AUTH_REBASE: arm64_auth_rebase_ = new details::dyld_chained_ptr_arm64e_auth_rebase{*other.arm64_auth_rebase_}; break;
     case REBASE_TYPES::PTR64_REBASE:       p64_rebase_        = new details::dyld_chained_ptr_64_rebase{*other.p64_rebase_}; break;
     case REBASE_TYPES::PTR32_REBASE:       p32_rebase_        = new details::dyld_chained_ptr_32_rebase{*other.p32_rebase_}; break;
+    case REBASE_TYPES::SEGMENTED:          segmented_rebase_  = new details::dyld_chained_ptr_arm64e_segmented_rebase{*other.segmented_rebase_}; break;
+    case REBASE_TYPES::AUTH_SEGMENTED:     auth_segmented_rebase_  = new details::dyld_chained_ptr_arm64e_auth_segmented_rebase{*other.auth_segmented_rebase_}; break;
     case REBASE_TYPES::UNKNOWN: {}
   }
   return *this;
@@ -82,6 +86,8 @@ RelocationFixup::RelocationFixup(const RelocationFixup& other) :
     case REBASE_TYPES::ARM64E_AUTH_REBASE: arm64_auth_rebase_ = new details::dyld_chained_ptr_arm64e_auth_rebase{*other.arm64_auth_rebase_}; break;
     case REBASE_TYPES::PTR64_REBASE:       p64_rebase_        = new details::dyld_chained_ptr_64_rebase{*other.p64_rebase_}; break;
     case REBASE_TYPES::PTR32_REBASE:       p32_rebase_        = new details::dyld_chained_ptr_32_rebase{*other.p32_rebase_}; break;
+    case REBASE_TYPES::SEGMENTED:          segmented_rebase_  = new details::dyld_chained_ptr_arm64e_segmented_rebase{*other.segmented_rebase_}; break;
+    case REBASE_TYPES::AUTH_SEGMENTED:     auth_segmented_rebase_ = new details::dyld_chained_ptr_arm64e_auth_segmented_rebase{*other.auth_segmented_rebase_}; break;
     case REBASE_TYPES::UNKNOWN: {}
   }
 }
@@ -128,6 +134,14 @@ uint64_t RelocationFixup::target() const {
          */
         return imagebase_ + p32_rebase_->target;
       }
+
+    case REBASE_TYPES::SEGMENTED:
+    case REBASE_TYPES::AUTH_SEGMENTED:
+      {
+        LIEF_ERR("Segmented rebase is not supported");
+        return -1llu;
+      }
+
 
     case REBASE_TYPES::UNKNOWN:
       {
@@ -176,6 +190,13 @@ void RelocationFixup::target(uint64_t target) {
         return;
       }
 
+    case REBASE_TYPES::SEGMENTED:
+    case REBASE_TYPES::AUTH_SEGMENTED:
+      {
+        LIEF_ERR("Segmented rebase is not supported");
+        return;
+      }
+
     case REBASE_TYPES::UNKNOWN:
       {
         LIEF_ERR("Can't set target: unknown rebase type");
@@ -184,7 +205,51 @@ void RelocationFixup::target(uint64_t target) {
   }
 }
 
+uint32_t RelocationFixup::next() const {
+  switch (rtypes_) {
+    case REBASE_TYPES::ARM64E_REBASE:
+      return arm64_rebase_->next;
+    case REBASE_TYPES::ARM64E_AUTH_REBASE:
+      return arm64_auth_rebase_->next;
+    case REBASE_TYPES::PTR64_REBASE:
+      return p64_rebase_->next;
+    case REBASE_TYPES::PTR32_REBASE:
+      return p32_rebase_->next;
+    case REBASE_TYPES::SEGMENTED:
+      return segmented_rebase_->next;
+    case REBASE_TYPES::AUTH_SEGMENTED:
+      return auth_segmented_rebase_->next;
+    case REBASE_TYPES::UNKNOWN:
+      return 0;
+  }
+  return 0;
+}
 
+void RelocationFixup::next(uint32_t value) {
+  switch (rtypes_) {
+    case REBASE_TYPES::ARM64E_REBASE:
+      arm64_rebase_->next = value;
+      break;
+    case REBASE_TYPES::ARM64E_AUTH_REBASE:
+      arm64_auth_rebase_->next = value;
+      break;
+    case REBASE_TYPES::PTR64_REBASE:
+      p64_rebase_->next = value;
+      break;
+    case REBASE_TYPES::PTR32_REBASE:
+      p32_rebase_->next = value;
+      break;
+    case REBASE_TYPES::SEGMENTED:
+      segmented_rebase_->next = value;
+      break;
+    case REBASE_TYPES::AUTH_SEGMENTED:
+      auth_segmented_rebase_->next = value;
+      break;
+    case REBASE_TYPES::UNKNOWN:
+      return;
+  }
+  return;
+}
 
 void RelocationFixup::set(const details::dyld_chained_ptr_arm64e_rebase& fixup) {
   rtypes_ = REBASE_TYPES::ARM64E_REBASE;
@@ -204,6 +269,16 @@ void RelocationFixup::set(const details::dyld_chained_ptr_64_rebase& fixup) {
 void RelocationFixup::set(const details::dyld_chained_ptr_32_rebase& fixup) {
   rtypes_ = REBASE_TYPES::PTR32_REBASE;
   p32_rebase_ = new details::dyld_chained_ptr_32_rebase(fixup);
+}
+
+void RelocationFixup::set(const details::dyld_chained_ptr_arm64e_segmented_rebase& fixup) {
+  rtypes_ = REBASE_TYPES::SEGMENTED;
+  segmented_rebase_ = new details::dyld_chained_ptr_arm64e_segmented_rebase(fixup);
+}
+
+void RelocationFixup::set(const details::dyld_chained_ptr_arm64e_auth_segmented_rebase& fixup) {
+  rtypes_ = REBASE_TYPES::AUTH_SEGMENTED;
+  auth_segmented_rebase_ = new details::dyld_chained_ptr_arm64e_auth_segmented_rebase(fixup);
 }
 
 

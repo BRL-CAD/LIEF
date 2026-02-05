@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,6 +98,21 @@ class LIEF_API ContentInfo : public Object {
       return os;
     }
 
+    template<class T>
+    const T* cast() const {
+      static_assert(std::is_base_of<Content, T>::value,
+                    "Require ContentInfo inheritance");
+      if (T::classof(this)) {
+        return static_cast<const T*>(this);
+      }
+      return nullptr;
+    }
+
+    template<class T>
+    T* cast() {
+      return const_cast<T*>(static_cast<const Content*>(this)->cast<T>());
+    }
+
     ~Content() override = default;
     private:
     oid_t type_;
@@ -109,8 +124,8 @@ class LIEF_API ContentInfo : public Object {
 
   void swap(ContentInfo& other) noexcept;
 
-  //! Return the OID that describes the content wrapped by this object.
-  //! It should match SPC_INDIRECT_DATA_OBJID (1.3.6.1.4.1.311.2.1.4)
+  /// Return the OID that describes the content wrapped by this object.
+  /// It should match SPC_INDIRECT_DATA_OBJID (1.3.6.1.4.1.311.2.1.4)
   oid_t content_type() const {
     return value_->content_type();
   }

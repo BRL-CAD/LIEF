@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 #ifndef LIEF_PE_RESOURCE_LANG_H
 #define LIEF_PE_RESOURCE_LANG_H
+#include <cstdint>
 namespace LIEF {
 namespace PE {
 
@@ -123,6 +124,19 @@ enum class RESOURCE_LANGS  {
   TIGRINYA       = 0x73,
   VALENCIAN      = 0x03,
 };
+
+static constexpr uint32_t lang_from_id(uint32_t id) {
+  return id & 0x3ff;
+}
+
+static constexpr uint32_t sublang_from_id(uint32_t id) {
+  return id >> 10;
+}
+
+static constexpr uint32_t encode_lang(uint32_t lang, uint32_t sublang) {
+  return (sublang << 10) | lang;
+}
+
 
 }
 }

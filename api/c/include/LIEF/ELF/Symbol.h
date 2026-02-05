@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@ struct Elf_Symbol_t {
   uint16_t    shndx;
   uint64_t    value;
   uint64_t    size;
-  bool        is_exported; /**< Whether or not the symbol is exported */
-  bool        is_imported; /**< Whether or not the symbol is imported */
+  uint8_t     is_exported; /**< Whether or not the symbol is exported */
+  uint8_t     is_imported; /**< Whether or not the symbol is imported */
 };
 
 typedef struct Elf_Symbol_t Elf_Symbol_t;

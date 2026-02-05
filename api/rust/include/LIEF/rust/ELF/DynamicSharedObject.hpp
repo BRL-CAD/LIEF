@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,23 @@
 class ELF_DynamicSharedObject : public ELF_DynamicEntry {
   public:
   using lief_t = LIEF::ELF::DynamicSharedObject;
+  ELF_DynamicSharedObject(std::unique_ptr<lief_t> impl) :
+    ELF_DynamicEntry(std::move(impl))
+  {}
+
+  static auto create(std::string name) {
+    return std::make_unique<ELF_DynamicSharedObject>(
+        std::make_unique<lief_t>(std::move(name)));
+  }
 
   std::string name() const { return impl().name(); }
+
+  void set_name(std::string name) { impl().name(std::move(name)); }
 
   static bool classof(const ELF_DynamicEntry& entry) {
     return lief_t::classof(&entry.get());
   }
   private:
   const lief_t& impl() const { return as<lief_t>(this); }
+  lief_t& impl() { return as<lief_t>(this); }
 };

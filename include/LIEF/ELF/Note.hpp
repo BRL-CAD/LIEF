@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ class LIEF_API Note : public Object {
   friend class Binary;
 
   public:
-  //! Container used to handle the description data
+  /// Container used to handle the description data
   using description_t = std::vector<uint8_t>;
 
   /// LIEF representation of the ELF `NT_` values.
@@ -231,6 +231,21 @@ class LIEF_API Note : public Object {
   std::ostream& operator<<(std::ostream& os, const Note& note) {
     note.dump(os);
     return os;
+  }
+
+  template<class T>
+  const T* cast() const {
+    static_assert(std::is_base_of<Note, T>::value,
+                  "Require Note inheritance");
+    if (T::classof(this)) {
+      return static_cast<const T*>(this);
+    }
+    return nullptr;
+  }
+
+  template<class T>
+  T* cast() {
+    return const_cast<T*>(static_cast<const Note*>(this)->cast<T>());
   }
 
   protected:

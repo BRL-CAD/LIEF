@@ -1,13 +1,17 @@
 use std::marker::PhantomData;
 
+use std::pin::Pin;
 use lief_ffi as ffi;
+use bitflags::bitflags;
+
 use crate::common::FromFFI;
 use crate::declare_iterator;
+
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Tag {
-    DT_NULL,
+    DT_NULL_,
     NEEDED,
     PLTRELSZ,
     PLTGOT,
@@ -126,13 +130,47 @@ pub enum Tag {
     PPC64_GLINK,
     PPC64_OPT,
     RISCV_VARIANT_CC,
+    X86_64_PLT,
+    X86_64_PLTSZ,
+    X86_64_PLTENT,
+    IA_64_PLT_RESERVE,
+    IA_64_VMS_SUBTYPE,
+    IA_64_VMS_IMGIOCNT,
+    IA_64_VMS_LNKFLAGS,
+    IA_64_VMS_VIR_MEM_BLK_SIZ,
+    IA_64_VMS_IDENT,
+    IA_64_VMS_NEEDED_IDENT,
+    IA_64_VMS_IMG_RELA_CNT,
+    IA_64_VMS_SEG_RELA_CNT,
+    IA_64_VMS_FIXUP_RELA_CNT,
+    IA_64_VMS_FIXUP_NEEDED,
+    IA_64_VMS_SYMVEC_CNT,
+    IA_64_VMS_XLATED,
+    IA_64_VMS_STACKSIZE,
+    IA_64_VMS_UNWINDSZ,
+    IA_64_VMS_UNWIND_CODSEG,
+    IA_64_VMS_UNWIND_INFOSEG,
+    IA_64_VMS_LINKTIME,
+    IA_64_VMS_SEG_NO,
+    IA_64_VMS_SYMVEC_OFFSET,
+    IA_64_VMS_SYMVEC_SEG,
+    IA_64_VMS_UNWIND_OFFSET,
+    IA_64_VMS_UNWIND_SEG,
+    IA_64_VMS_STRTAB_OFFSET,
+    IA_64_VMS_SYSVER_OFFSET,
+    IA_64_VMS_IMG_RELA_OFF,
+    IA_64_VMS_SEG_RELA_OFF,
+    IA_64_VMS_FIXUP_RELA_OFF,
+    IA_64_VMS_PLTGOT_OFFSET,
+    IA_64_VMS_PLTGOT_SEG,
+    IA_64_VMS_FPMODE,
     UNKNOWN(u64),
 }
 
 impl From<u64> for Tag {
     fn from(value: u64) -> Self {
         match value {
-            0x00000000 => Tag::DT_NULL,
+            0x00000000 => Tag::DT_NULL_,
             0x00000001 => Tag::NEEDED,
             0x00000002 => Tag::PLTRELSZ,
             0x00000003 => Tag::PLTGOT,
@@ -251,15 +289,50 @@ impl From<u64> for Tag {
             0x570000000 => Tag::PPC64_GLINK,
             0x570000003 => Tag::PPC64_OPT,
             0x670000003 => Tag::RISCV_VARIANT_CC,
+            0x770000000 => Tag::X86_64_PLT,
+            0x770000001 => Tag::X86_64_PLTSZ,
+            0x770000003 => Tag::X86_64_PLTENT,
+            0x870000000 => Tag::IA_64_PLT_RESERVE,
+            0x860000000 => Tag::IA_64_VMS_SUBTYPE,
+            0x860000002 => Tag::IA_64_VMS_IMGIOCNT,
+            0x860000008 => Tag::IA_64_VMS_LNKFLAGS,
+            0x86000000a => Tag::IA_64_VMS_VIR_MEM_BLK_SIZ,
+            0x86000000c => Tag::IA_64_VMS_IDENT,
+            0x860000010 => Tag::IA_64_VMS_NEEDED_IDENT,
+            0x860000012 => Tag::IA_64_VMS_IMG_RELA_CNT,
+            0x860000014 => Tag::IA_64_VMS_SEG_RELA_CNT,
+            0x860000016 => Tag::IA_64_VMS_FIXUP_RELA_CNT,
+            0x860000018 => Tag::IA_64_VMS_FIXUP_NEEDED,
+            0x86000001a => Tag::IA_64_VMS_SYMVEC_CNT,
+            0x86000001e => Tag::IA_64_VMS_XLATED,
+            0x860000020 => Tag::IA_64_VMS_STACKSIZE,
+            0x860000022 => Tag::IA_64_VMS_UNWINDSZ,
+            0x860000024 => Tag::IA_64_VMS_UNWIND_CODSEG,
+            0x860000026 => Tag::IA_64_VMS_UNWIND_INFOSEG,
+            0x860000028 => Tag::IA_64_VMS_LINKTIME,
+            0x86000002a => Tag::IA_64_VMS_SEG_NO,
+            0x86000002c => Tag::IA_64_VMS_SYMVEC_OFFSET,
+            0x86000002e => Tag::IA_64_VMS_SYMVEC_SEG,
+            0x860000030 => Tag::IA_64_VMS_UNWIND_OFFSET,
+            0x860000032 => Tag::IA_64_VMS_UNWIND_SEG,
+            0x860000034 => Tag::IA_64_VMS_STRTAB_OFFSET,
+            0x860000036 => Tag::IA_64_VMS_SYSVER_OFFSET,
+            0x860000038 => Tag::IA_64_VMS_IMG_RELA_OFF,
+            0x86000003a => Tag::IA_64_VMS_SEG_RELA_OFF,
+            0x86000003c => Tag::IA_64_VMS_FIXUP_RELA_OFF,
+            0x86000003e => Tag::IA_64_VMS_PLTGOT_OFFSET,
+            0x860000040 => Tag::IA_64_VMS_PLTGOT_SEG,
+            0x860000042 => Tag::IA_64_VMS_FPMODE,
             _ => Tag::UNKNOWN(value),
 
         }
     }
 }
+
 impl From<Tag> for u64 {
     fn from(value: Tag) -> u64 {
         match value {
-            Tag::DT_NULL => 0x00000000,
+            Tag::DT_NULL_ => 0x00000000,
             Tag::NEEDED => 0x00000001,
             Tag::PLTRELSZ => 0x00000002,
             Tag::PLTGOT => 0x00000003,
@@ -378,11 +451,44 @@ impl From<Tag> for u64 {
             Tag::PPC64_GLINK => 0x570000000,
             Tag::PPC64_OPT => 0x570000003,
             Tag::RISCV_VARIANT_CC => 0x670000003,
+            Tag::X86_64_PLT => 0x770000000,
+            Tag::X86_64_PLTSZ => 0x770000001,
+            Tag::X86_64_PLTENT => 0x770000003,
+            Tag::IA_64_PLT_RESERVE => 0x870000000,
+            Tag::IA_64_VMS_SUBTYPE => 0x860000000,
+            Tag::IA_64_VMS_IMGIOCNT => 0x860000002,
+            Tag::IA_64_VMS_LNKFLAGS => 0x860000008,
+            Tag::IA_64_VMS_VIR_MEM_BLK_SIZ => 0x86000000a,
+            Tag::IA_64_VMS_IDENT => 0x86000000c,
+            Tag::IA_64_VMS_NEEDED_IDENT => 0x860000010,
+            Tag::IA_64_VMS_IMG_RELA_CNT => 0x860000012,
+            Tag::IA_64_VMS_SEG_RELA_CNT => 0x860000014,
+            Tag::IA_64_VMS_FIXUP_RELA_CNT => 0x860000016,
+            Tag::IA_64_VMS_FIXUP_NEEDED => 0x860000018,
+            Tag::IA_64_VMS_SYMVEC_CNT => 0x86000001a,
+            Tag::IA_64_VMS_XLATED => 0x86000001e,
+            Tag::IA_64_VMS_STACKSIZE => 0x860000020,
+            Tag::IA_64_VMS_UNWINDSZ => 0x860000022,
+            Tag::IA_64_VMS_UNWIND_CODSEG => 0x860000024,
+            Tag::IA_64_VMS_UNWIND_INFOSEG => 0x860000026,
+            Tag::IA_64_VMS_LINKTIME => 0x860000028,
+            Tag::IA_64_VMS_SEG_NO => 0x86000002a,
+            Tag::IA_64_VMS_SYMVEC_OFFSET => 0x86000002c,
+            Tag::IA_64_VMS_SYMVEC_SEG => 0x86000002e,
+            Tag::IA_64_VMS_UNWIND_OFFSET => 0x860000030,
+            Tag::IA_64_VMS_UNWIND_SEG => 0x860000032,
+            Tag::IA_64_VMS_STRTAB_OFFSET => 0x860000034,
+            Tag::IA_64_VMS_SYSVER_OFFSET => 0x860000036,
+            Tag::IA_64_VMS_IMG_RELA_OFF => 0x860000038,
+            Tag::IA_64_VMS_SEG_RELA_OFF => 0x86000003a,
+            Tag::IA_64_VMS_FIXUP_RELA_OFF => 0x86000003c,
+            Tag::IA_64_VMS_PLTGOT_OFFSET => 0x86000003e,
+            Tag::IA_64_VMS_PLTGOT_SEG => 0x860000040,
+            Tag::IA_64_VMS_FPMODE => 0x860000042,
             Tag::UNKNOWN(value) => value,
         }
     }
 }
-
 
 #[derive(Debug)]
 /// Enum that represents the different variants of a dynamic entry
@@ -402,14 +508,27 @@ pub enum Entries<'a> {
     /// Entry for `DT_SONAME`
     SharedObject(SharedObject<'a>),
 
+    /// Entry for `DT_FLAGS` and `DT_FLAGS_1`
+    Flags(Flags<'a>),
+
     /// Generic value
     Generic(Generic<'a>),
+}
+
+impl Entries<'_> {
+    /// Create a new dynamic entry with the given Tag
+    pub fn with_tag(tag: Tag) -> Entries<'static> {
+        Entries::from_ffi(lief_ffi::ELF_DynamicEntry::create(tag.into()))
+    }
 }
 
 /// Trait shared by all the [`Entries`]
 pub trait DynamicEntry {
     #[doc(hidden)]
     fn as_base(&self) -> &ffi::ELF_DynamicEntry;
+
+    #[doc(hidden)]
+    fn as_mut_base(&mut self) -> Pin<&mut ffi::ELF_DynamicEntry>;
 
     /// Dynamic TAG associated with the entry
     fn tag(&self) -> Tag {
@@ -419,6 +538,17 @@ pub trait DynamicEntry {
     /// Raw value which should be interpreted according to the [`DynamicEntry::tag`]
     fn value(&self) -> u64 {
         self.as_base().value()
+    }
+
+    fn set_value(&mut self, value: u64) {
+        self.as_mut_base().set_value(value);
+    }
+}
+
+
+impl std::fmt::Display for &dyn DynamicEntry {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.as_base().to_string())
     }
 }
 
@@ -445,13 +575,51 @@ impl DynamicEntry for Entries<'_> {
                 entry.as_base()
             }
 
+            Entries::Flags(entry) => {
+                entry.as_base()
+            }
+
             Entries::Generic(entry) => {
                 entry.as_base()
             }
         }
     }
 
+    fn as_mut_base(&mut self) -> Pin<&mut ffi::ELF_DynamicEntry> {
+        match self {
+            Entries::Library(entry) => {
+                entry.as_mut_base()
+            }
+
+            Entries::Array(entry) => {
+                entry.as_mut_base()
+            }
+
+            Entries::Rpath(entry) => {
+                entry.as_mut_base()
+            }
+
+            Entries::RunPath(entry) => {
+                entry.as_mut_base()
+            }
+
+            Entries::SharedObject(entry) => {
+                entry.as_mut_base()
+            }
+
+            Entries::Flags(entry) => {
+                entry.as_mut_base()
+            }
+
+            Entries::Generic(entry) => {
+                entry.as_mut_base()
+            }
+        }
+    }
+
+
 }
+
 
 impl FromFFI<ffi::ELF_DynamicEntry> for Entries<'_> {
     fn from_ffi(ffi_entry: cxx::UniquePtr<ffi::ELF_DynamicEntry>) -> Self {
@@ -498,6 +666,14 @@ impl FromFFI<ffi::ELF_DynamicEntry> for Entries<'_> {
                 };
                 Entries::SharedObject(SharedObject::from_ffi(raw))
             }
+            else if ffi::ELF_DynamicEntryFlags::classof(cmd_ref) {
+                let raw = {
+                    type From = cxx::UniquePtr<ffi::ELF_DynamicEntry>;
+                    type To   = cxx::UniquePtr<ffi::ELF_DynamicEntryFlags>;
+                    std::mem::transmute::<From, To>(ffi_entry)
+                };
+                Entries::Flags(Flags::from_ffi(raw))
+            }
             else {
                 Entries::Generic(Generic::from_ffi(ffi_entry))
             }
@@ -527,7 +703,19 @@ impl DynamicEntry for Generic<'_> {
     fn as_base(&self) -> &ffi::ELF_DynamicEntry {
         self.ptr.as_ref().unwrap()
     }
+
+    fn as_mut_base(&mut self) -> Pin<&mut ffi::ELF_DynamicEntry> {
+        unsafe {
+            Pin::new_unchecked({
+                (self.ptr.as_ref().unwrap() as *const ffi::ELF_DynamicEntry
+                    as *mut ffi::ELF_DynamicEntry)
+                    .as_mut()
+                    .unwrap()
+            })
+        }
+    }
 }
+
 
 impl std::fmt::Debug for Generic<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -542,8 +730,14 @@ pub struct Library<'a> {
 }
 
 impl Library<'_> {
+    /// Name of the library (e.g. `libc.so.6`)
     pub fn name(&self) -> String {
         self.ptr.name().to_string()
+    }
+
+    /// Set a new library name
+    pub fn set_name(&mut self, new_name: &str) {
+        self.ptr.pin_mut().set_name(new_name.to_string());
     }
 }
 
@@ -560,6 +754,17 @@ impl FromFFI<ffi::ELF_DynamicEntryLibrary> for Library<'_> {
 impl DynamicEntry for Library<'_> {
     fn as_base(&self) -> &ffi::ELF_DynamicEntry {
         self.ptr.as_ref().unwrap().as_ref()
+    }
+
+    fn as_mut_base(&mut self) -> Pin<&mut ffi::ELF_DynamicEntry> {
+        unsafe {
+            Pin::new_unchecked({
+                (self.ptr.as_ref().unwrap().as_ref() as *const ffi::ELF_DynamicEntry
+                    as *mut ffi::ELF_DynamicEntry)
+                    .as_mut()
+                    .unwrap()
+            })
+        }
     }
 }
 
@@ -594,6 +799,17 @@ impl DynamicEntry for Array<'_> {
     fn as_base(&self) -> &ffi::ELF_DynamicEntry {
         self.ptr.as_ref().unwrap().as_ref()
     }
+
+    fn as_mut_base(&mut self) -> Pin<&mut ffi::ELF_DynamicEntry> {
+        unsafe {
+            Pin::new_unchecked({
+                (self.ptr.as_ref().unwrap().as_ref() as *const ffi::ELF_DynamicEntry
+                    as *mut ffi::ELF_DynamicEntry)
+                    .as_mut()
+                    .unwrap()
+            })
+        }
+    }
 }
 
 impl std::fmt::Debug for Array<'_> {
@@ -609,8 +825,65 @@ pub struct Rpath<'a> {
 }
 
 impl Rpath<'_> {
+    /// Create a new Rpath entry with the given path(s)
+    ///
+    /// For instance:
+    ///
+    /// ```
+    /// Rpath::new("$ORIGIN/../:/lib64")
+    /// ```
+    pub fn new(value: &str) -> Rpath<'static> {
+        Rpath::from_ffi(lief_ffi::ELF_DynamicEntryRpath::create(value.to_string()))
+    }
+
+    /// Create a new Rpath entry from a slice of paths
+    ///
+    /// For instance:
+    ///
+    /// ```
+    /// Rpath::with_paths(&vec!["$ORIGIN/../", "/lib64"])
+    /// ```
+    pub fn with_paths(values: &[&str]) -> Rpath<'static> {
+        Rpath::new(&values.join(":"))
+    }
+
+    /// The actual rpath as a string
     pub fn rpath(&self) -> String {
         self.ptr.rpath().to_string()
+    }
+
+    /// Change the rpath value
+    pub fn set_rpath(&mut self, value: &str) {
+        self.ptr.pin_mut().set_rpath(value.to_string());
+    }
+
+    /// Change the rpath value with the given slice
+    pub fn set_rpath_with_value(&mut self, values: &[&str]) {
+        self.ptr.pin_mut().set_rpath(values.join(":"));
+    }
+
+    /// The specified paths as a list of string
+    pub fn paths(&self) -> Vec<String> {
+        let mut result = Vec::new();
+        for entry in self.ptr.paths().into_iter() {
+            result.push(entry.to_string());
+        }
+        result
+    }
+
+    /// Insert a `path` at the given `position`
+    pub fn insert(&mut self, pos: u32, path: &str) {
+        self.ptr.pin_mut().insert(pos, path.to_string());
+    }
+
+    /// Append the given path
+    pub fn append(&mut self, path: &str) {
+        self.ptr.pin_mut().append(path.to_string());
+    }
+
+    /// The given path
+    pub fn remove(&mut self, path: &str) {
+        self.ptr.pin_mut().remove(path.to_string());
     }
 }
 
@@ -628,6 +901,17 @@ impl DynamicEntry for Rpath<'_> {
     fn as_base(&self) -> &ffi::ELF_DynamicEntry {
         self.ptr.as_ref().unwrap().as_ref()
     }
+
+    fn as_mut_base(&mut self) -> Pin<&mut ffi::ELF_DynamicEntry> {
+        unsafe {
+            Pin::new_unchecked({
+                (self.ptr.as_ref().unwrap().as_ref() as *const ffi::ELF_DynamicEntry
+                    as *mut ffi::ELF_DynamicEntry)
+                    .as_mut()
+                    .unwrap()
+            })
+        }
+    }
 }
 
 impl std::fmt::Debug for Rpath<'_> {
@@ -643,8 +927,64 @@ pub struct RunPath<'a> {
 }
 
 impl RunPath<'_> {
+    /// Create a new RunPath entry with the given path(s)
+    ///
+    /// For instance:
+    ///
+    /// ```
+    /// RunPath::new("$ORIGIN/../:/lib64")
+    /// ```
+    pub fn new(value: &str) -> RunPath<'static> {
+        RunPath::from_ffi(lief_ffi::ELF_DynamicEntryRunPath::create(value.to_string()))
+    }
+
+    /// Create a new RunPath entry from a slice of paths
+    ///
+    /// For instance:
+    ///
+    /// ```
+    /// RunPath::with_paths(&vec!["$ORIGIN/../", "/lib64"])
+    /// ```
+    pub fn with_paths(values: &[&str]) -> RunPath<'static> {
+        RunPath::new(&values.join(":"))
+    }
+
     pub fn runpath(&self) -> String {
         self.ptr.runpath().to_string()
+    }
+
+    /// The specified paths as a list of string
+    pub fn paths(&self) -> Vec<String> {
+        let mut result = Vec::new();
+        for entry in self.ptr.paths().into_iter() {
+            result.push(entry.to_string());
+        }
+        result
+    }
+
+    /// Change the runpath value
+    pub fn set_runpath(&mut self, value: &str) {
+        self.ptr.pin_mut().set_runpath(value.to_string());
+    }
+
+    /// Change the runpath value with the given slice
+    pub fn set_runpath_with_value(&mut self, values: &[&str]) {
+        self.ptr.pin_mut().set_runpath(values.join(":"));
+    }
+
+    /// Insert a `path` at the given `position`
+    pub fn insert(&mut self, pos: u32, path: &str) {
+        self.ptr.pin_mut().insert(pos, path.to_string());
+    }
+
+    /// Append the given path
+    pub fn append(&mut self, path: &str) {
+        self.ptr.pin_mut().append(path.to_string());
+    }
+
+    /// The given path
+    pub fn remove(&mut self, path: &str) {
+        self.ptr.pin_mut().remove(path.to_string());
     }
 }
 
@@ -662,6 +1002,17 @@ impl DynamicEntry for RunPath<'_> {
     fn as_base(&self) -> &ffi::ELF_DynamicEntry {
         self.ptr.as_ref().unwrap().as_ref()
     }
+
+    fn as_mut_base(&mut self) -> Pin<&mut ffi::ELF_DynamicEntry> {
+        unsafe {
+            Pin::new_unchecked({
+                (self.ptr.as_ref().unwrap().as_ref() as *const ffi::ELF_DynamicEntry
+                    as *mut ffi::ELF_DynamicEntry)
+                    .as_mut()
+                    .unwrap()
+            })
+        }
+    }
 }
 
 impl std::fmt::Debug for RunPath<'_> {
@@ -677,8 +1028,16 @@ pub struct SharedObject<'a> {
 }
 
 impl SharedObject<'_> {
+    pub fn new(name: &str) -> SharedObject<'static> {
+        SharedObject::from_ffi(lief_ffi::ELF_DynamicSharedObject::create(name.to_string()))
+    }
+
     pub fn name(&self) -> String {
         self.ptr.name().to_string()
+    }
+
+    pub fn set_name(&mut self, name: &str) {
+        self.ptr.pin_mut().set_name(name.to_string());
     }
 }
 
@@ -691,16 +1050,145 @@ impl FromFFI<ffi::ELF_DynamicSharedObject> for SharedObject<'_> {
     }
 }
 
-
 impl DynamicEntry for SharedObject<'_> {
     fn as_base(&self) -> &ffi::ELF_DynamicEntry {
         self.ptr.as_ref().unwrap().as_ref()
+    }
+
+    fn as_mut_base(&mut self) -> Pin<&mut ffi::ELF_DynamicEntry> {
+        unsafe {
+            Pin::new_unchecked({
+                (self.ptr.as_ref().unwrap().as_ref() as *const ffi::ELF_DynamicEntry
+                    as *mut ffi::ELF_DynamicEntry)
+                    .as_mut()
+                    .unwrap()
+            })
+        }
     }
 }
 
 impl std::fmt::Debug for SharedObject<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("SharedObject").finish()
+    }
+}
+
+/// Structure that represents a dynamic flag entry: `DT_FLAGS` or `DT_FLAGS_1`
+pub struct Flags<'a> {
+    ptr: cxx::UniquePtr<ffi::ELF_DynamicEntryFlags>,
+    _owner: PhantomData<&'a ffi::ELF_Binary>
+}
+
+impl Flags<'_> {
+    pub fn flags(&self) -> DtFlags {
+        DtFlags::from(self.ptr.flags())
+    }
+
+    pub fn add_flag(&mut self, flag: DtFlags) {
+        self.ptr.pin_mut().add_flag(flag.into())
+    }
+
+    pub fn remove_flag(&mut self, flag: DtFlags) {
+        self.ptr.pin_mut().remove_flag(flag.into())
+    }
+
+    pub fn create_dt_flag(value: u64) -> Self {
+        Self::from_ffi(ffi::ELF_DynamicEntryFlags::create_dt_flag(value))
+    }
+
+    pub fn create_dt_flag_1(value: u64) -> Self {
+        Self::from_ffi(ffi::ELF_DynamicEntryFlags::create_dt_flag_1(value))
+    }
+}
+
+impl FromFFI<ffi::ELF_DynamicEntryFlags> for Flags<'_> {
+    fn from_ffi(ptr: cxx::UniquePtr<ffi::ELF_DynamicEntryFlags>) -> Self {
+        Self {
+            ptr,
+            _owner: PhantomData
+        }
+    }
+}
+
+impl DynamicEntry for Flags<'_> {
+    fn as_base(&self) -> &ffi::ELF_DynamicEntry {
+        self.ptr.as_ref().unwrap().as_ref()
+    }
+
+    fn as_mut_base(&mut self) -> Pin<&mut ffi::ELF_DynamicEntry> {
+        unsafe {
+            Pin::new_unchecked({
+                (self.ptr.as_ref().unwrap().as_ref() as *const ffi::ELF_DynamicEntry
+                    as *mut ffi::ELF_DynamicEntry)
+                    .as_mut()
+                    .unwrap()
+            })
+        }
+    }
+}
+
+impl std::fmt::Debug for Flags<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Flags").finish()
+    }
+}
+
+
+bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct DtFlags: u64 {
+        const ORIGIN = 0x1;
+        const SYMBOLIC = 0x2;
+        const TEXTREL = 0x4;
+        const BIND_NOW = 0x8;
+        const STATIC_TLS = 0x10;
+        const NOW = 0x100000001;
+        const GLOBAL = 0x100000002;
+        const GROUP = 0x100000004;
+        const NODELETE = 0x100000008;
+        const LOADFLTR = 0x100000010;
+        const INITFIRST = 0x100000020;
+        const NOOPEN = 0x100000040;
+        const HANDLE_ORIGIN = 0x100000080;
+        const DIRECT = 0x100000100;
+        const TRANS = 0x100000200;
+        const INTERPOSE = 0x100000400;
+        const NODEFLIB = 0x100000800;
+        const NODUMP = 0x100001000;
+        const CONFALT = 0x100002000;
+        const ENDFILTEE = 0x100004000;
+        const DISPRELDNE = 0x100008000;
+        const DISPRELPND = 0x100010000;
+        const NODIRECT = 0x100020000;
+        const IGNMULDEF = 0x100040000;
+        const NOKSYMS = 0x100080000;
+        const NOHDR = 0x100100000;
+        const EDITED = 0x100200000;
+        const NORELOC = 0x100400000;
+        const SYMINTPOSE = 0x100800000;
+        const GLOBAUDIT = 0x101000000;
+        const SINGLETON = 0x102000000;
+        const PIE = 0x108000000;
+        const KMOD = 0x110000000;
+        const WEAKFILTER = 0x120000000;
+        const NOCOMMON = 0x140000000;
+    }
+}
+
+
+impl From<u64> for DtFlags {
+    fn from(value: u64) -> Self {
+        DtFlags::from_bits_truncate(value)
+    }
+}
+impl From<DtFlags> for u64 {
+    fn from(value: DtFlags) -> Self {
+        value.bits()
+    }
+}
+impl std::fmt::Display for DtFlags {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        bitflags::parser::to_writer(self, f)
     }
 }
 

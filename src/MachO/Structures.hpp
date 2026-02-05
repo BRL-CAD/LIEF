@@ -1,4 +1,4 @@
-/* Copyright 2021 - 2024 R. Thomas
+/* Copyright 2021 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@
    (((val) << 40) & 0x00FF000000000000) | (((val) << 56) & 0xFF00000000000000) )
 
 namespace LIEF {
-//! Namespace related to the LIEF's MachO module
+/// Namespace related to the LIEF's MachO module
 namespace MachO {
 
 namespace details {
@@ -136,29 +136,14 @@ struct section_64 {
   uint32_t reserved3;
 };
 
-struct fvmlib {
-  uint32_t name;
-  uint32_t minor_version;
-  uint32_t header_addr;
-};
-
-struct fvmlib_command {
-  uint32_t  cmd;
+struct dylib_command {
+  uint32_t cmd;
   uint32_t cmdsize;
-  struct fvmlib fvmlib;
-};
 
-struct dylib {
   uint32_t name;
   uint32_t timestamp;
   uint32_t current_version;
   uint32_t compatibility_version;
-};
-
-struct dylib_command {
-  uint32_t cmd;
-  uint32_t cmdsize;
-  struct dylib dylib;
 };
 
 struct sub_framework_command {
@@ -410,6 +395,14 @@ struct linker_option_command {
   uint32_t count;
 };
 
+struct note_command {
+  uint32_t cmd;        /* LC_NOTE */
+  uint32_t cmdsize;    /* sizeof(struct note_command) */
+  char data_owner[16]; /* owner name for this LC_NOTE */
+  uint64_t offset;     /* file offset of this data */
+  uint64_t size;       /* length of data region */
+};
+
 struct symseg_command {
   uint32_t cmd;
   uint32_t cmdsize;
@@ -599,6 +592,32 @@ struct arm_thread_state64_t {
   uint64_t pc;    // pc
   uint32_t cpsr;  // cpsr
 };
+
+struct ppc_thread_state_t {
+  uint32_t srr0; /* Instruction address register (PC) */
+  uint32_t srr1; /* Machine state register (supervisor) */
+  uint32_t r[32];
+
+  uint32_t cr;  /* Condition register */
+  uint32_t xer; /* User's integer exception register */
+  uint32_t lr;  /* Link register */
+  uint32_t ctr; /* Count register */
+  uint32_t mq;  /* MQ register (601 only) */
+
+  uint32_t vrsave; /* Vector Save Register */
+};
+
+struct ppc_thread_state64_t {
+  uint64_t srr0;
+  uint64_t srr1;
+  uint64_t r[32];
+  uint32_t cr;
+  uint64_t xer;
+  uint64_t lr;
+  uint64_t ctr;
+  uint32_t vrsave;
+};
+
 
 struct code_directory {
   uint32_t version;

@@ -159,6 +159,10 @@ impl FromFFI<ffi::PE_Header> for Header<'_> {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum MachineType {
+    /// Alpha AXP, 32-bit address space
+    ALPHA,
+    /// Alpha AXP, 64-bit address space
+    ALPHA64,
     /// Matsushita AM33
     AM33,
     /// AMD x64
@@ -175,6 +179,10 @@ pub enum MachineType {
     I386,
     /// Intel Itanium processor family
     IA64,
+    /// LoongArch 32-bit processor family
+    LOONGARCH32,
+    /// LoongArch 64-bit processor family
+    LOONGARCH64,
     /// Mitsubishi M32R little endian
     M32R,
     /// MIPS16
@@ -187,6 +195,8 @@ pub enum MachineType {
     POWERPC,
     /// Power PC with floating point
     POWERPCFP,
+    /// Power PC big endian
+    POWERPCBE,
     /// MIPS with little endian
     R4000,
     /// RISC-V 32-bit address space
@@ -207,12 +217,17 @@ pub enum MachineType {
     THUMB,
     /// MIPS little-endian WCE v2
     WCEMIPSV2,
+    ARM64EC,
+    ARM64X,
+    CHPE_X86,
     UNKNOWN(u32),
 }
 
 impl From<u32> for MachineType {
     fn from(value: u32) -> Self {
         match value {
+            0x00000184 => MachineType::ALPHA,
+            0x00000284 => MachineType::ALPHA64,
             0x000001d3 => MachineType::AM33,
             0x00008664 => MachineType::AMD64,
             0x000001c0 => MachineType::ARM,
@@ -221,12 +236,15 @@ impl From<u32> for MachineType {
             0x00000ebc => MachineType::EBC,
             0x0000014c => MachineType::I386,
             0x00000200 => MachineType::IA64,
+            0x00006232 => MachineType::LOONGARCH32,
+            0x00006264 => MachineType::LOONGARCH64,
             0x00009041 => MachineType::M32R,
             0x00000266 => MachineType::MIPS16,
             0x00000366 => MachineType::MIPSFPU,
             0x00000466 => MachineType::MIPSFPU16,
             0x000001f0 => MachineType::POWERPC,
             0x000001f1 => MachineType::POWERPCFP,
+            0x000001f2 => MachineType::POWERPCBE,
             0x00000166 => MachineType::R4000,
             0x00005032 => MachineType::RISCV32,
             0x00005064 => MachineType::RISCV64,
@@ -237,6 +255,9 @@ impl From<u32> for MachineType {
             0x000001a8 => MachineType::SH5,
             0x000001c2 => MachineType::THUMB,
             0x00000169 => MachineType::WCEMIPSV2,
+            0x0000a641 => MachineType::ARM64EC,
+            0x0000a64e => MachineType::ARM64X,
+            0x00003a64 => MachineType::CHPE_X86,
             _ => MachineType::UNKNOWN(value),
 
         }
@@ -245,6 +266,8 @@ impl From<u32> for MachineType {
 impl From<MachineType> for u32 {
     fn from(value: MachineType) -> u32 {
         match value {
+            MachineType::ALPHA => 0x184,
+            MachineType::ALPHA64 => 0x284,
             MachineType::AM33 => 0x000001d3,
             MachineType::AMD64 => 0x00008664,
             MachineType::ARM => 0x000001c0,
@@ -253,12 +276,15 @@ impl From<MachineType> for u32 {
             MachineType::EBC => 0x00000ebc,
             MachineType::I386 => 0x0000014c,
             MachineType::IA64 => 0x00000200,
+            MachineType::LOONGARCH32 => 0x6232,
+            MachineType::LOONGARCH64 => 0x6264,
             MachineType::M32R => 0x00009041,
             MachineType::MIPS16 => 0x00000266,
             MachineType::MIPSFPU => 0x00000366,
             MachineType::MIPSFPU16 => 0x00000466,
             MachineType::POWERPC => 0x000001f0,
             MachineType::POWERPCFP => 0x000001f1,
+            MachineType::POWERPCBE => 0x000001f2,
             MachineType::R4000 => 0x00000166,
             MachineType::RISCV32 => 0x00005032,
             MachineType::RISCV64 => 0x00005064,
@@ -269,6 +295,9 @@ impl From<MachineType> for u32 {
             MachineType::SH5 => 0x000001a8,
             MachineType::THUMB => 0x000001c2,
             MachineType::WCEMIPSV2 => 0x00000169,
+            MachineType::ARM64EC => 0x0000a641,
+            MachineType::ARM64X => 0x0000a64e,
+            MachineType::CHPE_X86 => 0x00003a64,
             MachineType::UNKNOWN(_) => 0,
 
         }
@@ -397,6 +426,42 @@ impl Header<'_> {
     /// Characteristics of the binary like whether it is a DLL or an executable
     pub fn characteristics(&self) -> Characteristics {
         Characteristics::from(self.ptr.characteristics())
+    }
+
+    pub fn set_machine(&mut self, machine: MachineType) {
+        self.ptr.pin_mut().set_machine(u32::from(machine));
+    }
+
+    pub fn set_numberof_sections(&mut self, value: u16) {
+        self.ptr.pin_mut().set_numberof_sections(value);
+    }
+
+    pub fn set_time_date_stamp(&mut self, value: u32) {
+        self.ptr.pin_mut().set_time_date_stamp(value);
+    }
+
+    pub fn set_pointerto_symbol_table(&mut self, value: u32) {
+        self.ptr.pin_mut().set_pointerto_symbol_table(value);
+    }
+
+    pub fn set_numberof_symbols(&mut self, value: u32) {
+        self.ptr.pin_mut().set_numberof_symbols(value);
+    }
+
+    pub fn set_sizeof_optional_header(&mut self, value: u16) {
+        self.ptr.pin_mut().set_sizeof_optional_header(value);
+    }
+
+    pub fn set_characteristics(&mut self, characteristics: Characteristics) {
+        self.ptr.pin_mut().set_characteristics(characteristics.bits());
+    }
+
+    pub fn add_characteristic(&mut self, characteristics: Characteristics) {
+        self.ptr.pin_mut().add_characteristic(characteristics.bits());
+    }
+
+    pub fn remove_characteristic(&mut self, characteristics: Characteristics) {
+        self.ptr.pin_mut().remove_characteristic(characteristics.bits());
     }
 }
 
@@ -532,6 +597,9 @@ pub enum Subsystem {
     /// A BCD application.
     WINDOWS_BOOT_APPLICATION,
 
+    /// Security Metadata Containers
+    XBOX_CODE_CATALOG,
+
     /// An unknown subsystem.
     UNKNOWN(u64),
 }
@@ -552,6 +620,7 @@ impl From<u64> for Subsystem {
             0x0000000d => Subsystem::EFI_ROM,
             0x0000000e => Subsystem::XBOX,
             0x00000010 => Subsystem::WINDOWS_BOOT_APPLICATION,
+            0x00000011 => Subsystem::XBOX_CODE_CATALOG,
             _ => Subsystem::UNKNOWN(value),
 
         }
@@ -573,6 +642,7 @@ impl From<Subsystem> for u64 {
             Subsystem::EFI_ROM => 0x0000000d,
             Subsystem::XBOX => 0x0000000e,
             Subsystem::WINDOWS_BOOT_APPLICATION => 0x00000010,
+            Subsystem::XBOX_CODE_CATALOG => 0x00000011,
             Subsystem::UNKNOWN(_) => 0,
 
         }
@@ -649,32 +719,32 @@ impl OptionalHeader<'_> {
     }
 
     /// The **major** version number of the required operating system
-    pub fn major_operating_system_version(&self) -> u32 {
+    pub fn major_operating_system_version(&self) -> u16 {
         self.ptr.major_operating_system_version()
     }
 
     /// The **minor** version number of the required operating system
-    pub fn minor_operating_system_version(&self) -> u32 {
+    pub fn minor_operating_system_version(&self) -> u16 {
         self.ptr.minor_operating_system_version()
     }
 
     /// The major version number of the image
-    pub fn major_image_version(&self) -> u32 {
+    pub fn major_image_version(&self) -> u16 {
         self.ptr.major_image_version()
     }
 
     /// The minor version number of the image
-    pub fn minor_image_version(&self) -> u32 {
+    pub fn minor_image_version(&self) -> u16 {
         self.ptr.minor_image_version()
     }
 
     /// The major version number of the subsystem
-    pub fn major_subsystem_version(&self) -> u32 {
+    pub fn major_subsystem_version(&self) -> u16 {
         self.ptr.major_subsystem_version()
     }
 
     /// The minor version number of the subsystem
-    pub fn minor_subsystem_version(&self) -> u32 {
+    pub fn minor_subsystem_version(&self) -> u16 {
         self.ptr.minor_subsystem_version()
     }
 
@@ -748,6 +818,14 @@ impl OptionalHeader<'_> {
     /// The number of DataDirectory that follow this header.
     pub fn numberof_rva_and_size(&self) -> u32 {
         self.ptr.numberof_rva_and_size()
+    }
+
+    pub fn set_addressof_entrypoint(&mut self, value: u32) {
+        self.ptr.pin_mut().set_addressof_entrypoint(value)
+    }
+
+    pub fn set_imagebase(&mut self, value: u64) {
+        self.ptr.pin_mut().set_imagebase(value)
     }
 }
 

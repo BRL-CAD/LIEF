@@ -1,5 +1,6 @@
 //! This module represents PE's Imports
 
+use std::pin::Pin;
 use std::marker::PhantomData;
 
 use crate::common::into_optional;
@@ -38,7 +39,7 @@ impl<'a> FromFFI<ffi::PE_Import> for Import<'a> {
 
 impl Import<'_> {
     /// Iterator over the [`ImportEntry`]
-    pub fn entries(&self) -> ImportEntries {
+    pub fn entries(&self) -> ImportEntries<'_> {
         ImportEntries::new(self.ptr.entries())
     }
 
@@ -74,20 +75,43 @@ impl Import<'_> {
     }
 
     /// Return the [`DataDirectory`] associated with this import.
-    pub fn directory(&self) -> Option<DataDirectory> {
+    pub fn directory(&self) -> Option<DataDirectory<'_>> {
         into_optional(self.ptr.directory())
     }
 
     /// Return the [`DataDirectory`] associated with the IAT (import address table).
-    pub fn iat_directory(&self) -> Option<DataDirectory> {
+    pub fn iat_directory(&self) -> Option<DataDirectory<'_>> {
         into_optional(self.ptr.iat_directory())
     }
 
     /// Try to find an [`ImportEntry`] by its name
-    pub fn entry_by_name(&self, name: &str) -> Option<ImportEntry> {
+    pub fn entry_by_name(&self, name: &str) -> Option<ImportEntry<'_>> {
         into_optional(self.ptr.entry_by_name(name))
     }
 
+    /// The original name rva
+    pub fn name_rva(&self) -> u32 {
+        self.ptr.name_rva()
+    }
+
+    /// Remove the import entry with the given name.
+    ///
+    /// Return true if the deletion succeed, false otherwise
+    pub fn remove_entry_by_name(&mut self, name: &str) -> bool {
+        self.ptr.pin_mut().remove_entry_by_name(name)
+    }
+
+    /// Remove the import entry with the given ordinal number
+    ///
+    /// Return true if the deletion succeed, false otherwise
+    pub fn remove_entry_by_ordinal(&mut self, ord: u32) -> bool {
+        self.ptr.pin_mut().remove_entry_by_ordinal(ord)
+    }
+
+    /// Add a new entry with the given name
+    pub fn add_entry_by_name<'a>(&'a mut self, name: &str) -> ImportEntry<'a> {
+        ImportEntry::from_ffi(self.ptr.pin_mut().add_entry_by_name(name))
+    }
 }
 
 /// Structure that represents an entry (i.e. an import) in the regular import table.
@@ -124,6 +148,13 @@ impl ImportEntry<'_> {
         self.ptr.iat_value()
     }
 
+    /// Original value in the import lookup table.
+    ///
+    /// This value should match the [`ImportEntry::iat_value`].
+    pub fn ilt_value(&self) -> u64 {
+        self.ptr.ilt_value()
+    }
+
     /// Raw value
     pub fn data(&self) -> u64 {
         self.ptr.data()
@@ -132,6 +163,12 @@ impl ImportEntry<'_> {
     /// **Original** address of the entry in the Import Address Table
     pub fn iat_address(&self) -> u64 {
         self.ptr.iat_address()
+    }
+
+    /// Demangled representation of the symbol or an empty string if it can't
+    /// be demangled
+    pub fn demangled_name(&self) -> String {
+        self.ptr.demangled_name().to_string()
     }
 }
 
@@ -147,6 +184,17 @@ impl<'a> FromFFI<ffi::PE_ImportEntry> for ImportEntry<'a> {
 impl generic::Symbol for ImportEntry<'_> {
     fn as_generic(&self) -> &ffi::AbstractSymbol {
         self.ptr.as_ref().unwrap().as_ref()
+    }
+
+    fn as_pin_mut_generic(&mut self) -> Pin<&mut ffi::AbstractSymbol> {
+        unsafe {
+            Pin::new_unchecked({
+                (self.ptr.as_ref().unwrap().as_ref() as *const ffi::AbstractSymbol
+                    as *mut ffi::AbstractSymbol)
+                    .as_mut()
+                    .unwrap()
+            })
+        }
     }
 }
 

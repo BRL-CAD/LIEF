@@ -5,6 +5,7 @@
 #include <nanobind/stl/string.h>
 
 #include "LIEF/PDB/DebugInfo.hpp"
+#include "LIEF/PDB/BuildMetadata.hpp"
 #include "LIEF/PDB/Type.hpp"
 
 namespace LIEF::pdb::py {
@@ -16,7 +17,9 @@ void init(nb::module_& m) {
     Load the PDB from the given path
     )doc"_doc, "path"_a
   );
+  init_utils(m);
 
+  create<LIEF::pdb::BuildMetadata>(pdb);
   create<LIEF::pdb::Type>(pdb);
   create<LIEF::pdb::DebugInfo>(pdb);
   create<LIEF::pdb::PublicSymbol>(pdb);

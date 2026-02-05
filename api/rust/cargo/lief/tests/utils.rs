@@ -11,6 +11,11 @@ pub fn get_sample_dir() -> Option<String> {
     }
 }
 
+pub fn get_sample_path() -> PathBuf {
+    let sample_dir = get_sample_dir().unwrap();
+    PathBuf::from_str(sample_dir.as_str()).expect("Can't create a PathBuf")
+}
+
 pub fn get_sample(path: &Path) -> Option<PathBuf> {
     let sample_dir = get_sample_dir()?;
     let sample_dir_path = PathBuf::from_str(sample_dir.as_str()).ok()?;
@@ -26,6 +31,12 @@ pub fn get_elf_sample(name: &str) -> Option<PathBuf> {
 #[allow(dead_code)]
 pub fn get_pe_sample(name: &str) -> Option<PathBuf> {
     let suffix = Path::new("PE").join(name);
+    get_sample(suffix.as_path())
+}
+
+#[allow(dead_code)]
+pub fn get_coff_sample(name: &str) -> Option<PathBuf> {
+    let suffix = Path::new("COFF").join(name);
     get_sample(suffix.as_path())
 }
 

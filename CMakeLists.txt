@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
+project(LIEF LANGUAGES C CXX)
+
 enable_language(C)
 enable_language(CXX)
 
@@ -33,9 +35,17 @@ elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git"
        AND IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.git" AND Git_FOUND)
   include(LIEFGit)
 else()
-  set(LIEF_VERSION_MAJOR "0")
-  set(LIEF_VERSION_MINOR "15")
-  set(LIEF_VERSION_PATCH "1")
+  set(LIEF_VERSION_MAJOR 1)
+  set(LIEF_VERSION_MINOR 0)
+  set(LIEF_VERSION_PATCH 0)
+endif()
+
+if (DEFINED ENV{LIEF_COMMIT})
+  set(LIEF_COMMIT_HASH "$ENV{LIEF_COMMIT}")
+endif()
+
+if (DEFINED ENV{LIEF_BRANCH})
+  set(LIEF_GIT_BRANCH "$ENV{LIEF_BRANCH}")
 endif()
 
 # LIEF Project
@@ -103,19 +113,7 @@ message(STATUS "CMAKE_CXX_IMPLICIT_LINK_LIBRARIES: ${CMAKE_CXX_IMPLICIT_LINK_LIB
 message(STATUS "CMAKE_SYSTEM_PROCESSOR:            ${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "CMAKE_MSVC_RUNTIME_LIBRARY:        ${CMAKE_MSVC_RUNTIME_LIBRARY}")
 
-if(LIEF_INSTALL)
-  if(UNIX)
-    include(GNUInstallDirs)
-    set(CMAKE_INSTALL_LIBDIR "lib")
-  else()
-    set(CMAKE_INSTALL_LIBDIR      "lib")
-    set(CMAKE_INSTALL_DATADIR     "share")
-    set(CMAKE_INSTALL_INCLUDEDIR  "include")
-    set(CMAKE_INSTALL_BINDIR      "bin")
-    set(CMAKE_INSTALL_DATAROOTDIR "share")
-    message(STATUS "Setting installation destination to: ${CMAKE_INSTALL_PREFIX}")
-  endif()
-endif()
+include(GNUInstallDirs)
 
 # LIEF Source definition
 # ======================
@@ -127,12 +125,9 @@ if(NOT LIEF_PY_LIEF_EXT)
 endif()
 
 if(NOT LIEF_OPT_MBEDTLS_EXTERNAL)
-  set_source_files_properties(${mbedtls_src_crypto} PROPERTIES GENERATED TRUE)
-  set_source_files_properties(${mbedtls_src_x509} PROPERTIES GENERATED TRUE)
-  set_source_files_properties(${mbedtls_src_tls} PROPERTIES GENERATED TRUE)
-  target_sources(LIB_LIEF PRIVATE ${mbedtls_src_crypto}
-                                  ${mbedtls_src_x509}
-                                  ${mbedtls_src_tls})
+  set_source_files_properties(${mbedtls_src_files} PROPERTIES GENERATED TRUE)
+  target_sources(LIB_LIEF PRIVATE ${mbedtls_src_files})
+  target_compile_definitions(LIB_LIEF PRIVATE -DMBEDTLS_NO_PLATFORM_ENTROPY)
 
   target_include_directories(LIB_LIEF SYSTEM PRIVATE
                              ${MBEDTLS_INCLUDE_DIRS}
@@ -146,8 +141,15 @@ else()
                         MbedTLS::mbedcrypto MbedTLS::mbedx509)
 endif()
 
+target_compile_definitions(LIB_LIEF PRIVATE
+  -DMBEDTLS_CONFIG_FILE="${CMAKE_CURRENT_SOURCE_DIR}/config/mbedtls/config.h"
+)
+
 if(WIN32 AND BUILD_SHARED_LIBS)
   target_link_libraries(LIB_LIEF PRIVATE ws2_32)
+  if (LIEF_IMPORT_SUFFIX)
+    set_target_properties(LIB_LIEF PROPERTIES IMPORT_SUFFIX "${LIEF_IMPORT_SUFFIX}")
+  endif()
 endif()
 
 if(MSVC)
@@ -164,11 +166,25 @@ else()
   target_compile_definitions(LIB_LIEF PRIVATE -DLIEF_STATIC)
 endif()
 
+
+if(LIEF_ENABLE_JSON)
+  # Make nlohmann/json is only using C++11 API.
+  # Especially, MSVC[14.37.32822] is buggy with (no)rtti & std::any
+  # Ref:
+  # - https://github.com/nlohmann/json/issues/3900
+  # - https://github.com/microsoft/STL/issues/4349#issuecomment-1920093172
+  target_compile_definitions(LIB_LIEF PRIVATE JSON_HAS_CPP_11)
+endif()
+
 # Logging Configuration
 # =====================
 target_compile_definitions(LIB_LIEF PRIVATE SPDLOG_DISABLE_DEFAULT_LOGGER
                                             SPDLOG_NO_EXCEPTIONS
                                             SPDLOG_FUNCTION=)
+
+if (MSVC AND NOT CLANG_CL AND NOT LIEF_EXTERNAL_SPDLOG)
+  target_compile_definitions(LIB_LIEF PRIVATE FMT_UNICODE=0)
+endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
   target_compile_definitions(LIB_LIEF PRIVATE SPDLOG_NO_THREAD_ID)
@@ -260,7 +276,7 @@ endif()
 
 if(LIEF_OPT_UTFCPP_EXTERNAL)
   find_package(utf8cpp REQUIRED)
-  target_link_libraries(LIB_LIEF PRIVATE utf8cpp)
+  target_link_libraries(LIB_LIEF PRIVATE utf8cpp::utf8cpp)
 else()
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/internal/utfcpp/utf8.h
     COMMAND
@@ -329,7 +345,7 @@ if(LIEF_ASAN)
 
   set_property(TARGET LIB_LIEF
                APPEND PROPERTY LINK_FLAGS -fsanitize=address)
-  target_link_libraries(LIB_LIEF INTERFACE asan)
+  target_link_libraries(LIB_LIEF INTERFACE libclang_rt.asan.so)
 endif()
 
 if(LIEF_LSAN)
@@ -378,13 +394,13 @@ endif()
 # Fuzzing options
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if(LIEF_FUZZING)
-  set(FUZZING_FLAGS -fno-omit-frame-pointer -g -O2 -fsanitize=address,fuzzer-no-link)
-  set(FUZZING_LINKER_FLAGS -fsanitize=address,fuzzer-no-link)
+  set(FUZZING_FLAGS -fno-omit-frame-pointer -g -O2 -fsanitize=fuzzer-no-link)
+  set(FUZZING_LINKER_FLAGS -fsanitize=fuzzer-no-link)
   set_property(TARGET LIB_LIEF
                APPEND PROPERTY LINK_FLAGS ${FUZZING_LINKER_FLAGS})
 
   target_compile_options(LIB_LIEF PRIVATE ${FUZZING_FLAGS})
-  target_link_libraries(LIB_LIEF PUBLIC asan pthread)
+  target_link_libraries(LIB_LIEF PUBLIC pthread)
   add_subdirectory(fuzzing)
 endif()
 
@@ -399,6 +415,12 @@ set_target_properties(LIB_LIEF PROPERTIES
                       EXPORT_NAME LIEF
                       CLEAN_DIRECT_OUTPUT 1)
 
+if (LIEF_SO_VERSION)
+  set_target_properties(LIB_LIEF PROPERTIES
+    VERSION "${LIEF_VERSION_MAJOR}.${LIEF_VERSION_MINOR}.${LIEF_VERSION_PATCH}"
+    SOVERSION "${LIEF_VERSION_MAJOR}"
+  )
+endif()
 
 # Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -428,11 +450,6 @@ if(LIEF_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()
-
-if(LIEF_DOC)
-  add_subdirectory(doc)
-endif()
-
 
 # Post-build operations
 # ======================

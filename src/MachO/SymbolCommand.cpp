@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <spdlog/fmt/fmt.h>
 #include "LIEF/Visitor.hpp"
 
 #include "LIEF/MachO/SymbolCommand.hpp"
@@ -34,7 +35,11 @@ void SymbolCommand::accept(Visitor& visitor) const {
 }
 
 std::ostream& SymbolCommand::print(std::ostream& os) const {
-  LoadCommand::print(os);
+  LoadCommand::print(os) << '\n';
+  os << fmt::format("symbol offset=0x{:06x}, nb symbols={}",
+                     symbol_offset(), numberof_symbols()) << '\n'
+     << fmt::format("string offset=0x{:06x}, string size={}",
+                     strings_offset(), strings_size());
   return os;
 }
 

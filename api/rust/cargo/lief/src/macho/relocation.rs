@@ -73,17 +73,17 @@ pub trait RelocationBase {
     }
 
     /// Symbol associated with the relocation (if any)
-    fn symbol(&self) -> Option<Symbol> {
+    fn symbol(&self) -> Option<Symbol<'_>> {
         into_optional(self.get_base().symbol())
     }
 
     /// Section associated with the section (if any)
-    fn section(&self) -> Option<Section> {
+    fn section(&self) -> Option<Section<'_>> {
         into_optional(self.get_base().section())
     }
 
     /// Segment command associated with the relocation (if any)
-    fn segment(&self) -> Option<Segment> {
+    fn segment(&self) -> Option<Segment<'_>> {
         into_optional(self.get_base().segment())
     }
 }
@@ -109,6 +109,29 @@ impl RelocationBase for Relocation<'_> {
         }
     }
 }
+
+impl generic::Relocation for Relocation<'_> {
+    fn as_generic(&self) -> &ffi::AbstractRelocation {
+        match &self {
+            Relocation::Dyld(reloc) => {
+                reloc.as_generic()
+            }
+
+            Relocation::Fixup(reloc) => {
+                reloc.as_generic()
+            }
+
+            Relocation::Object(reloc) => {
+                reloc.as_generic()
+            }
+
+            Relocation::Generic(reloc) => {
+                reloc.as_generic()
+            }
+        }
+    }
+}
+
 
 impl std::fmt::Debug for &dyn RelocationBase {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -175,6 +198,13 @@ impl RelocationBase for Dyld<'_> {
     }
 }
 
+
+impl generic::Relocation for Dyld<'_> {
+    fn as_generic(&self) -> &ffi::AbstractRelocation {
+        self.ptr.as_ref().unwrap().as_ref().as_ref()
+    }
+}
+
 impl std::fmt::Debug for Dyld<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let base = self as &dyn RelocationBase;
@@ -204,6 +234,11 @@ impl Fixup<'_> {
     pub fn offset(&self) -> u32 {
         self.ptr.offset()
     }
+
+    /// Return the (unscaled) next offset in the chain
+    pub fn next(&self) -> u32 {
+        self.ptr.next()
+    }
 }
 
 impl FromFFI<ffi::MachO_RelocationFixup> for Fixup<'_> {
@@ -218,6 +253,12 @@ impl FromFFI<ffi::MachO_RelocationFixup> for Fixup<'_> {
 impl RelocationBase for Fixup<'_> {
     fn get_base(&self) -> &ffi::MachO_Relocation {
         self.ptr.as_ref().unwrap().as_ref()
+    }
+}
+
+impl generic::Relocation for Fixup<'_> {
+    fn as_generic(&self) -> &ffi::AbstractRelocation {
+        self.ptr.as_ref().unwrap().as_ref().as_ref()
     }
 }
 
@@ -251,6 +292,12 @@ impl FromFFI<ffi::MachO_RelocationObject> for Object<'_> {
 impl RelocationBase for Object<'_> {
     fn get_base(&self) -> &ffi::MachO_Relocation {
         self.ptr.as_ref().unwrap().as_ref()
+    }
+}
+
+impl generic::Relocation for Object<'_> {
+    fn as_generic(&self) -> &ffi::AbstractRelocation {
+        self.ptr.as_ref().unwrap().as_ref().as_ref()
     }
 }
 

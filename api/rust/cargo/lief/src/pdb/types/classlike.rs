@@ -22,7 +22,7 @@ pub trait ClassLike {
         self.get_classlike().name().to_string()
     }
 
-    /// Size of the the type including all its attributes. This size should match
+    /// Size of the type including all its attributes. This size should match
     /// the `sizeof(...)` this type.
     fn size(&self) -> u64 {
         self.get_classlike().size()
@@ -30,13 +30,13 @@ pub trait ClassLike {
 
     /// Iterator over the different [`crate::pdb::types::Attribute`] defined in this
     /// class-like type
-    fn attributes(&self) -> Attributes {
+    fn attributes(&self) -> Attributes<'_> {
         Attributes::new(self.get_classlike().attributes())
     }
 
     /// Iterator over the different [`crate::pdb::types::Method`] implemented in this
     /// class-like type
-    fn methods(&self) -> Methods {
+    fn methods(&self) -> Methods<'_> {
         Methods::new(self.get_classlike().methods())
     }
 }

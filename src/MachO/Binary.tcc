@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,7 @@ namespace MachO {
 
 template<class T>
 bool Binary::has_command() const {
-  static_assert(std::is_base_of<LoadCommand, T>::value, "Require inheritance of 'LoadCommand'");
-  const auto it_cmd = std::find_if(
-      std::begin(commands_), std::end(commands_),
-      [] (const std::unique_ptr<LoadCommand>& command) {
-        return T::classof(command.get());
-      });
-  return it_cmd != std::end(commands_);
+  return command<T>() != nullptr;
 }
 
 template<class T>

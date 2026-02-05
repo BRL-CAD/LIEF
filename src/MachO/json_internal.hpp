@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,8 @@ class Header;
 class LinkerOptHint;
 class LoadCommand;
 class MainCommand;
+class NoteCommand;
+class Routine;
 class RPathCommand;
 class Relocation;
 class RelocationDyld;
@@ -64,8 +66,8 @@ class UUIDCommand;
 class VersionMin;
 class UnknownCommand;
 
-//! Class that implements the Visitor pattern to output
-//! a JSON representation of a MachO object
+/// Class that implements the Visitor pattern to output
+/// a JSON representation of a MachO object
 class JsonVisitor : public LIEF::JsonVisitor {
   public:
   using LIEF::JsonVisitor::JsonVisitor;
@@ -94,6 +96,8 @@ class JsonVisitor : public LIEF::JsonVisitor {
   void visit(const LinkerOptHint& e)                      override;
   void visit(const LoadCommand& cmd)                      override;
   void visit(const MainCommand& maincmd)                  override;
+  void visit(const NoteCommand& note)                     override;
+  void visit(const Routine& rpath)                        override;
   void visit(const RPathCommand& rpath)                   override;
   void visit(const Relocation& relocation)                override;
   void visit(const RelocationDyld& rdyld)                 override;

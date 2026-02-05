@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,6 +137,28 @@ void create<Import>(nb::module_& m) {
       "Return the " RST_CLASS_REF(lief.PE.ImportEntry) " with the given name or None if not found"_doc,
       "function_name"_a,
       nb::rv_policy::reference_internal)
+
+    .def_prop_ro("name_rva", &Import::name_rva,
+      "The original name rva"_doc
+    )
+
+    .def("remove_entry",
+      nb::overload_cast<const std::string&>(&Import::remove_entry),
+      R"doc(
+      Remove the import entry with the given name.
+
+      Return true if the deletion succeed, false otherwise
+      )doc"_doc, "name"_a
+    )
+
+    .def("remove_entry",
+      nb::overload_cast<uint32_t>(&Import::remove_entry),
+      R"doc(
+      Remove the import entry with the given ordinal number
+
+      Return True if the deletion succeed, false otherwise
+      )doc"_doc, "ord"_a
+    )
 
     LIEF_DEFAULT_STR(Import);
 

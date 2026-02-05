@@ -1,4 +1,4 @@
-/* Copyright 2021 - 2024 R. Thomas
+/* Copyright 2021 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include "LIEF/ELF/Builder.hpp"
 
 namespace LIEF {
 namespace ELF {
@@ -26,8 +27,10 @@ class Section;
 class Binary;
 class Layout {
   public:
-  Layout(Binary& bin) :
-    binary_(&bin)
+  Layout(Binary& bin, bool should_swap, const Builder::config_t& config) :
+    binary_(&bin),
+    should_swap_(should_swap),
+    config_(&config)
   {}
 
   virtual const std::unordered_map<std::string, size_t>& shstr_map() const {
@@ -61,6 +64,10 @@ class Layout {
   virtual ~Layout() = default;
   Layout() = delete;
 
+  bool should_swap() const {
+    return should_swap_;
+  }
+
   protected:
   Binary* binary_ = nullptr;
 
@@ -72,6 +79,8 @@ class Layout {
 
   Section* strtab_section_ = nullptr;
   int32_t new_symndx_ = -1;
+  bool should_swap_ = false;
+  const Builder::config_t* config_ = nullptr;
 };
 }
 }

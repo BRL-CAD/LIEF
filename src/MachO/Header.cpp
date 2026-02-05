@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,8 @@ static constexpr auto HEADER_FLAGS = {
   Header::FLAGS::NO_REEXPORTED_DYLIBS, Header::FLAGS::PIE,
   Header::FLAGS::DEAD_STRIPPABLE_DYLIB, Header::FLAGS::HAS_TLV_DESCRIPTORS,
   Header::FLAGS::NO_HEAP_EXECUTION, Header::FLAGS::APP_EXTENSION_SAFE,
+  Header::FLAGS::NLIST_OUTOFSYNC_WITH_DYLDINFO, Header::FLAGS::SIM_SUPPORT,
+  Header::FLAGS::IMPLICIT_PAGEZERO, Header::FLAGS::DYLIB_IN_CACHE,
 };
 
 template<class T>
@@ -69,64 +71,6 @@ Header::Header(const T& header) :
 template Header::Header(const details::mach_header_64& header);
 template Header::Header(const details::mach_header& header);
 
-std::pair<ARCHITECTURES, std::set<MODES>> Header::abstract_architecture() const {
-  using modes_t = std::pair<ARCHITECTURES, std::set<MODES>>;
-  static const std::map<CPU_TYPE, modes_t> ARCH_MACHO_TO_LIEF {
-    {CPU_TYPE::ANY,       {ARCH_NONE,  {}}},
-    {CPU_TYPE::X86_64,    {ARCH_X86,   {MODE_64}}},
-    {CPU_TYPE::ARM,       {ARCH_ARM,   {MODE_32}}},
-    {CPU_TYPE::ARM64,     {ARCH_ARM64, {MODE_64}}},
-    {CPU_TYPE::X86,       {ARCH_X86,   {MODE_32}}},
-    {CPU_TYPE::SPARC,     {ARCH_SPARC, {}}},
-    {CPU_TYPE::POWERPC,   {ARCH_PPC,   {MODE_32}}},
-    {CPU_TYPE::POWERPC64, {ARCH_PPC,   {MODE_64}}},
-  };
-  auto it = ARCH_MACHO_TO_LIEF.find(cpu_type());
-  if (it == std::end(ARCH_MACHO_TO_LIEF)) {
-    return {ARCHITECTURES::ARCH_NONE, {}};
-  }
-  return it->second;
-}
-
-
-OBJECT_TYPES Header::abstract_object_type() const {
-  CONST_MAP(FILE_TYPE, OBJECT_TYPES, 3) OBJ_MACHO_TO_LIEF {
-    {FILE_TYPE::EXECUTE, OBJECT_TYPES::TYPE_EXECUTABLE},
-    {FILE_TYPE::DYLIB,   OBJECT_TYPES::TYPE_LIBRARY},
-    {FILE_TYPE::OBJECT,  OBJECT_TYPES::TYPE_OBJECT},
-  };
-  auto it = OBJ_MACHO_TO_LIEF.find(file_type());
-  if (it == std::end(OBJ_MACHO_TO_LIEF)) {
-    return OBJECT_TYPES::TYPE_NONE;
-  }
-  return it->second;
-}
-
-ENDIANNESS Header::abstract_endianness() const {
-  CONST_MAP(CPU_TYPE, ENDIANNESS, 7) ENDI_MACHO_TO_LIEF {
-    {CPU_TYPE::X86,       ENDIANNESS::ENDIAN_LITTLE},
-    {CPU_TYPE::X86_64,    ENDIANNESS::ENDIAN_LITTLE},
-    {CPU_TYPE::ARM,       ENDIANNESS::ENDIAN_LITTLE},
-    {CPU_TYPE::ARM64,     ENDIANNESS::ENDIAN_LITTLE},
-    {CPU_TYPE::SPARC,     ENDIANNESS::ENDIAN_BIG},
-    {CPU_TYPE::POWERPC,   ENDIANNESS::ENDIAN_BIG},
-    {CPU_TYPE::POWERPC64, ENDIANNESS::ENDIAN_BIG},
-  };
-  auto it = ENDI_MACHO_TO_LIEF.find(cpu_type());
-  if (it == std::end(ENDI_MACHO_TO_LIEF)) {
-    return ENDIANNESS::ENDIAN_NONE;
-  }
-  auto not_endianness = [] (ENDIANNESS endian) {
-    return endian == ENDIAN_LITTLE ? ENDIAN_BIG : ENDIAN_LITTLE;
-  };
-  if (magic() == MACHO_TYPES::MH_CIGAM ||
-      magic() == MACHO_TYPES::MH_CIGAM_64 ||
-      magic() == MACHO_TYPES::FAT_CIGAM)
-  {
-    return not_endianness(it->second);
-  }
-  return it->second;
-}
 
 std::vector<Header::FLAGS> Header::flags_list() const {
   std::vector<Header::FLAGS> flags;
@@ -159,11 +103,11 @@ std::ostream& operator<<(std::ostream& os, const Header& hdr) {
   os << fmt::format("Magic: 0x{:08x}\n", uint32_t(hdr.magic()));
   os << fmt::format("CPU: {}\n", to_string(hdr.cpu_type()));
   os << fmt::format("CPU subtype: 0x{:08x}\n", hdr.cpu_subtype());
-  os << fmt::format("File type: {}\n", to_string(hdr.file_type()));
+  os << fmt::format("File type: {} ({:#x})\n", to_string(hdr.file_type()), (uint32_t)hdr.file_type());
   os << fmt::format("Flags: {}\n", hdr.flags());
   os << fmt::format("Reserved: 0x{:x}\n", hdr.reserved());
   os << fmt::format("Nb cmds: {}\n", hdr.nb_cmds());
-  os << fmt::format("Sizeof cmds: {}\n", hdr.sizeof_cmds());
+  os << fmt::format("Sizeof cmds: {}", hdr.sizeof_cmds());
   return os;
 }
 
@@ -196,6 +140,10 @@ const char* to_string(Header::FLAGS e) {
     ENTRY(HAS_TLV_DESCRIPTORS),
     ENTRY(NO_HEAP_EXECUTION),
     ENTRY(APP_EXTENSION_SAFE),
+    ENTRY(NLIST_OUTOFSYNC_WITH_DYLDINFO),
+    ENTRY(SIM_SUPPORT),
+    ENTRY(IMPLICIT_PAGEZERO),
+    ENTRY(DYLIB_IN_CACHE),
   };
   #undef ENTRY
 
@@ -220,6 +168,9 @@ const char* to_string(Header::FILE_TYPE e) {
     ENTRY(DYLIB_STUB),
     ENTRY(DSYM),
     ENTRY(KEXT_BUNDLE),
+    ENTRY(FILESET),
+    ENTRY(GPU_EXECUTE),
+    ENTRY(GPU_DYLIB),
   };
   #undef ENTRY
 
@@ -237,11 +188,19 @@ const char* to_string(Header::CPU_TYPE e) {
     ENTRY(X86_64),
     ENTRY(MIPS),
     ENTRY(MC98000),
+    ENTRY(HPPA),
     ENTRY(ARM),
     ENTRY(ARM64),
+    ENTRY(MC88000),
     ENTRY(SPARC),
+    ENTRY(I860),
+    ENTRY(ALPHA),
     ENTRY(POWERPC),
     ENTRY(POWERPC64),
+    ENTRY(APPLE_GPU),
+    ENTRY(AMD_GPU),
+    ENTRY(INTEL_GPU),
+    ENTRY(AIR64),
   };
   #undef ENTRY
 

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ class DataHandlerStream : public BinaryStream {
     return data_.size();
   }
 
-  result<const void*> read_at(uint64_t offset, uint64_t size) const override {
+  result<const void*> read_at(uint64_t offset, uint64_t size, uint64_t /*va*/) const override {
     if (offset > data_.size() || (offset + size) > data_.size()) {
       return make_error_code(lief_errors::read_error);
     }

@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #pragma once
+#include "LIEF/rust/MachO/AtomInfo.hpp"
 #include "LIEF/rust/MachO/Binary.hpp"
 #include "LIEF/rust/MachO/BindingInfo.hpp"
 #include "LIEF/rust/MachO/BuildToolVersion.hpp"
@@ -28,24 +29,31 @@
 #include "LIEF/rust/MachO/FatBinary.hpp"
 #include "LIEF/rust/MachO/Fileset.hpp"
 #include "LIEF/rust/MachO/FunctionStarts.hpp"
+#include "LIEF/rust/MachO/FunctionVariants.hpp"
+#include "LIEF/rust/MachO/FunctionVariantFixups.hpp"
 #include "LIEF/rust/MachO/Header.hpp"
+#include "LIEF/rust/MachO/IndirectBindingInfo.hpp"
 #include "LIEF/rust/MachO/LoadCommand.hpp"
 #include "LIEF/rust/MachO/Main.hpp"
+#include "LIEF/rust/MachO/NoteCommand.hpp"
 #include "LIEF/rust/MachO/RPathCommand.hpp"
 #include "LIEF/rust/MachO/Relocation.hpp"
 #include "LIEF/rust/MachO/RelocationDyld.hpp"
 #include "LIEF/rust/MachO/RelocationFixup.hpp"
 #include "LIEF/rust/MachO/RelocationObject.hpp"
+#include "LIEF/rust/MachO/Routine.hpp"
 #include "LIEF/rust/MachO/Section.hpp"
 #include "LIEF/rust/MachO/SegmentCommand.hpp"
 #include "LIEF/rust/MachO/SegmentSplitInfo.hpp"
 #include "LIEF/rust/MachO/SourceVersion.hpp"
+#include "LIEF/rust/MachO/Stub.hpp"
+#include "LIEF/rust/MachO/SubClient.hpp"
 #include "LIEF/rust/MachO/SubFramework.hpp"
 #include "LIEF/rust/MachO/Symbol.hpp"
 #include "LIEF/rust/MachO/SymbolCommand.hpp"
 #include "LIEF/rust/MachO/ThreadCommand.hpp"
 #include "LIEF/rust/MachO/TwoLevelHints.hpp"
 #include "LIEF/rust/MachO/UUIDCommand.hpp"
-#include "LIEF/rust/MachO/VersionMin.hpp"
 #include "LIEF/rust/MachO/UnknownCommand.hpp"
+#include "LIEF/rust/MachO/VersionMin.hpp"
 #include "LIEF/rust/MachO/utils.hpp"

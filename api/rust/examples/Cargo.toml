@@ -28,10 +28,19 @@ name = "list_macho_encryption"
 name = "dwarf_inspect"
 
 [[bin]]
+name = "dwarf_editor"
+
+[[bin]]
 name = "pdb_inspect"
 
 [[bin]]
 name = "objc_inspect"
+
+[[bin]]
+name = "disassembler"
+
+[[bin]]
+name = "pe_exceptions"
 
 [[bin]]
 name = "test_run_examples"

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/unique_ptr.h>
+#include "nanobind/extra/stl/pathlike.h"
 #include "nanobind/utils.hpp"
 
 #include "enums_wrapper.hpp"
@@ -25,8 +26,6 @@
 #include "LIEF/PE/signature/Signature.hpp"
 #include "LIEF/PE/signature/SignatureParser.hpp"
 
-#define LIEF_PE_FORCE_UNDEF
-#include "LIEF/PE/undef.h"
 #include "PE/pyPE.hpp"
 #include "pyIterator.hpp"
 
@@ -38,7 +37,7 @@ void create<Signature>(nb::module_& m) {
 
   nb::class_<Signature, LIEF::Object> signature(m, "Signature");
   enum_<Signature::VERIFICATION_FLAGS> verif_flags_enums
-    (signature, "VERIFICATION_FLAGS", nb::is_arithmetic());
+    (signature, "VERIFICATION_FLAGS", nb::is_flag());
   verif_flags_enums
     .value("OK",                            Signature::VERIFICATION_FLAGS::OK)
     .value("INVALID_SIGNER",                Signature::VERIFICATION_FLAGS::INVALID_SIGNER)
@@ -54,7 +53,7 @@ void create<Signature>(nb::module_& m) {
     .value("CERT_EXPIRED",                  Signature::VERIFICATION_FLAGS::CERT_EXPIRED)
     .value("CERT_FUTURE",                   Signature::VERIFICATION_FLAGS::CERT_FUTURE);
 
-  enum_<Signature::VERIFICATION_CHECKS>(signature, "VERIFICATION_CHECKS", nb::is_arithmetic(),
+  enum_<Signature::VERIFICATION_CHECKS>(signature, "VERIFICATION_CHECKS", nb::is_flag(),
     R"delim(
     Flags to tweak the verification process of the signature
     See :meth:`lief.PE.Signature.check` and :meth:`lief.PE.Binary.verify_signature`
@@ -84,7 +83,7 @@ void create<Signature>(nb::module_& m) {
 
   signature
     .def_static("parse",
-        [] (const std::string& path) -> std::unique_ptr<Signature> {
+        [] (nb::PathLike path) -> std::unique_ptr<Signature> {
           auto sig = SignatureParser::parse(path);
           if (!sig) {
             return nullptr;

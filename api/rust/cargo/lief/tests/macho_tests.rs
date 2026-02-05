@@ -1,10 +1,15 @@
 mod utils;
+use std::path::Path;
 use std::env;
 use lief::logging;
+use lief::macho::builder::Config;
+use lief::macho::Relocation;
 use lief::generic::Binary as GenericBinary;
 use lief::macho::binding_info::{self, AsGeneric};
 use lief::macho::commands::{Command, Commands};
+use lief::generic::Symbol;
 use lief::Binary;
+use lief::macho::header::CpuType;
 
 fn print_binding(binding: &binding_info::BindingInfo) {
     format!("{:?}", binding);
@@ -26,6 +31,9 @@ fn print_binding(binding: &binding_info::BindingInfo) {
             format!("{:?}", chained.library());
             format!("{:?}", chained.segment());
         }
+        binding_info::BindingInfo::Indirect(indirect) => {
+            format!("{:?}", indirect.symbol());
+        }
     }
 }
 
@@ -33,12 +41,32 @@ fn explore_macho(_: &str, macho: &lief::macho::Binary) {
     format!("{macho:?}");
     format!("{}", macho.entrypoint());
     format!("{:?}", macho.header());
+    format!("{}{}", macho.header().is_32bit(), macho.header().is_64bit());
+    println!("{:?}:{}:{}", macho.platform(), macho.is_ios(), macho.is_macos());
+
+    for func in macho.functions() {
+        format!("{func:?}");
+    }
+
+    for note in macho.notes() {
+        format!("{note:?}");
+    }
+
     for section in macho.sections() {
         format!("{section:?}");
         format!("{:?}", section.segment());
         for relocation in section.relocations() {
             format!("{relocation:?}");
         }
+    }
+
+    for binding in macho.bindings() {
+        format!("{:?}", binding);
+    }
+
+    for stub in macho.symbol_stubs() {
+        format!("{stub:?}");
+        format!("{}", stub.raw().len());
     }
 
     for command in macho.commands() {
@@ -48,6 +76,7 @@ fn explore_macho(_: &str, macho: &lief::macho::Binary) {
                 println!("TYPE: {:?}", gen.command_type());
             }
             Commands::DyldChainedFixups(cmd) => {
+                format!("{}", cmd.payload().len());
                 for binding in cmd.bindings() {
                     format!("{:?}", binding);
                 }
@@ -113,6 +142,20 @@ fn explore_macho(_: &str, macho: &lief::macho::Binary) {
                 }
             }
 
+            Commands::Note(note) => {
+                println!("Note {note:?}");
+            }
+
+            Commands::FunctionVariants(func) => {
+                println!("{func:?}");
+                for runtime_table in func.runtime_table() {
+                    println!("{runtime_table:?} {runtime_table}");
+                    for entry in runtime_table.entries() {
+                        println!("{entry:?} {entry}")
+                    }
+                }
+            }
+
             Commands::Unknown(ukn) => {
                 println!("Original: {:?}", ukn.original_command());
             }
@@ -139,10 +182,23 @@ fn explore_macho(_: &str, macho: &lief::macho::Binary) {
 
     for reloc in macho.relocations() {
         format!("{reloc:?}");
+
+        match reloc {
+            Relocation::Dyld(_) => {
+            }
+            Relocation::Fixup(fixup) => {
+                format!("{}", fixup.next());
+            }
+            Relocation::Object(_) => {
+            }
+            Relocation::Generic(_) => {
+            }
+        }
     }
 
     for sym in macho.symbols() {
         format!("{sym:?}");
+        format!("{}", sym.demangled_name());
     }
 
     if let Some(info) = macho.dyld_info() {
@@ -177,12 +233,19 @@ fn explore_macho(_: &str, macho: &lief::macho::Binary) {
         format!("{rpath:?}");
     }
 
+    if let Some(routine) = macho.routine() {
+        format!("{routine:?}");
+    }
+
     if let Some(symbol_command) = macho.symbol_command() {
         format!("{symbol_command:?}");
     }
 
     if let Some(dynamic_symbol) = macho.dynamic_symbol() {
         format!("{dynamic_symbol:?}");
+        for sym in dynamic_symbol.indirect_symbols() {
+            format!("{}", sym.name());
+        }
     }
 
     if let Some(code_signature) = macho.code_signature() {
@@ -207,6 +270,10 @@ fn explore_macho(_: &str, macho: &lief::macho::Binary) {
 
     if let Some(sub_framework) = macho.sub_framework() {
         format!("{sub_framework:?}");
+    }
+
+    for sc in macho.subclients() {
+        format!("{sc:?}");
     }
 
     if let Some(dyld_environment) = macho.dyld_environment() {
@@ -245,6 +312,8 @@ fn test_with(bin_name: &str) {
         for bin in fat.iter() {
             explore_macho(bin_name, &bin);
         }
+        fat.with_cpu(CpuType::ARM64);
+        fat.with_cpu(CpuType::HPPA);
     }
 
     // Test Read + Seek interface
@@ -253,9 +322,22 @@ fn test_with(bin_name: &str) {
     assert!(matches!(binary, Some(Binary::MachO(_))));
 }
 
+fn test_with_str(name: &str, path_str: &str) {
+    if let Some(lief::Binary::MachO(fat)) = lief::Binary::parse(path_str) {
+        for bin in fat.iter() {
+            explore_macho(name, &bin);
+        }
+    }
+}
+
+fn test_with_fullpath(name: &str, suffix: &str) {
+    let path = utils::get_sample(Path::new(suffix)).unwrap();
+    let path_str = path.to_str().unwrap();
+    test_with_str(name, path_str);
+}
+
 #[test]
 fn test_api() {
-
     let mut dir = env::temp_dir();
     dir.push("lief_macho_test.log");
     logging::set_path(dir.as_path());
@@ -271,4 +353,28 @@ fn test_api() {
     test_with("python3_issue_476.bin");
     test_with("FAT_MachO_x86_x86-64_library_libc++abi.dylib");
     test_with("libadd_unknown_cmd.so");
+    test_with("StocksAnalytics");
+    test_with("liblog_srp.dylib");
+    test_with("binary.metallib");
+    test_with("variants_alt.dylib");
+    test_with_fullpath("CoreFoundation", "private/MachO/CoreFoundation");
 }
+
+#[test]
+fn test_mut_api() {
+    let path = utils::get_macho_sample("FAT_MachO_x86_x86-64_library_libc++abi.dylib").unwrap();
+    let Binary::MachO(fat) = Binary::parse(path.to_str().unwrap()).unwrap() else { panic!("Expecting an ELF"); };
+    for mut bin in fat.iter() {
+        bin.add_library("this_is_a_dylib.dylib");
+        let tmpfile = tempfile::NamedTempFile::new().unwrap();
+        bin.write(tmpfile.path());
+    }
+
+    let path = utils::get_macho_sample("json_api.cpp_1.o").unwrap();
+    let Binary::MachO(fat) = Binary::parse(path.to_str().unwrap()).unwrap() else { panic!("Expecting an ELF"); };
+    for mut bin in fat.iter() {
+        let tmpfile = tempfile::NamedTempFile::new().unwrap();
+        bin.write_with_config(tmpfile.path(), Config::default());
+    }
+}
+

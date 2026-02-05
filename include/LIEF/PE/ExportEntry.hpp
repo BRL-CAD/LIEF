@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ namespace PE {
 class Builder;
 class Parser;
 
-//! Class which represents a PE Export entry (cf. PE::Export)
+/// Class which represents a PE Export entry (cf. PE::Export)
 class LIEF_API ExportEntry : public LIEF::Symbol {
 
   friend class Builder;
@@ -44,26 +44,63 @@ class LIEF_API ExportEntry : public LIEF::Symbol {
       return !library.empty() || !function.empty();
     }
 
-    LIEF_API friend std::ostream& operator<<(std::ostream& os, const forward_information_t& info);
+    std::string key() const {
+      return library + '.' + function;
+    }
+
+    LIEF_API friend std::ostream& operator<<(std::ostream& os, const forward_information_t& info) {
+      os << info.key();
+      return os;
+    }
   };
 
   public:
   ExportEntry() = default;
   ExportEntry(uint32_t address, bool is_extern,
-              uint16_t ordinal, uint32_t function_rva);
+              uint16_t ordinal, uint32_t function_rva) :
+    function_rva_{function_rva},
+    ordinal_{ordinal},
+    address_{address},
+    is_extern_{is_extern}
+  {}
+
+  ExportEntry(std::string name, uint32_t rva) :
+    LIEF::Symbol(std::move(name)),
+    address_(rva)
+  {}
+
   ExportEntry(const ExportEntry&) = default;
   ExportEntry& operator=(const ExportEntry&) = default;
+
+  ExportEntry(ExportEntry&&) = default;
+  ExportEntry& operator=(ExportEntry&&) = default;
+
   ~ExportEntry() override = default;
 
+  /// Demangled representation of the symbol or an empty string if it can't
+  /// be demangled
+  std::string demangled_name() const;
+
+  /// Ordinal value associated with this exported entry.
+  ///
+  /// This value is computed as the index of this entry in the address table
+  /// plus the ordinal base (Export::ordinal_base)
   uint16_t ordinal() const {
     return ordinal_;
   }
+
+  /// Address of the current exported function in the DLL.
+  ///
+  /// \warning If this entry is **external** to the DLL then it returns 0
+  ///          and the external address is returned by function_rva()
   uint32_t address() const {
     return address_;
   }
+
   bool is_extern() const {
     return is_extern_;
   }
+
   bool is_forwarded() const {
     return forward_info_;
   }
@@ -110,7 +147,7 @@ class LIEF_API ExportEntry : public LIEF::Symbol {
   uint32_t function_rva_ = 0;
   uint16_t ordinal_ = 0;
   uint32_t address_ = 0;
-  bool     is_extern_ = false;
+  bool is_extern_ = false;
 
   forward_information_t forward_info_;
 

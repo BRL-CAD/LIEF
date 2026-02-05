@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@
 #include "LIEF/PE/signature/OIDToString.hpp"
 
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/vector.h>
+#include "nanobind/extra/stl/pathlike.h"
 
 namespace LIEF::PE::py {
 
@@ -40,10 +42,11 @@ void init_utils(nb::module_& m) {
   m.def("oid_to_string", &oid_to_string,
         "Convert an OID to a human-readable string"_doc);
 
+
   lief_mod->def("is_pe",
-      nb::overload_cast<const std::string&>(&is_pe),
-      "Check if the given file is a ``PE``"_doc,
-      "file"_a);
+    [] (nb::PathLike path) { return is_pe(path); },
+    "Check if the given file is a ``PE``"_doc,
+    "file"_a);
 
   lief_mod->def("is_pe",
       nb::overload_cast<const std::vector<uint8_t>&>(&is_pe),
@@ -51,7 +54,7 @@ void init_utils(nb::module_& m) {
       "raw"_a);
 
   m.def("get_type",
-      [] (const std::string& file) {
+      [] (nb::PathLike file) {
         return error_or(static_cast<result<PE_TYPE> (*)(const std::string&)>(&get_type), file);
       },
       R"delim(
@@ -102,5 +105,17 @@ void init_utils(nb::module_& m) {
       )delim",
       "imp"_a, "strict"_a = false, "use_std"_a = false,
       nb::rv_policy::copy);
+
+  m.def("check_layout", [] (const Binary& bin) -> std::pair<bool, std::string> {
+    std::string error;
+    if (!check_layout(bin, &error)) {
+      return std::make_pair(false, std::move(error));
+    }
+    return std::make_pair(true, "");
+  },
+  R"doc(
+  Check that the layout of the given binary is correct from the Windows loader
+  perspective.
+  )doc"_doc, "binary"_a);
 }
 }

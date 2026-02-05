@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ const char* to_string(DYLD_CHAINED_FORMAT e) {
 const char* to_string(DYLD_CHAINED_PTR_FORMAT e) {
   #define ENTRY(X) std::pair(DYLD_CHAINED_PTR_FORMAT::X, #X)
   STRING_MAP enums2str {
+    ENTRY(NONE),
     ENTRY(PTR_ARM64E),
     ENTRY(PTR_64),
     ENTRY(PTR_32),
@@ -49,6 +50,8 @@ const char* to_string(DYLD_CHAINED_PTR_FORMAT e) {
     ENTRY(PTR_ARM64E_FIRMWARE),
     ENTRY(PTR_X86_64_KERNEL_CACHE),
     ENTRY(PTR_ARM64E_USERLAND24),
+    ENTRY(PTR_ARM64E_SHARED_CACHE),
+    ENTRY(PTR_ARM64E_SEGMENTED),
   };
   #undef ENTRY
 

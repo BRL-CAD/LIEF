@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,9 +41,9 @@ void MainCommand::accept(Visitor& visitor) const {
 }
 
 std::ostream& MainCommand::print(std::ostream& os) const {
-  LoadCommand::print(os);
+  LoadCommand::print(os) << '\n';
   os << fmt::format("entrypoint=0x{:x}, stack size=0x{:x}",
-                    entrypoint(), stack_size()) << '\n';
+                    entrypoint(), stack_size());
   return os;
 }
 

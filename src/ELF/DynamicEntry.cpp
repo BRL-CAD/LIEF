@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,19 @@
 #include "LIEF/Visitor.hpp"
 
 #include "LIEF/ELF/DynamicEntry.hpp"
-#include "ELF/Structures.hpp"
+#include "LIEF/ELF/EnumToString.hpp"
+#include "LIEF/ELF/DynamicEntryLibrary.hpp"
+#include "LIEF/ELF/DynamicEntryArray.hpp"
+#include "LIEF/ELF/DynamicEntryFlags.hpp"
+#include "LIEF/ELF/DynamicEntryRpath.hpp"
+#include "LIEF/ELF/DynamicEntryRunPath.hpp"
+#include "LIEF/ELF/DynamicSharedObject.hpp"
 
 #include <spdlog/fmt/fmt.h>
 
 #include "frozen.hpp"
 #include "logging.hpp"
+#include "ELF/Structures.hpp"
 
 namespace LIEF {
 namespace ELF {
@@ -30,7 +37,17 @@ DynamicEntry::TAG DynamicEntry::from_value(uint64_t value, ARCH arch) {
   static constexpr auto LOPROC = 0x70000000;
   static constexpr auto HIPROC = 0x7FFFFFFF;
 
-  if (LOPROC <= value && value <= HIPROC) {
+  static constexpr auto LOOS = 0x60000000;
+  static constexpr auto HIOS = 0x6FFFFFFF;
+
+  const bool is_os_spec = (LOOS <= value && value <= HIOS);
+  const bool is_proc_spec = (LOPROC <= value && value <= HIPROC);
+
+  if (is_os_spec && arch == ARCH::IA_64) {
+    return TAG(IA_64_DISC + value);
+  }
+
+  if (is_proc_spec) {
     switch (arch) {
       case ARCH::AARCH64:
         return TAG(AARCH64_DISC + value);
@@ -51,9 +68,15 @@ DynamicEntry::TAG DynamicEntry::from_value(uint64_t value, ARCH arch) {
       case ARCH::RISCV:
         return TAG(RISCV_DISC + value);
 
+      case ARCH::X86_64:
+        return TAG(X86_64_DISC + value);
+
+      case ARCH::IA_64:
+        return TAG(IA_64_DISC + value);
+
       default:
         LIEF_WARN("Dynamic tag: 0x{:04x} is not supported for the "
-                  "current architecture", value);
+                  "current architecture ({})", value, ELF::to_string(arch));
         return TAG::UNKNOWN;
     }
   }
@@ -83,11 +106,50 @@ uint64_t DynamicEntry::to_value(DynamicEntry::TAG tag) {
     return raw_value - PPC64_DISC;
   }
 
-  if (RISCV_DISC <= raw_value) {
+  if (RISCV_DISC <= raw_value && raw_value < X86_64_DISC) {
     return raw_value - RISCV_DISC;
   }
 
+  if (X86_64_DISC <= raw_value) {
+    return raw_value - X86_64_DISC;
+  }
+
+  if (IA_64_DISC <= raw_value) {
+    return raw_value - IA_64_DISC;
+  }
+
   return raw_value;
+}
+
+
+std::unique_ptr<DynamicEntry> DynamicEntry::create(TAG tag, uint64_t value) {
+  switch (tag) {
+    default:
+      return std::make_unique<DynamicEntry>(tag, value);
+    case TAG::NEEDED:
+      return std::make_unique<DynamicEntryLibrary>();
+
+    case TAG::SONAME:
+      return std::make_unique<DynamicSharedObject>();
+
+    case TAG::RUNPATH:
+      return std::make_unique<DynamicEntryRunPath>();
+
+    case TAG::RPATH:
+      return std::make_unique<DynamicEntryRpath>();
+
+    case TAG::FLAGS_1:
+      return DynamicEntryFlags::create_dt_flag_1(value).clone();
+
+    case TAG::FLAGS:
+      return DynamicEntryFlags::create_dt_flag(value).clone();
+
+    case TAG::INIT_ARRAY:
+    case TAG::FINI_ARRAY:
+    case TAG::PREINIT_ARRAY:
+      return std::make_unique<DynamicEntryArray>(tag, DynamicEntryArray::array_t());
+  }
+  return std::make_unique<DynamicEntry>(tag, value);
 }
 
 DynamicEntry::DynamicEntry(const details::Elf64_Dyn& header, ARCH arch) :
@@ -105,15 +167,21 @@ void DynamicEntry::accept(Visitor& visitor) const {
 }
 
 std::ostream& DynamicEntry::print(std::ostream& os) const {
-  os << fmt::format("{:<20}: 0x{:06x} ", to_string(tag()), value());
+  os << fmt::format("{:<20}: 0x{:06x} ", ELF::to_string(tag()), value());
   return os;
+}
+
+std::string DynamicEntry::to_string() const {
+  std::ostringstream oss;
+  print(oss);
+  return oss.str();
 }
 
 const char* to_string(DynamicEntry::TAG tag) {
   #define ENTRY(X) std::pair(DynamicEntry::TAG::X, #X)
   STRING_MAP enums2str {
     ENTRY(UNKNOWN),
-    ENTRY(DT_NULL),
+    ENTRY(DT_NULL_),
     ENTRY(NEEDED),
     ENTRY(PLTRELSZ),
     ENTRY(PLTGOT),
@@ -237,6 +305,42 @@ const char* to_string(DynamicEntry::TAG tag) {
     ENTRY(PPC64_OPT),
 
     ENTRY(RISCV_VARIANT_CC),
+
+    ENTRY(X86_64_PLT),
+    ENTRY(X86_64_PLTSZ),
+    ENTRY(X86_64_PLTENT),
+
+    ENTRY(IA_64_PLT_RESERVE),
+    ENTRY(IA_64_VMS_SUBTYPE),
+    ENTRY(IA_64_VMS_IMGIOCNT),
+    ENTRY(IA_64_VMS_LNKFLAGS),
+    ENTRY(IA_64_VMS_VIR_MEM_BLK_SIZ),
+    ENTRY(IA_64_VMS_IDENT),
+    ENTRY(IA_64_VMS_NEEDED_IDENT),
+    ENTRY(IA_64_VMS_IMG_RELA_CNT),
+    ENTRY(IA_64_VMS_SEG_RELA_CNT),
+    ENTRY(IA_64_VMS_FIXUP_RELA_CNT),
+    ENTRY(IA_64_VMS_FIXUP_NEEDED),
+    ENTRY(IA_64_VMS_SYMVEC_CNT),
+    ENTRY(IA_64_VMS_XLATED),
+    ENTRY(IA_64_VMS_STACKSIZE),
+    ENTRY(IA_64_VMS_UNWINDSZ),
+    ENTRY(IA_64_VMS_UNWIND_CODSEG),
+    ENTRY(IA_64_VMS_UNWIND_INFOSEG),
+    ENTRY(IA_64_VMS_LINKTIME),
+    ENTRY(IA_64_VMS_SEG_NO),
+    ENTRY(IA_64_VMS_SYMVEC_OFFSET),
+    ENTRY(IA_64_VMS_SYMVEC_SEG),
+    ENTRY(IA_64_VMS_UNWIND_OFFSET),
+    ENTRY(IA_64_VMS_UNWIND_SEG),
+    ENTRY(IA_64_VMS_STRTAB_OFFSET),
+    ENTRY(IA_64_VMS_SYSVER_OFFSET),
+    ENTRY(IA_64_VMS_IMG_RELA_OFF),
+    ENTRY(IA_64_VMS_SEG_RELA_OFF),
+    ENTRY(IA_64_VMS_FIXUP_RELA_OFF),
+    ENTRY(IA_64_VMS_PLTGOT_OFFSET),
+    ENTRY(IA_64_VMS_PLTGOT_SEG),
+    ENTRY(IA_64_VMS_FPMODE),
   };
   #undef ENTRY
 

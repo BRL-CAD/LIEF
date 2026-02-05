@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  * Copyright 2017 - 2021, NVIDIA CORPORATION. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,17 +41,17 @@ class ObjectFileLayout;
 class Layout;
 class Relocation;
 
-//! Class which takes an ELF::Binary object and reconstructs a valid binary
-//!
-//! This interface assumes that the layout of input ELF binary is correct (i.e.
-//! the binary can run).
+/// Class which takes an ELF::Binary object and reconstructs a valid binary
+///
+/// This interface assumes that the layout of input ELF binary is correct (i.e.
+/// the binary can run).
 class LIEF_API Builder {
   friend class ObjectFileLayout;
   friend class Layout;
   friend class ExeLayout;
 
   public:
-  //! Configuration options to tweak the building process
+  /// Configuration options to tweak the building process
   struct config_t {
     bool dt_hash         = true;  /// Rebuild DT_HASH
     bool dyn_str         = true;  /// Rebuild DT_STRTAB
@@ -73,124 +73,126 @@ class LIEF_API Builder {
     bool symtab          = true;  /// Rebuild DT_SYMTAB
     bool coredump_notes  = true;  /// Rebuild the Coredump notes
     bool force_relocate  = false; /// Force to relocating all the ELF structures that are supported by LIEF (mostly for testing)
+    bool skip_dynamic    = false; /// Skip relocating the PT_DYNAMIC segment (only relevant if force_relocate is set)
+
+    /// Remove entries in `.gnu.version_r` if they are not associated with at
+    /// least one version
+    bool keep_empty_version_requirement = false;
   };
 
-  Builder(Binary& binary);
+  Builder(Binary& binary, const config_t& config);
+  Builder(Binary& binary) :
+    Builder(binary, config_t())
+  {}
 
   Builder() = delete;
   ~Builder();
 
-  //! Perform the build of the provided ELF binary
+  /// Perform the build of the provided ELF binary
   void build();
-
-  //! Tweak the ELF builder with the provided config parameter
-  Builder& set_config(config_t conf) {
-    config_ = conf;
-    return *this;
-  }
 
   config_t& config() {
     return config_;
   }
 
-  //! Return the built ELF binary as a byte vector
+  /// Return the built ELF binary as a byte vector
   const std::vector<uint8_t>& get_build();
 
-  //! Write the built ELF binary in the ``filename`` given in parameter
+  /// Write the built ELF binary in the ``filename`` given in parameter
   void write(const std::string& filename) const;
 
-  //! Write the built ELF binary in the stream ``os`` given in parameter
+  /// Write the built ELF binary in the stream ``os`` given in parameter
   void write(std::ostream& os) const;
 
   protected:
   template<typename ELF_T>
-  ok_error_t build();
+  LIEF_LOCAL ok_error_t build();
 
   template<typename ELF_T>
-  ok_error_t build_relocatable();
+  LIEF_LOCAL ok_error_t build_relocatable();
 
   template<typename ELF_T>
-  ok_error_t build_exe_lib();
+  LIEF_LOCAL ok_error_t build_exe_lib();
 
   template<typename ELF_T>
-  ok_error_t build(const Header& header);
+  LIEF_LOCAL ok_error_t build(const Header& header);
 
   template<typename ELF_T>
-  ok_error_t build_sections();
+  LIEF_LOCAL ok_error_t build_sections();
 
   template<typename ELF_T>
-  ok_error_t build_segments();
+  LIEF_LOCAL ok_error_t build_segments();
 
   template<typename ELF_T>
-  ok_error_t build_symtab_symbols();
+  LIEF_LOCAL ok_error_t build_symtab_symbols();
 
   template<typename ELF_T>
-  ok_error_t build_dynamic();
+  LIEF_LOCAL ok_error_t build_dynamic();
 
   template<typename ELF_T>
-  ok_error_t build_dynamic_section();
+  LIEF_LOCAL ok_error_t build_dynamic_section();
 
   template<typename ELF_T>
-  ok_error_t build_dynamic_symbols();
+  LIEF_LOCAL ok_error_t build_dynamic_symbols();
 
   template<typename ELF_T>
-  ok_error_t build_obj_symbols();
+  LIEF_LOCAL ok_error_t build_obj_symbols();
 
   template<typename ELF_T>
-  ok_error_t build_dynamic_relocations();
+  LIEF_LOCAL ok_error_t build_dynamic_relocations();
 
   template<typename ELF_T>
-  ok_error_t build_relative_relocations();
+  LIEF_LOCAL ok_error_t build_relative_relocations();
 
   template<typename ELF_T>
-  ok_error_t build_android_relocations();
+  LIEF_LOCAL ok_error_t build_android_relocations();
 
   template<typename ELF_T>
-  ok_error_t build_pltgot_relocations();
+  LIEF_LOCAL ok_error_t build_pltgot_relocations();
 
   template<typename ELF_T>
-  ok_error_t build_section_relocations();
+  LIEF_LOCAL ok_error_t build_section_relocations();
 
-  uint32_t sort_dynamic_symbols();
-
-  template<typename ELF_T>
-  ok_error_t build_hash_table();
+  LIEF_LOCAL uint32_t sort_dynamic_symbols();
 
   template<typename ELF_T>
-  ok_error_t build_symbol_hash();
-
-  ok_error_t build_empty_symbol_gnuhash();
+  LIEF_LOCAL ok_error_t build_hash_table();
 
   template<typename ELF_T>
-  ok_error_t build_symbol_requirement();
+  LIEF_LOCAL ok_error_t build_symbol_hash();
+
+  LIEF_LOCAL ok_error_t build_empty_symbol_gnuhash();
 
   template<typename ELF_T>
-  ok_error_t build_symbol_definition();
+  LIEF_LOCAL ok_error_t build_symbol_requirement();
 
   template<typename ELF_T>
-  ok_error_t build_symbol_version();
+  LIEF_LOCAL ok_error_t build_symbol_definition();
 
   template<typename ELF_T>
-  ok_error_t build_interpreter();
+  LIEF_LOCAL ok_error_t build_symbol_version();
 
   template<typename ELF_T>
-  ok_error_t build_notes();
-
-  ok_error_t update_note_section(const Note& note, std::set<const Note*>& notes);
+  LIEF_LOCAL ok_error_t build_interpreter();
 
   template<typename ELF_T>
-  ok_error_t build_overlay();
+  LIEF_LOCAL ok_error_t build_notes();
 
-  bool should_swap() const;
+  LIEF_LOCAL ok_error_t update_note_section(const Note& note, std::set<const Note*>& notes);
+
+  template<typename ELF_T>
+  LIEF_LOCAL ok_error_t build_overlay();
+
+  LIEF_LOCAL bool should_swap() const;
 
   template<class ELF_T>
-  ok_error_t process_object_relocations();
+  LIEF_LOCAL ok_error_t process_object_relocations();
 
-  bool should_build_notes() const;
+  LIEF_LOCAL bool should_build_notes() const;
 
   config_t config_;
   mutable vector_iostream ios_;
-  Binary* binary_{nullptr};
+  Binary* binary_ = nullptr;
   std::unique_ptr<Layout> layout_;
 };
 

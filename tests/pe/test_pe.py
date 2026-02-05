@@ -26,14 +26,14 @@ def test_remove_section(tmp_path):
     st = os.stat(output)
     os.chmod(output, st.st_mode | stat.S_IEXEC)
 
-    if ret := win_exec(output, gui = False):
+    if ret := win_exec(output, gui=False):
         ret_code, stdout = ret
         assert "Hello World" in stdout
 
 def test_unwind():
 
     path = get_sample("PE/PE64_x86-64_binary_cmd.exe")
-    sample = lief.parse(path)
+    sample = lief.PE.parse(path, lief.PE.ParserConfig.all)
 
     assert sample.original_size == Path(path).stat().st_size
 
@@ -80,3 +80,16 @@ def test_json(pe_file):
     assert out is not None
     assert len(out) > 0
     assert json.loads(out) is not None
+
+
+def test_resolve_function():
+    config = lief.PE.ParserConfig()
+    config.parse_arm64x_binary = True
+    pe = lief.PE.parse(get_sample("PE/win11_arm64x_Windows.Media.Protection.PlayReady.dll"), config)
+    assert pe is not None
+    assert pe.get_function_address("BootstrapReleaseUnusedResources") == 0x00155c70
+
+    assert pe.nested_pe_binary.get_function_address("BootstrapReleaseUnusedResources") == 0x00002000
+
+    pe = lief.PE.parse(get_sample("PE/PE32_x86_binary_winhello-mingw.exe"))
+    assert pe.get_function_address("WinMainCRTStartup") == 0x4c0

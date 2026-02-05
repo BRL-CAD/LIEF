@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ranges.h>
 #include "LIEF/Visitor.hpp"
 
 #include "frozen.hpp"
@@ -57,7 +58,7 @@ void BuildVersion::accept(Visitor& visitor) const {
 }
 
 std::ostream& BuildVersion::print(std::ostream& os) const {
-  LoadCommand::print(os);
+  LoadCommand::print(os) << '\n';
   os << fmt::format("Platform: {}", to_string(platform())) << '\n';
   os << fmt::format("Min OS:   {}", fmt::join(minos(), ".")) << '\n';
   os << fmt::format("SDK:      {}", fmt::join(sdk(), ".")) << '\n';
@@ -75,6 +76,28 @@ const char* to_string(BuildVersion::PLATFORMS e) {
     ENTRY(IOS),
     ENTRY(TVOS),
     ENTRY(WATCHOS),
+    ENTRY(BRIDGEOS),
+    ENTRY(MAC_CATALYST),
+    ENTRY(IOS_SIMULATOR),
+    ENTRY(TVOS_SIMULATOR),
+    ENTRY(WATCHOS_SIMULATOR),
+    ENTRY(DRIVERKIT),
+    ENTRY(VISIONOS),
+    ENTRY(VISIONOS_SIMULATOR),
+    ENTRY(FIRMWARE),
+    ENTRY(SEPOS),
+    ENTRY(MACOS_EXCLAVE_CORE),
+    ENTRY(MACOS_EXCLAVE_KIT),
+    ENTRY(IOS_EXCLAVE_CORE),
+    ENTRY(IOS_EXCLAVE_KIT),
+    ENTRY(TVOS_EXCLAVE_CORE),
+    ENTRY(TVOS_EXCLAVE_KIT),
+    ENTRY(WATCHOS_EXCLAVE_CORE),
+    ENTRY(WATCHOS_EXCLAVE_KIT),
+    ENTRY(VISIONOS_EXCLAVE_CORE),
+    ENTRY(VISIONOS_EXCLAVE_KIT),
+
+    ENTRY(ANY),
   };
   #undef ENTRY
 

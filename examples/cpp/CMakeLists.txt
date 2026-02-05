@@ -1,10 +1,13 @@
 set(LIEF_CPP_EXAMPLES
   logging.cpp
+  disassembler.cpp
   abstract_reader.cpp
   benchmark.cpp
   dwarf_inspect.cpp
   pdb_inspect.cpp
   objc_inspect.cpp
+  dyld_shared_cache_reader.cpp
+  dwarf_editor.cpp
 )
 
 if (LIEF_ELF)
@@ -112,7 +115,7 @@ endforeach()
 if (LIEF_INSTALL)
   install(
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-    DESTINATION share/LIEF/examples/cpp
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/LIEF/examples/cpp
     COMPONENT examples
     FILES_MATCHING REGEX "(.*).(hpp|h|cpp)$"
   )

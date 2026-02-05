@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ void create<CoreAuxv>(nb::module_& m) {
   #define PY_ENUM(X) .value(LIEF::ELF::to_string(CoreAuxv::TYPE::X), CoreAuxv::TYPE::X)
   LIEF::enum_<CoreAuxv::TYPE>(cls, "TYPE")
     PY_ENUM(END)
-    PY_ENUM(IGNORE)
+    PY_ENUM(IGNORE_TY)
     PY_ENUM(EXECFD)
     PY_ENUM(PHDR)
     PY_ENUM(PHENT)

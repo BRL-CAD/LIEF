@@ -1,3 +1,17 @@
+//! Module for the PE file format support in LIEF.
+//!
+//! The [`Binary`] structure exposes the main API to inspect a PE file. It can be instantiated,
+//! using either: [`crate::pe::parse`], [`crate::pe::Binary::parse`] or [`crate::Binary::parse`]
+//!
+//! ```
+//! let pe = lief::pe::parse("demo.exe").unwrap();
+//! for section in pe.sections() {
+//!     println!("section: {}", section.name());
+//! }
+//! ```
+
+use std::path::Path;
+
 pub mod binary;
 pub mod data_directory;
 pub mod debug;
@@ -13,6 +27,17 @@ pub mod section;
 pub mod signature;
 pub mod tls;
 pub mod code_integrity;
+pub mod builder;
+pub mod exception;
+pub mod exception_x64;
+pub mod exception_aarch64;
+pub mod chpe_metadata_arm64;
+pub mod chpe_metadata_x86;
+pub mod dynamic_relocation;
+pub mod dynamic_fixups;
+pub mod enclave_configuration;
+pub mod volatile_metadata;
+pub mod parser_config;
 
 #[doc(inline)]
 pub use binary::Binary;
@@ -40,6 +65,20 @@ pub use tls::TLS;
 pub use import::Import;
 #[doc(inline)]
 pub use signature::Signature;
+#[doc(inline)]
+pub use exception::{RuntimeExceptionFunction, ExceptionInfo};
+#[doc(inline)]
+pub use load_configuration::{LoadConfiguration, CHPEMetadata};
+#[doc(inline)]
+pub use dynamic_relocation::DynamicRelocation;
+#[doc(inline)]
+pub use dynamic_fixups::DynamicFixup;
+#[doc(inline)]
+pub use enclave_configuration::{EnclaveConfiguration, EnclaveImport};
+#[doc(inline)]
+pub use volatile_metadata::VolatileMetadata;
+#[doc(inline)]
+pub use parser_config::Config as ParserConfig;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -121,4 +160,14 @@ impl From<Algorithms> for u32 {
 
         }
     }
+}
+
+/// Parse a PE file from the given file path
+pub fn parse<P: AsRef<Path>>(path: P) -> Option<Binary> {
+    Binary::parse(path)
+}
+
+/// Parse a PE file from the given file path and configuration
+pub fn parse_with_config<P: AsRef<Path>>(path: P, config: &ParserConfig) -> Option<Binary> {
+    Binary::parse_with_config(path, config)
 }

@@ -1,5 +1,5 @@
 /* opyright 2017 - 2023 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@
 #include "ELF/pyELF.hpp"
 #include "pyErr.hpp"
 #include "pyIterator.hpp"
-#include "nanobind/extra/memoryview.hpp"
+#include "nanobind/extra/stl/lief_span.h"
 
 #include "enums_wrapper.hpp"
 
@@ -47,7 +47,7 @@ void create<Segment>(nb::module_& m) {
 
   #define ENTRY(X) .value(to_string(Segment::TYPE::X), Segment::TYPE::X)
   enum_<Segment::TYPE>(seg, "TYPE")
-    ENTRY(PT_NULL)
+    ENTRY(PT_NULL_)
     ENTRY(LOAD)
     ENTRY(DYNAMIC)
     ENTRY(INTERP)
@@ -59,6 +59,7 @@ void create<Segment>(nb::module_& m) {
     ENTRY(GNU_STACK)
     ENTRY(GNU_PROPERTY)
     ENTRY(GNU_RELRO)
+    ENTRY(PAX_FLAGS)
     ENTRY(ARM_ARCHEXT)
     ENTRY(ARM_EXIDX)
     ENTRY(AARCH64_MEMTAG_MTE)
@@ -67,11 +68,29 @@ void create<Segment>(nb::module_& m) {
     ENTRY(MIPS_OPTIONS)
     ENTRY(MIPS_ABIFLAGS)
     ENTRY(RISCV_ATTRIBUTES)
+    ENTRY(IA_64_EXT)
+    ENTRY(IA_64_UNWIND)
+    ENTRY(HP_TLS)
+    ENTRY(HP_CORE_NONE)
+    ENTRY(HP_CORE_VERSION)
+    ENTRY(HP_CORE_KERNEL)
+    ENTRY(HP_CORE_COMM)
+    ENTRY(HP_CORE_PROC)
+    ENTRY(HP_CORE_LOADABLE)
+    ENTRY(HP_CORE_STACK)
+    ENTRY(HP_CORE_SHM)
+    ENTRY(HP_CORE_MMF)
+    ENTRY(HP_PARALLEL)
+    ENTRY(HP_FASTBIND)
+    ENTRY(HP_OPT_ANNOT)
+    ENTRY(HP_HSL_ANNOT)
+    ENTRY(HP_STACK)
+    ENTRY(HP_CORE_UTSNAME)
   ;
   #undef ENTRY
 
   #define ENTRY(X) .value(to_string(Segment::FLAGS::X), Segment::FLAGS::X)
-  enum_<Segment::FLAGS>(seg, "FLAGS", nb::is_arithmetic())
+  enum_<Segment::FLAGS>(seg, "FLAGS", nb::is_flag())
     ENTRY(R)
     ENTRY(W)
     ENTRY(X)
@@ -94,9 +113,14 @@ void create<Segment>(nb::module_& m) {
         "Segment's type"_doc)
 
     .def_prop_rw("flags",
-        nb::overload_cast<>(&Segment::flags, nb::const_),
+        [] (const Segment& S) { return (Segment::FLAGS)((uint32_t)S.flags() & 7); },
         nb::overload_cast<Segment::FLAGS>(&Segment::flags),
         "The flag permissions associated with this segment"_doc)
+
+    .def_prop_rw("raw_flags",
+        [] (const Segment& S) { return (uint32_t)S.flags(); },
+        nb::overload_cast<uint32_t>(&Segment::flags),
+        "The flag permissions as an integer"_doc)
 
     .def_prop_rw("file_offset",
         nb::overload_cast<>(&Segment::file_offset, nb::const_),
@@ -149,10 +173,7 @@ void create<Segment>(nb::module_& m) {
         "The offset alignment of the segment"_doc)
 
     .def_prop_rw("content",
-        [] (const Segment& self) {
-          const span<const uint8_t> content = self.content();
-          return nb::memoryview::from_memory(content.data(), content.size());
-        },
+        nb::overload_cast<>(&Segment::content, nb::const_),
         nb::overload_cast<std::vector<uint8_t>>(&Segment::content),
         "The raw data associated with this segment."_doc)
 
@@ -180,6 +201,13 @@ void create<Segment>(nb::module_& m) {
         "Check if the given " RST_CLASS_REF(lief.ELF.Section) " 's name is present "
         "in :attr:`~lief.ELF.Segment.sections`"_doc,
         "section_name"_a)
+
+    .def("clear", &Segment::clear, "Clear the content of this segment"_doc)
+
+    .def("fill", &Segment::fill,
+      "value"_a,
+      "Fill the content of this segment with the value provided in parameter"_doc
+    )
 
     .def_prop_ro("sections",
       nb::overload_cast<>(&Segment::sections),

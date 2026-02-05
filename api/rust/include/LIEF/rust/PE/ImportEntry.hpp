@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,11 @@ class PE_ImportEntry : public AbstractSymbol {
   uint64_t hint_name_rva() const { return impl().hint_name_rva(); }
   uint16_t hint() const { return impl().hint(); }
   uint64_t iat_value() const { return impl().iat_value(); }
+  auto ilt_value() const { return impl().ilt_value(); }
   uint64_t data() const { return impl().data(); }
   uint64_t iat_address() const { return impl().iat_address(); }
+
+  auto demangled_name() const { return impl().demangled_name(); }
 
   private:
   const lief_t& impl() const { return as<lief_t>(this); }

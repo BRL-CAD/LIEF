@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,8 @@ void create<Relocation>(nb::module_& m) {
     .def("add_entry",
         &Relocation::add_entry,
         "Add a new " RST_CLASS_REF(lief.PE.RelocationEntry) ""_doc,
-        "new_entry"_a)
+        "new_entry"_a,
+        nb::rv_policy::reference_internal)
 
     LIEF_COPYABLE(Relocation)
     LIEF_DEFAULT_STR(Relocation);

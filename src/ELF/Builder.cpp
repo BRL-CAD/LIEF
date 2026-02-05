@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,9 @@ namespace ELF {
 
 Builder::~Builder() = default;
 
-Builder::Builder(Binary& binary) :
-  binary_{&binary},
-  layout_{nullptr}
+Builder::Builder(Binary& binary, const config_t& config) :
+  config_{config},
+  binary_{&binary}
 {
   const Header::FILE_TYPE type = binary.header().file_type();
   switch (type) {
@@ -47,13 +47,13 @@ Builder::Builder(Binary& binary) :
     case Header::FILE_TYPE::DYN:
     case Header::FILE_TYPE::EXEC:
       {
-        layout_ = std::make_unique<ExeLayout>(binary);
+        layout_ = std::make_unique<ExeLayout>(binary, should_swap(), config_);
         break;
       }
 
     case Header::FILE_TYPE::REL:
       {
-        layout_ = std::make_unique<ObjectFileLayout>(binary);
+        layout_ = std::make_unique<ObjectFileLayout>(binary, should_swap(), config_);
         break;
       }
 
@@ -69,12 +69,12 @@ Builder::Builder(Binary& binary) :
 
 
 bool Builder::should_swap() const {
-  switch (binary_->header().abstract_endianness()) {
+  switch (binary_->get_abstract_header().endianness()) {
 #ifdef __BYTE_ORDER__
 #if  defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-    case ENDIANNESS::ENDIAN_BIG:
+    case LIEF::Header::ENDIANNESS::BIG:
 #elif defined(__ORDER_BIG_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-    case ENDIANNESS::ENDIAN_LITTLE:
+    case LIEF::Header::ENDIANNESS::LITTLE:
 #endif
       return true;
 #endif // __BYTE_ORDER__
@@ -86,6 +86,12 @@ bool Builder::should_swap() const {
 
 
 void Builder::build() {
+  const Header::CLASS elf_class = binary_->type();
+  if (elf_class != Header::CLASS::ELF32 && elf_class != Header::CLASS::ELF64) {
+    LIEF_ERR("Invalid ELF class");
+    return;
+  }
+
   auto res = binary_->type() == Header::CLASS::ELF32 ?
              build<details::ELF32>() : build<details::ELF64>();
   if (!res) {
@@ -162,16 +168,16 @@ ok_error_t Builder::build_empty_symbol_gnuhash() {
   const uint32_t symndx     = 1; // 0 is reserved
 
   // nb_buckets
-  content.write_conv<uint32_t>(nb_buckets);
+  content.write<uint32_t>(nb_buckets);
 
   // symndx
-  content.write_conv<uint32_t>(symndx);
+  content.write<uint32_t>(symndx);
 
   // maskwords
-  content.write_conv<uint32_t>(maskwords);
+  content.write<uint32_t>(maskwords);
 
   // shift2
-  content.write_conv<uint32_t>(shift2);
+  content.write<uint32_t>(shift2);
 
   // fill with 0
   content.align(gnu_hash_section->size(), 0);

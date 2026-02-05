@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,8 @@ hashstream& hashstream::flush() {
 }
 
 hashstream::~hashstream() {
-  mbedtls_md_free(cast(this->ctx_));
+  mbedtls_md_free(cast(ctx_));
+  delete reinterpret_cast<mbedtls_md_context_t*>(ctx_.release());
 }
 
 

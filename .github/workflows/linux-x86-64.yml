@@ -43,6 +43,7 @@ jobs:
         run: |
           mkdir -p ${BUILD_DIR_STATIC}
           cmake -S $GITHUB_WORKSPACE -B ${BUILD_DIR_STATIC} -GNinja \
+                -DCMAKE_INSTALL_LIBDIR="lib"                 \
                 -DCMAKE_LINK_WHAT_YOU_USE=on                  \
                 -DBUILD_SHARED_LIBS=off                       \
                 -DLIEF_INSTALL_COMPILED_EXAMPLES=on           \
@@ -57,6 +58,7 @@ jobs:
         run: |
           mkdir -p ${BUILD_DIR_SHARED}
           cmake -S $GITHUB_WORKSPACE -B ${BUILD_DIR_SHARED} -GNinja \
+                -DCMAKE_INSTALL_LIBDIR="lib"                 \
                 -DCMAKE_LINK_WHAT_YOU_USE=on                 \
                 -DBUILD_SHARED_LIBS=on                       \
                 -DLIEF_INSTALL_COMPILED_EXAMPLES=off         \
@@ -86,7 +88,7 @@ jobs:
     container:
       image: liefproject/manylinux_2_28_x86_64
       env:
-        PYTHON_BINARY: "/opt/python/cp38-cp38/bin/python3.8"
+        PYTHON_BINARY: "/opt/python/cp312-cp312/bin/python3.12"
         LIEF_SAMPLES_DIR: "/tmp/samples"
         LIEF_BUILD_DIR: "/tmp/lief-build"
         LIEF_VENV: "/tmp/venv"
@@ -184,7 +186,7 @@ jobs:
       options: --user 1001:1001
     strategy:
       matrix:
-        python-version: [3.8, 3.9, '3.10', '3.11', '3.12', '3.13']
+        python-version: [3.9, '3.10', '3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
         with:
@@ -237,7 +239,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     if: ${{ always() }}
-    needs: [linux-sdk, pywheels]
+    needs: [pywheels]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -267,20 +269,4 @@ jobs:
             -e LIEF_S3_KEY=$LIEF_S3_KEY                       \
             -e LIEF_S3_SECRET=$LIEF_S3_SECRET                 \
             liefproject/deploy                                \
-            python3 /src/.github/deploy.py /runner_tmp/artifacts
-  documentation:
-    needs: [deploy]
-    runs-on: ubuntu-latest
-    container:
-      image: liefproject/manylinux_2_28_x86_64
-      env:
-        CIRCLE_CI_URL: "https://circleci.com/api/v2/project/gh/lief-project/doc/pipeline"
-        CIRCLE_CI_TOKEN: ${{ secrets.CIRCLE_CI_TOKEN }}
-    steps:
-      - name: Trigger documentation
-        if: github.ref == 'refs/heads/main'
-        run: |
-          curl --request POST --url ${CIRCLE_CI_URL}       \
-               --header "Circle-Token: ${CIRCLE_CI_TOKEN}" \
-               --header 'content-type: application/json'   \
-               --data '{"parameters":{"lief-branch":"main"}}'
+            python3 /src/.github/deploy.py --skip-sdk /runner_tmp/artifacts

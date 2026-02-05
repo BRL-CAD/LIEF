@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,17 +101,6 @@ TEST_CASE("lief.test.pe", "[lief][test][pe]") {
     std::string path = test::get_sample("PE", "PE64_x86-64_binary_mfc-application.exe");
     std::unique_ptr<LIEF::Binary> pe = LIEF::Parser::parse(path);
     REQUIRE(LIEF::PE::Binary::classof(pe.get()));
-  }
-
-  SECTION("load_configuration.cast") {
-    std::string path = test::get_sample("PE", "PE64_x86-64_binary_WinApp.exe");
-    std::unique_ptr<LIEF::PE::Binary> pe = LIEF::PE::Parser::parse(path);
-    const LIEF::PE::LoadConfiguration* lc = pe->load_configuration();
-    REQUIRE(LIEF::PE::LoadConfigurationV6::classof(lc));
-    REQUIRE(lc->version() == LIEF::PE::LoadConfigurationV6::WIN_VERSION);
-    REQUIRE(LIEF::PE::LoadConfigurationV10::WIN_VERSION > LIEF::PE::LoadConfigurationV6::WIN_VERSION);
-    REQUIRE(LIEF::PE::LoadConfiguration::cast<LIEF::PE::LoadConfigurationV11>(lc) == nullptr);
-    REQUIRE(LIEF::PE::LoadConfiguration::cast<LIEF::PE::LoadConfigurationV4>(lc) != nullptr);
   }
 }
 

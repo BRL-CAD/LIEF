@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,15 +27,17 @@ namespace LIEF {
 namespace MachO {
 class Builder;
 class BinaryParser;
+class Binary;
 
 namespace details {
 struct load_command;
 }
 
-//! Based class for the Mach-O load commands
+/// Based class for the Mach-O load commands
 class LIEF_API LoadCommand : public Object {
   friend class Builder;
   friend class BinaryParser;
+  friend class Binary;
   public:
   using raw_t = std::vector<uint8_t>;
 
@@ -95,6 +97,10 @@ class LIEF_API LoadCommand : public Object {
     DYLD_EXPORTS_TRIE        = 0x80000033u,
     DYLD_CHAINED_FIXUPS      = 0x80000034u,
     FILESET_ENTRY            = 0x80000035u,
+    ATOM_INFO                = 0x00000036u,
+    FUNCTION_VARIANTS        = 0x00000037u,
+    FUNCTION_VARIANT_FIXUPS  = 0x00000038u,
+    TARGET_TRIPLE            = 0x00000039u,
 
     LIEF_UNKNOWN             = 0xffee0001u
   };
@@ -118,22 +124,22 @@ class LIEF_API LoadCommand : public Object {
 
   ~LoadCommand() override = default;
 
-  //! Command type
+  /// Command type
   LoadCommand::TYPE command() const {
     return command_;
   }
 
-  //! Size of the command (should be greather than ``sizeof(load_command)``)
+  /// Size of the command (should be greather than ``sizeof(load_command)``)
   uint32_t size() const {
     return size_;
   }
 
-  //! Raw command
+  /// Raw command
   span<const uint8_t> data() const {
     return original_data_;
   }
 
-  //! Offset of the command within the *Load Command Table*
+  /// Offset of the command within the *Load Command Table*
   uint64_t command_offset() const {
     return command_offset_;
   }
@@ -160,6 +166,22 @@ class LIEF_API LoadCommand : public Object {
 
   static bool is_linkedit_data(const LoadCommand& cmd);
 
+  template<class T>
+  const T* cast() const {
+    static_assert(std::is_base_of<LoadCommand, T>::value,
+                  "Require LoadCommand inheritance");
+    if (T::classof(this)) {
+      return static_cast<const T*>(this);
+    }
+    return nullptr;
+  }
+
+  template<class T>
+  T* cast() {
+    return const_cast<T*>(static_cast<const LoadCommand*>(this)->cast<T>());
+  }
+
+
   LIEF_API friend
   std::ostream& operator<<(std::ostream& os, const LoadCommand& cmd) {
     return cmd.print(os);
@@ -172,7 +194,7 @@ class LIEF_API LoadCommand : public Object {
   uint64_t command_offset_ = 0;
 };
 
-const char* to_string(LoadCommand::TYPE type);
+LIEF_API const char* to_string(LoadCommand::TYPE type);
 
 }
 }

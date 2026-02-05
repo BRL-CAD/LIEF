@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 #include "LIEF/PE/DataDirectory.hpp"
 #include "LIEF/rust/PE/Section.hpp"
 #include "LIEF/rust/Mirror.hpp"
+#include "LIEF/rust/Span.hpp"
 
 class PE_DataDirectory : private Mirror<LIEF::PE::DataDirectory> {
   public:
@@ -25,6 +26,8 @@ class PE_DataDirectory : private Mirror<LIEF::PE::DataDirectory> {
   uint32_t RVA() const { return get().RVA(); }
   uint32_t size() const { return get().size(); }
   uint32_t get_type() const { return to_int(get().type()); }
+
+  Span content() const { return make_span(get().content()); }
 
   auto section() const {
     return details::try_unique<PE_Section>(get().section());

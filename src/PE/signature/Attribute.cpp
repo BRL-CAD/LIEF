@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,6 @@ namespace PE {
 
 void Attribute::accept(Visitor& visitor) const {
   visitor.visit(*this);
-}
-
-std::ostream& operator<<(std::ostream& os, const Attribute& attribute) {
-  os << attribute.print();
-  return os;
 }
 
 const char* to_string(Attribute::TYPE e) {

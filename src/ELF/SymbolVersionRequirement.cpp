@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,38 @@ void SymbolVersionRequirement::swap(SymbolVersionRequirement& other) {
 SymbolVersionAuxRequirement& SymbolVersionRequirement::add_aux_requirement(const SymbolVersionAuxRequirement& aux_requirement) {
   aux_requirements_.push_back(std::make_unique<SymbolVersionAuxRequirement>(aux_requirement));
   return *aux_requirements_.back();
+}
+
+
+bool SymbolVersionRequirement::remove_aux_requirement(SymbolVersionAuxRequirement& aux) {
+  auto it = std::find_if(aux_requirements_.begin(), aux_requirements_.end(),
+      [&aux] (const std::unique_ptr<SymbolVersionAuxRequirement>& element) {
+        return &aux == element.get();
+      }
+  );
+
+  if (it == aux_requirements_.end()) {
+    return false;
+  }
+
+  aux_requirements_.erase(it);
+  return true;
+}
+
+const SymbolVersionAuxRequirement*
+  SymbolVersionRequirement::find_aux(const std::string& name) const
+{
+  auto it = std::find_if(aux_requirements_.begin(), aux_requirements_.end(),
+      [&name] (const std::unique_ptr<SymbolVersionAuxRequirement>& aux) {
+        return aux->name() == name;
+      }
+  );
+
+  if (it == aux_requirements_.end()) {
+    return nullptr;
+  }
+
+  return it->get();
 }
 
 void SymbolVersionRequirement::accept(Visitor& visitor) const {

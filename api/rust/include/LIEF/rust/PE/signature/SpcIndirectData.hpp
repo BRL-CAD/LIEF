@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,10 @@ class PE_SpcIndirectData : public PE_ContentInfo_Content {
 
   std::string file() const {
     return impl().file();
+  }
+
+  std::string url() const {
+    return impl().url();
   }
 
   static bool classof(const PE_ContentInfo_Content& info) {

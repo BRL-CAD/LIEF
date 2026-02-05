@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 struct Pe_ImportEntry_t {
-  bool        is_ordinal;
+  uint8_t     is_ordinal;
   const char* name;
   uint16_t    ordinal;
   uint64_t    hint_name_rva;

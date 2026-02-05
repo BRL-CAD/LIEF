@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2024 R. Thomas
+/* Copyright 2022 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ class LIEF_API Base : public Type {
     return type->kind() == Type::KIND::BASE;
   }
 
-  /// Describe how the the base type is encoded and should be interpreted
+  /// Describe how the base type is encoded and should be interpreted
   ENCODING encoding() const;
 
   ~Base() override;

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,25 @@
 #include <string>
 #include <sstream>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
 
 #include "LIEF/MachO/DyldInfo.hpp"
 #include "LIEF/MachO/ExportInfo.hpp"
 #include "LIEF/MachO/DyldBindingInfo.hpp"
 
 #include "pyIterator.hpp"
-#include "nanobind/extra/memoryview.hpp"
+#include "nanobind/extra/stl/lief_span.h"
 
 #include "MachO/pyMachO.hpp"
 #include "enums_wrapper.hpp"
 
 namespace LIEF::MachO::py {
+
+// (rtti)Trick to avoid duplication clash with DyldExportsTrie::it_export_info
+class dyldinfo_it_export_info : public DyldInfo::it_export_info {
+  public:
+  using DyldInfo::it_export_info::it_export_info;
+};
 
 template<>
 void create<DyldInfo>(nb::module_& m) {
@@ -76,17 +83,14 @@ void create<DyldInfo>(nb::module_& m) {
     .value(PY_ENUM(DyldInfo::BIND_OPCODES::DO_BIND_ADD_ADDR_ULEB))
     .value(PY_ENUM(DyldInfo::BIND_OPCODES::DO_BIND_ADD_ADDR_IMM_SCALED))
     .value(PY_ENUM(DyldInfo::BIND_OPCODES::DO_BIND_ULEB_TIMES_SKIPPING_ULEB))
-    .value(PY_ENUM(DyldInfo::BIND_OPCODES::THREADED))
+    /* .value(PY_ENUM(DyldInfo::BIND_OPCODES::THREADED)) */
     .value(PY_ENUM(DyldInfo::BIND_OPCODES::THREADED_APPLY))
     .value(PY_ENUM(DyldInfo::BIND_OPCODES::THREADED_SET_BIND_ORDINAL_TABLE_SIZE_ULEB))
   #undef PY_ENUM
   ;
 
   init_ref_iterator<DyldInfo::it_binding_info>(dyld, "it_binding_info");
-
-  try {
-    init_ref_iterator<DyldInfo::it_export_info>(dyld, "it_export_info");
-  } catch (const std::runtime_error&) { }
+  init_ref_iterator<dyldinfo_it_export_info>(dyld, "it_export_info");
 
   dyld
     .def_prop_rw("rebase",
@@ -111,10 +115,7 @@ void create<DyldInfo>(nb::module_& m) {
         )delim"_doc)
 
     .def_prop_rw("rebase_opcodes",
-        [] (const DyldInfo& self) {
-          const span<const uint8_t> content = self.rebase_opcodes();
-          return nb::memoryview::from_memory(content.data(), content.size());
-        },
+        nb::overload_cast<>(&DyldInfo::rebase_opcodes, nb::const_),
         nb::overload_cast<buffer_t>(&DyldInfo::rebase_opcodes),
         "Return the rebase's opcodes as ``list`` of bytes"_doc)
 
@@ -143,10 +144,7 @@ void create<DyldInfo>(nb::module_& m) {
         )delim"_doc)
 
     .def_prop_rw("bind_opcodes",
-        [] (const DyldInfo& self) {
-          const span<const uint8_t> content = self.bind_opcodes();
-          return nb::memoryview::from_memory(content.data(), content.size());
-        },
+        nb::overload_cast<>(&DyldInfo::bind_opcodes, nb::const_),
         nb::overload_cast<buffer_t>(&DyldInfo::bind_opcodes),
         "Return the binding's opcodes as ``list`` of bytes"_doc)
 
@@ -180,10 +178,7 @@ void create<DyldInfo>(nb::module_& m) {
         )delim"_doc)
 
     .def_prop_rw("weak_bind_opcodes",
-        [] (const DyldInfo& self) {
-          const span<const uint8_t> content = self.weak_bind_opcodes();
-          return nb::memoryview::from_memory(content.data(), content.size());
-        },
+        nb::overload_cast<>(&DyldInfo::weak_bind_opcodes, nb::const_),
         nb::overload_cast<buffer_t>(&DyldInfo::weak_bind_opcodes),
         "Return **Weak** binding's opcodes as ``list`` of bytes"_doc)
 
@@ -212,10 +207,7 @@ void create<DyldInfo>(nb::module_& m) {
         )delim"_doc)
 
     .def_prop_rw("lazy_bind_opcodes",
-        [] (const DyldInfo& self) {
-          const span<const uint8_t> content = self.lazy_bind_opcodes();
-          return nb::memoryview::from_memory(content.data(), content.size());
-        },
+        nb::overload_cast<>(&DyldInfo::lazy_bind_opcodes, nb::const_),
         nb::overload_cast<buffer_t>(&DyldInfo::lazy_bind_opcodes),
         "Return **lazy** binding's opcodes as ``list`` of bytes"_doc)
 
@@ -265,10 +257,7 @@ void create<DyldInfo>(nb::module_& m) {
         )delim"_doc)
 
     .def_prop_rw("export_trie",
-        [] (const DyldInfo& self) {
-          const span<const uint8_t> content = self.export_trie();
-          return nb::memoryview::from_memory(content.data(), content.size());
-        },
+        nb::overload_cast<>(&DyldInfo::export_trie, nb::const_),
         nb::overload_cast<buffer_t>(&DyldInfo::export_trie),
         "Return Export's trie as ``list`` of bytes"_doc)
 

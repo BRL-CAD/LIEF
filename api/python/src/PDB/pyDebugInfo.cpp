@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "LIEF/Abstract/DebugInfo.hpp"
 #include "LIEF/PDB/DebugInfo.hpp"
 #include "PDB/pyPDB.hpp"
@@ -5,6 +7,7 @@
 #include <nanobind/make_iterator.h>
 #include <nanobind/stl/unique_ptr.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/extra/stl/pathlike.h>
 
 namespace LIEF::pdb::py {
 template<>
@@ -24,7 +27,8 @@ void create<pdb::DebugInfo>(nb::module_& m) {
     .def_prop_ro("guid", &pdb::DebugInfo::guid,
                  "Unique identifier of the PDB file."_doc)
 
-    .def_static("from_file", &pdb::DebugInfo::from_file,
+    .def_static("from_file",
+      [] (nb::PathLike path) { return pdb::DebugInfo::from_file(path); },
       R"doc(
       Instantiate this class from the given PDB file. It returns ``None``
       if the PDB can't be processed.
@@ -52,7 +56,7 @@ void create<pdb::DebugInfo>(nb::module_& m) {
     .def_prop_ro("public_symbols",
       [] (pdb::DebugInfo& self) {
         auto symbols = self.public_symbols();
-        return nb::make_iterator(
+        return nb::make_iterator<nb::rv_policy::reference_internal>(
             nb::type<pdb::DebugInfo>(), "public_symbols_it", symbols);
       },
       R"doc(
@@ -62,7 +66,7 @@ void create<pdb::DebugInfo>(nb::module_& m) {
     .def_prop_ro("compilation_units",
       [] (pdb::DebugInfo& self) {
         auto units = self.compilation_units();
-        return nb::make_iterator(
+        return nb::make_iterator<nb::rv_policy::reference_internal>(
             nb::type<pdb::DebugInfo>(), "compilation_units_it", units);
       },
       R"doc(
@@ -73,13 +77,14 @@ void create<pdb::DebugInfo>(nb::module_& m) {
     .def_prop_ro("types",
       [] (pdb::DebugInfo& self) {
         auto types = self.types();
-        return nb::make_iterator(
+        return nb::make_iterator<nb::rv_policy::reference_internal>(
             nb::type<pdb::DebugInfo>(), "types_it", types);
       },
       R"doc(
       Return an iterator over the different types registered in this PDB file
       )doc"_doc, nb::keep_alive<0, 1>())
-  ;
+
+    LIEF_DEFAULT_STR(DebugInfo);
 }
 
 }

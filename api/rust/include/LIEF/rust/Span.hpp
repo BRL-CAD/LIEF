@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  */
 #pragma once
 #include "LIEF/span.hpp"
+#include <vector>
 
 class Span {
   public:
@@ -27,4 +28,22 @@ inline Span make_span(LIEF::span<uint8_t> content) {
 
 inline Span make_span(LIEF::span<const uint8_t> content) {
   return Span{const_cast<uint8_t*>(content.data()), content.size()};
+}
+
+
+inline Span make_span(LIEF::span<char> content) {
+  return Span{reinterpret_cast<uint8_t*>(content.data()), content.size()};
+}
+
+inline Span make_span(LIEF::span<const char> content) {
+  return Span{reinterpret_cast<uint8_t*>(const_cast<char*>(content.data())), content.size()};
+}
+
+inline Span make_span(const std::vector<uint8_t>& content) {
+  return Span{const_cast<uint8_t*>(content.data()), content.size()};
+}
+
+template<size_t N>
+inline Span make_span(const std::array<uint8_t, N>& array) {
+  return Span{const_cast<uint8_t*>(array.data()), N};
 }

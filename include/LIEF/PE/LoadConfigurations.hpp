@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,10 @@
 #ifndef LIEF_PE_LOAD_CONFIGURATIONS_H
 #define LIEF_PE_LOAD_CONFIGURATIONS_H
 
-#include "LIEF/PE/LoadConfigurations/LoadConfigurationV11.hpp"
-#include "LIEF/PE/LoadConfigurations/LoadConfigurationV10.hpp"
-#include "LIEF/PE/LoadConfigurations/LoadConfigurationV9.hpp"
-#include "LIEF/PE/LoadConfigurations/LoadConfigurationV8.hpp"
-#include "LIEF/PE/LoadConfigurations/LoadConfigurationV7.hpp"
-#include "LIEF/PE/LoadConfigurations/LoadConfigurationV6.hpp"
-#include "LIEF/PE/LoadConfigurations/LoadConfigurationV5.hpp"
-#include "LIEF/PE/LoadConfigurations/LoadConfigurationV4.hpp"
-#include "LIEF/PE/LoadConfigurations/LoadConfigurationV3.hpp"
-#include "LIEF/PE/LoadConfigurations/LoadConfigurationV2.hpp"
-#include "LIEF/PE/LoadConfigurations/LoadConfigurationV1.hpp"
-#include "LIEF/PE/LoadConfigurations/LoadConfigurationV0.hpp"
 #include "LIEF/PE/LoadConfigurations/LoadConfiguration.hpp"
+#include "LIEF/PE/LoadConfigurations/CHPEMetadata.hpp"
+#include "LIEF/PE/LoadConfigurations/DynamicRelocation.hpp"
+#include "LIEF/PE/LoadConfigurations/EnclaveConfiguration.hpp"
+#include "LIEF/PE/LoadConfigurations/VolatileMetadata.hpp"
 
 #endif

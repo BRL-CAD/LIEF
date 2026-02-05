@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,6 +86,10 @@ std::unique_ptr<FatBinary> Parser::parse(const std::vector<uint8_t>& data,
 
 std::unique_ptr<FatBinary> Parser::parse(std::unique_ptr<BinaryStream> stream,
                                          const ParserConfig& conf) {
+  if (stream == nullptr) {
+    return nullptr;
+  }
+
   {
     ScopedStream scoped(*stream, 0);
     if (!is_macho(*stream)) {
@@ -135,7 +139,7 @@ std::unique_ptr<FatBinary> Parser::parse_from_memory(uintptr_t address, const Pa
 }
 
 ok_error_t Parser::build_fat() {
-  static constexpr size_t MAX_FAT_ARCH = 10;
+  static constexpr size_t MAX_FAT_ARCH = 30;
   stream_->setpos(0);
   const auto header = stream_->read<details::fat_header>();
   if (!header) {
@@ -143,7 +147,7 @@ ok_error_t Parser::build_fat() {
     return make_error_code(lief_errors::read_error);
   }
   uint32_t nb_arch = Swap4Bytes(header->nfat_arch);
-  LIEF_DEBUG("In this Fat binary there is #{:d} archs", nb_arch);
+  LIEF_DEBUG("#{:d} architectures", nb_arch);
 
   if (nb_arch > MAX_FAT_ARCH) {
     LIEF_ERR("Too many architectures");
@@ -158,8 +162,8 @@ ok_error_t Parser::build_fat() {
     }
     const auto arch = *res_arch;
 
-    const uint32_t offset = BinaryStream::swap_endian(arch.offset);
-    const uint32_t size   = BinaryStream::swap_endian(arch.size);
+    const uint32_t offset = get_swapped_endian(arch.offset);
+    const uint32_t size   = get_swapped_endian(arch.size);
 
     LIEF_DEBUG("Dealing with arch[{:d}]", i);
     LIEF_DEBUG("    [{:d}].offset: 0x{:06x}", i, offset);
@@ -191,7 +195,7 @@ ok_error_t Parser::build() {
   auto type = static_cast<MACHO_TYPES>(*res_type);
 
   // Fat binary
-  if (type == MACHO_TYPES::FAT_MAGIC || type == MACHO_TYPES::FAT_CIGAM) {
+  if (type == MACHO_TYPES::MAGIC_FAT || type == MACHO_TYPES::CIGAM_FAT) {
     if (!build_fat()) {
       LIEF_WARN("Errors while parsing the Fat MachO");
     }

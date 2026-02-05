@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,7 +185,7 @@ result<Signature> SignatureParser::parse_signature(BinaryStream& stream) {
   auto version = asn1r.read_int();
   if (!version) {
     LIEF_INFO("Can't parse version (pos: {:d})", stream.pos());
-    return make_error_code(tag.error());
+    return make_error_code(version.error());
   }
   const int32_t version_val = version.value();
   LIEF_DEBUG("pkcs7-signed-data.version: {:d}", version_val);
@@ -459,33 +459,54 @@ SignatureParser::parse_spc_indirect_data(BinaryStream& stream, range_t& range) {
   }
   const std::string& spc_attr_type_str = spc_attr_type.value();
   LIEF_DEBUG("spc-attribute-type-and-optional-value.type: {}", oid_to_string(spc_attr_type_str));
-  if (spc_attr_type_str != /* SPC_PE_IMAGE_DATA */ "1.3.6.1.4.1.311.2.1.15") {
-    LIEF_WARN("Expecting OID SPC_PE_IMAGE_DATA at {:d} but got {}",
+  if (spc_attr_type_str == /* SPC_PE_IMAGE_DATA */ "1.3.6.1.4.1.311.2.1.15") {
+    tag = asn1r.read_tag(/* SpcPeImageData ::= SEQUENCE */
+                         MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
+
+    if (!tag) {
+      LIEF_INFO("Wrong tag: {} (pos: {:d})", asn1r.get_str_tag(), stream.pos());
+      return make_error_code(tag.error());
+    }
+
+    /* SpcPeImageData */ {
+      const size_t length = tag.value();
+      SpanStream spc_data_stream{ stream.p(), length };
+      stream.increment_pos(spc_data_stream.size());
+      if (auto spc_data = parse_spc_pe_image_data(spc_data_stream)) {
+        const SpcPeImageData& spc_data_value = *spc_data;
+        indirect_data->file_ = spc_data_value.file;
+        indirect_data->flags_ = spc_data_value.flags;
+      }
+      else {
+        LIEF_INFO("Can't parse SpcPeImageData");
+      }
+    }
+  }
+  else if (spc_attr_type_str == /* SPC_LINK_(TYPE_2) */ "1.3.6.1.4.1.311.2.1.25" ||
+           spc_attr_type_str == /* SPC_LINK_(TYPE_3) */ "1.3.6.1.4.1.311.2.1.28")
+  {
+
+    tag = asn1r.read_tag(/* SpcLink / URL ::= STRING */
+                         MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_INTEGER);
+
+    if (!tag) {
+      LIEF_INFO("Wrong tag: {} (pos: {:d})", asn1r.get_str_tag(), stream.pos());
+      return make_error_code(tag.error());
+    }
+    const size_t length = tag.value();
+    SpanStream spc_data_stream{ stream.p(), length };
+    stream.increment_pos(spc_data_stream.size());
+    if (auto link = parse_spc_link(spc_data_stream)) {
+      LIEF_DEBUG("SpcIndirectData.url = {}", *link);
+      indirect_data->url_ = link.value();
+    } else {
+      LIEF_INFO("Can't parse SpcLink");
+    }
+  }
+  else {
+    LIEF_WARN("Expecting OID SPC_PE_IMAGE_DATA or SPC_LINK at {:d} but got {}",
               stream.pos(), oid_to_string(spc_attr_type_str));
     return make_error_code(lief_errors::read_error);
-  }
-
-
-  tag = asn1r.read_tag(/* SpcPeImageData ::= SEQUENCE */
-                       MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
-
-  if (!tag) {
-    LIEF_INFO("Wrong tag: {} (pos: {:d})", asn1r.get_str_tag(), stream.pos());
-    return make_error_code(tag.error());
-  }
-
-  /* SpcPeImageData */ {
-    const size_t length = tag.value();
-    SpanStream spc_data_stream{stream.p(), length};
-    stream.increment_pos(spc_data_stream.size());
-
-    if (auto spc_data = parse_spc_pe_image_data(spc_data_stream)) {
-      const SpcPeImageData& spc_data_value = *spc_data;
-      indirect_data->file_  = spc_data_value.file;
-      indirect_data->flags_ = spc_data_value.flags;
-    } else {
-      LIEF_INFO("Can't parse SpcPeImageData");
-    }
   }
 
   // ================================================
@@ -544,7 +565,7 @@ result<SignatureParser::x509_certificates_t> SignatureParser::parse_certificates
 
     std::unique_ptr<mbedtls_x509_crt> cert_p = std::move(cert.value());
 
-    if /* constexpr */(lief_logging_debug) {
+    if constexpr (lief_logging_debug) {
       std::array<char, 1024> buffer = {0};
       mbedtls_x509_crt_info(buffer.data(), buffer.size(), "", cert_p.get());
       LIEF_DEBUG("\n{}\n", buffer.data());
@@ -900,7 +921,7 @@ SignatureParser::parse_attributes(BinaryStream& stream) {
 
       if (value_stream.pos() < value_stream.size()) {
         const uint32_t delta = value_stream.size() - value_stream.pos();
-        LIEF_WARN("{}: {} bytes left", oid_str, delta);
+        LIEF_INFO("{}: {} bytes left", oid_str, delta);
       }
     }
     stream.increment_pos(value_set_size);
@@ -1030,7 +1051,7 @@ result<std::unique_ptr<Attribute>> SignatureParser::parse_ms_counter_sign(Binary
     auto version = asn1r.read_int();
     if (!version) {
       LIEF_INFO("Can't parse version (pos: {:d})", stream.pos());
-      return make_error_code(tag.error());
+      return make_error_code(version.error());
     }
     const int32_t version_val = version.value();
     LIEF_DEBUG("ms_counter_sig.pkcs7-signed-data.version: {:d}", version_val);
@@ -1277,19 +1298,17 @@ result<std::string> SignatureParser::parse_spc_string(BinaryStream& stream) {
       LIEF_INFO("Can't read spc-string.program-name");
       return make_error_code(lief_errors::read_error);
     }
-    stream.set_endian_swap(true);
+    ToggleEndianness endian(stream);
 
-    auto progname = stream.read_u16string(length / sizeof(char16_t));
+    auto progname = endian->read_u16string(length / sizeof(char16_t));
     if (!progname) {
       LIEF_INFO("Can't read spc-string.program-name");
-      stream.set_endian_swap(false);
       return make_error_code(lief_errors::read_error);
     }
 
-    stream.set_endian_swap(false);
-
     return u16tou8(*progname);
   }
+
   if ((choice = asn1r.read_tag(MBEDTLS_ASN1_CONTEXT_SPECIFIC | 1))) {
     LIEF_DEBUG("SpcString: ASCII choice");
     const size_t length = choice.value();
@@ -1499,7 +1518,7 @@ result<std::unique_ptr<PKCS9TSTInfo>> SignatureParser::parse_pkcs9_tstinfo(Binar
         // TODO(romain): add field
       } else {
         LIEF_INFO("Can't read pkcs9-tstinfo.ordering (pos: {})", substream.pos());
-        return make_error_code(tag.error());
+        return make_error_code(ordering.error());
       }
     }
   }
@@ -1512,7 +1531,7 @@ result<std::unique_ptr<PKCS9TSTInfo>> SignatureParser::parse_pkcs9_tstinfo(Binar
         // TODO(romain): add field
       } else {
         LIEF_INFO("Can't read pkcs9-tstinfo.nonce (pos: {})", substream.pos());
-        return make_error_code(tag.error());
+        return make_error_code(nonce.error());
       }
     }
   }
@@ -1535,7 +1554,7 @@ result<std::unique_ptr<PKCS9TSTInfo>> SignatureParser::parse_pkcs9_tstinfo(Binar
         // TODO
       } else {
         LIEF_INFO("Can't read pkcs9-tstinfo.tsa (pos: {})", substream.pos());
-        return make_error_code(tag.error());
+        return make_error_code(ctx.error());
       }
     }
   }
@@ -1590,7 +1609,7 @@ SignatureParser::parse_signing_certificate_v2(BinaryStream& stream) {
         // Empty -> default value
         if (!asn1r.read_tag(MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) {
           LIEF_INFO("Wrong tag: {} (pos: {:d})", asn1r.get_str_tag(), stream.pos());
-          return make_error_code(tag.error());
+          return make_error_code(lief_errors::read_error);
         }
         // Default is algorithm id-sha256
       }
@@ -1600,7 +1619,7 @@ SignatureParser::parse_signing_certificate_v2(BinaryStream& stream) {
       } else {
         LIEF_INFO("Can't read SigningCertificateV2.certs.certHash. {} (pos: {:d})",
                   asn1r.get_str_tag(), stream.pos());
-        return make_error_code(tag.error());
+        return make_error_code(res.error());
       }
 
       /* issuerSerial IssuerSerial OPTIONAL */
@@ -1622,7 +1641,7 @@ SignatureParser::parse_signing_certificate_v2(BinaryStream& stream) {
         } else {
           LIEF_INFO("Can't read SigningCertificateV2.certs.issuerSerial.serial {} (pos: {:d})",
                     asn1r.get_str_tag(), stream.pos());
-          return make_error_code(tag.error());
+          return make_error_code(serial.error());
         }
       }
     }

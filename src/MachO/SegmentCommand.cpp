@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 #include "spdlog/fmt/fmt.h"
 #include "LIEF/Visitor.hpp"
+#include "LIEF/BinaryStream/SpanStream.hpp"
 
 #include "LIEF/MachO/Section.hpp"
 #include "LIEF/MachO/SegmentCommand.hpp"
@@ -221,12 +222,17 @@ Section* SegmentCommand::get_section(const std::string& name) {
   return const_cast<Section*>(static_cast<const SegmentCommand*>(this)->get_section(name));
 }
 
+
+std::unique_ptr<SpanStream> SegmentCommand::stream() const {
+  return std::make_unique<SpanStream>(content());
+}
+
 void SegmentCommand::accept(Visitor& visitor) const {
   visitor.visit(*this);
 }
 
 std::ostream& SegmentCommand::print(std::ostream& os) const {
-  LoadCommand::print(os);
+  LoadCommand::print(os) << '\n';
   os << fmt::format(
     "name={}, vaddr=0x{:06x}, vsize=0x{:04x} "
     "offset=0x{:06x}, size={}, max protection={}, init protection={} "
@@ -234,7 +240,7 @@ std::ostream& SegmentCommand::print(std::ostream& os) const {
     name(), virtual_address(), virtual_size(),
     file_offset(), file_size(), max_protection(), init_protection(),
     flags()
-  ) << '\n';
+  );
   return os;
 }
 

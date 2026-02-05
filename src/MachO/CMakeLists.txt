@@ -1,9 +1,11 @@
 target_sources(LIB_LIEF PRIVATE
+  AtomInfo.cpp
   Binary.cpp
   Binary.tcc
   BinaryParser.cpp
   BinaryParser.tcc
   BindingInfo.cpp
+  BindingInfoIterator.cpp
   BuildToolVersion.cpp
   BuildVersion.cpp
   Builder.cpp
@@ -11,13 +13,14 @@ target_sources(LIB_LIEF PRIVATE
   ChainedBindingInfo.cpp
   ChainedBindingInfoList.cpp
   ChainedFixup.cpp
+  ChainedPointerAnalysis.cpp
   CodeSignature.cpp
   CodeSignatureDir.cpp
-  Convert.cpp
   DataCodeEntry.cpp
   DataInCode.cpp
   DyldBindingInfo.cpp
   DyldChainedFixups.cpp
+  DyldChainedFixupsCreator.cpp
   DyldChainedFormat.cpp
   DyldEnvironment.cpp
   DyldExportsTrie.cpp
@@ -31,11 +34,15 @@ target_sources(LIB_LIEF PRIVATE
   FatBinary.cpp
   FilesetCommand.cpp
   FunctionStarts.cpp
+  FunctionVariants.cpp
+  FunctionVariantFixups.cpp
   Header.cpp
+  IndirectBindingInfo.cpp
   LinkEdit.cpp
   LinkerOptHint.cpp
   LoadCommand.cpp
   MainCommand.cpp
+  NoteCommand.cpp
   Parser.cpp
   ParserConfig.cpp
   RPathCommand.cpp
@@ -43,10 +50,13 @@ target_sources(LIB_LIEF PRIVATE
   RelocationDyld.cpp
   RelocationFixup.cpp
   RelocationObject.cpp
+  Routine.cpp
   Section.cpp
   SegmentCommand.cpp
   SegmentSplitInfo.cpp
   SourceVersion.cpp
+  Stub.cpp
+  SubClient.cpp
   SubFramework.cpp
   Symbol.cpp
   SymbolCommand.cpp
@@ -56,9 +66,11 @@ target_sources(LIB_LIEF PRIVATE
   UUIDCommand.cpp
   UnknownCommand.cpp
   VersionMin.cpp
+  endianness_support.cpp
   exports_trie.cpp
   hash.cpp
   json_api.cpp
+  layout_check.cpp
   utils.cpp
 )
 

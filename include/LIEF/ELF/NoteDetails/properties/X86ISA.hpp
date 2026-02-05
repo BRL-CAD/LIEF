@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include <utility>
 
 #include "LIEF/ELF/NoteDetails/NoteGnuProperty.hpp"
+#include "LIEF/visibility.h"
 
 namespace LIEF {
 namespace ELF {
@@ -31,7 +32,7 @@ namespace ELF {
 /// - ``GNU_PROPERTY_X86_COMPAT_ISA_1_NEEDED``
 /// - ``GNU_PROPERTY_X86_COMPAT_2_ISA_1_USED``
 /// - ``GNU_PROPERTY_X86_COMPAT_2_ISA_1_NEEDED``
-class X86ISA : public NoteGnuProperty::Property {
+class LIEF_API X86ISA : public NoteGnuProperty::Property {
   public:
   enum class FLAG {
     NONE = 0,

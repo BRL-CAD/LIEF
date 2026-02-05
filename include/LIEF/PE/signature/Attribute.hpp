@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #define LIEF_PE_ATTRIBUTES_H
 #include <memory>
 #include <string>
+#include <ostream>
 
 #include "LIEF/Object.hpp"
 #include "LIEF/visibility.h"
@@ -24,7 +25,7 @@
 namespace LIEF {
 namespace PE {
 
-//! Interface over PKCS #7 attribute
+/// Interface over PKCS #7 attribute
 class LIEF_API Attribute : public Object {
 
   friend class Parser;
@@ -57,19 +58,38 @@ class LIEF_API Attribute : public Object {
 
   virtual std::unique_ptr<Attribute> clone() const = 0;
 
-  //! Concrete type of the attribute
+  /// Concrete type of the attribute
   virtual TYPE type() const {
     return type_;
   }
 
-  //! Print information about the underlying attribute
+  /// Print information about the underlying attribute
   virtual std::string print() const = 0;
 
   void accept(Visitor& visitor) const override;
 
   ~Attribute() override = default;
 
-  LIEF_API friend std::ostream& operator<<(std::ostream& os, const Attribute& Attribute);
+  LIEF_API friend
+  std::ostream& operator<<(std::ostream& os, const Attribute& attribute) {
+    os << attribute.print();
+    return os;
+  }
+
+  template<class T>
+  const T* cast() const {
+    static_assert(std::is_base_of<Attribute, T>::value,
+                  "Require Attribute inheritance");
+    if (T::classof(this)) {
+      return static_cast<const T*>(this);
+    }
+    return nullptr;
+  }
+
+  template<class T>
+  T* cast() {
+    return const_cast<T*>(static_cast<const Attribute*>(this)->cast<T>());
+  }
 
   protected:
   Attribute(TYPE type) :

@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ void UnknownCommand::accept(Visitor& visitor) const {
 }
 
 std::ostream& UnknownCommand::print(std::ostream& os) const {
-  LoadCommand::print(os);
-  os << fmt::format("Original Command: {}", original_command()) << '\n';
+  LoadCommand::print(os) << '\n';
+  os << fmt::format("Original Command: {}", original_command());
   return os;
 }
 

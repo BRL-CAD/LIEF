@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,6 @@ void ExportInfo::accept(Visitor& visitor) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const ExportInfo& info) {
-
   const ExportInfo::flag_list_t& flags = info.flags_list();
   os << fmt::format(
     "offset=0x{:x}, flags={}, address=0x{:x}, kind={}",
@@ -95,8 +94,6 @@ std::ostream& operator<<(std::ostream& os, const ExportInfo& info) {
       os << fmt::format(" library={}", lib->name());
     }
   }
-
-  os << '\n';
   return os;
 }
 
@@ -121,6 +118,7 @@ const char* to_string(ExportInfo::FLAGS e) {
     ENTRY(WEAK_DEFINITION),
     ENTRY(REEXPORT),
     ENTRY(STUB_AND_RESOLVER),
+    ENTRY(STATIC_RESOLVER),
   };
   #undef ENTRY
 

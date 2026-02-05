@@ -1,7 +1,10 @@
-find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
 
 if (LIEF_PY_LIEF_EXT)
-  find_package(LIEF REQUIRED COMPONENTS STATIC)
+  if (LIEF_PY_LIEF_EXT_SHARED)
+    find_package(LIEF REQUIRED COMPONENTS SHARED)
+  else()
+    find_package(LIEF REQUIRED COMPONENTS STATIC)
+  endif()
   message(STATUS "Using pre-installed version of LIEF")
   set(LIEF_TARGET LIEF::LIEF)
   set_target_properties(LIB_LIEF PROPERTIES EXCLUDE_FROM_ALL ON)
@@ -16,21 +19,24 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
   cmake_policy(SET CMP0135 NEW)
 endif()
 
-if (LIEF_EXTERNAL_NANOBINDS)
+if (LIEF_EXTERNAL_NANOBIND)
+  find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
   find_package(nanobind REQUIRED)
 else()
-  set(NANOBIND_VERSION 1.8.0.r43.g45c2a74)
-  set(NANOBIND_SHA256 SHA256=a94f4a801cbe6befb2536f6140d8b280f975a63bd21247ad4894f5eff50209e4)
+  set(NANOBIND_VERSION 2.11.0.r10.g5f0a380)
+  set(NANOBIND_SHA256 SHA256=4494b2b580b400e98e4d847b6a9e2a3aeb99581ac7545f6efaa52605335fa806)
   set(NANOBIND_URL "${THIRD_PARTY_DIRECTORY}/nanobind-${NANOBIND_VERSION}.zip"
       CACHE STRING "URL to the Nanobind")
   FetchContent_Declare(nanobind
     URL        ${NANOBIND_URL}
     URL_HASH   ${NANOBIND_SHA256}
   )
-  FetchContent_Populate(nanobind)
+  FetchContent_MakeAvailable(nanobind)
+  find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
   find_package(nanobind REQUIRED PATHS ${nanobind_SOURCE_DIR}/cmake
                NO_DEFAULT_PATH)
 endif()
+
 
 message(STATUS "Python version:     ${Python_VERSION}")
 message(STATUS "Python lib:         ${Python_LIBRARIES}")
@@ -64,6 +70,10 @@ set_target_properties(pyLIEF PROPERTIES
   PREFIX                       ""
   OUTPUT_NAME                  "_lief"
 )
+
+if (MSVC AND NOT CLANG_CL AND NOT LIEF_EXTERNAL_SPDLOG)
+  target_compile_definitions(pyLIEF PRIVATE FMT_UNICODE=0)
+endif()
 
 target_link_libraries(pyLIEF PUBLIC ${LIEF_TARGET} lief_spdlog)
 

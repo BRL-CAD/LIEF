@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,14 @@ void create<DelayImportEntry>(nb::module_& m) {
       where the resolution should take place
       )delim"_doc)
     .def(nb::init<>())
+
+    .def_prop_ro("demangled_name",
+      &DelayImportEntry::demangled_name,
+      R"doc(
+      Demangled representation of the symbol or an empty string if it can't
+      be demangled.
+      )doc"_doc
+    )
 
     .def_prop_rw("name",
         [] (const DelayImportEntry& obj) {

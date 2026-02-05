@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "spdlog/fmt/fmt.h"
+#include "spdlog/fmt/ranges.h"
 #include "LIEF/Visitor.hpp"
 
 #include "LIEF/MachO/SourceVersion.hpp"
@@ -39,8 +40,8 @@ void SourceVersion::accept(Visitor& visitor) const {
 }
 
 std::ostream& SourceVersion::print(std::ostream& os) const {
-  LoadCommand::print(os);
-  os << fmt::format("Version: {}", fmt::join(version(), ".")) << '\n';
+  LoadCommand::print(os) << '\n';
+  os << fmt::format("Version: {}", fmt::join(version(), "."));
   return os;
 }
 

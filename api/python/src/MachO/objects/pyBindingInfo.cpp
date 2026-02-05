@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ void create<BindingInfo>(nb::module_& m) {
 
       This class does not represent a structure that exists in the Mach-O format
       specifications but it provides a *view* of a binding operation that is performed
-      by the Dyld binding bytecode (`LC_DYLD_INFO`) or the Dyld chained fixups (`DYLD_CHAINED_FIXUPS`)
+      by the Dyld binding bytecode (``LC_DYLD_INFO``) or the Dyld chained fixups (``DYLD_CHAINED_FIXUPS``)
 
       See: :class:`~lief.MachO.ChainedBindingInfo`, :class:`~lief.MachO.DyldBindingInfo`
       )delim"_doc)

@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2024 R. Thomas
+/* Copyright 2022 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 #define LIEF_PDB_INFO_H
 #include <memory>
 #include <string>
+#include <ostream>
 
 #include "LIEF/iterators.hpp"
 #include "LIEF/Abstract/DebugInfo.hpp"
@@ -83,12 +84,24 @@ class LIEF_API DebugInfo : public LIEF::DebugInfo {
   /// ```
   std::unique_ptr<PublicSymbol> find_public_symbol(const std::string& name) const;
 
+  /// Attempt to resolve the address of the function specified by `name`.
+  optional<uint64_t> find_function_address(const std::string& name) const override;
+
   /// The number of times the PDB file has been written.
   uint32_t age() const;
 
   /// Unique identifier of the PDB file
   std::string guid() const;
 
+  /// Pretty representation
+  std::string to_string() const;
+
+  friend LIEF_API
+    std::ostream& operator<<(std::ostream& os, const DebugInfo& dbg)
+  {
+    os << dbg.to_string();
+    return os;
+  }
 
   ~DebugInfo() override = default;
 };

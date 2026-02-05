@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,10 @@ class Symbol;
 class DylibCommand;
 class Binary;
 
-//! Class that provides an interface over the Dyld export info
-//!
-//! This class does not represent a structure that exists in the Mach-O format
-//! specification but provides a *view* on an entry of the Dyld export trie.
+/// Class that provides an interface over the Dyld export info
+///
+/// This class does not represent a structure that exists in the Mach-O format
+/// specification but provides a *view* on an entry of the Dyld export trie.
 class LIEF_API ExportInfo : public Object {
 
   friend class BinaryParser;
@@ -50,7 +50,8 @@ class LIEF_API ExportInfo : public Object {
   enum class FLAGS: uint64_t  {
     WEAK_DEFINITION     = 0x04u,
     REEXPORT            = 0x08u,
-    STUB_AND_RESOLVER   = 0x10u
+    STUB_AND_RESOLVER   = 0x10u,
+    STATIC_RESOLVER     = 0x20u,
   };
 
   using flag_list_t = std::vector<FLAGS>;
@@ -66,13 +67,13 @@ class LIEF_API ExportInfo : public Object {
   ExportInfo(const ExportInfo& copy);
   void swap(ExportInfo& other) noexcept;
 
-  //! Original offset in the export Trie
+  /// Original offset in the export Trie
   uint64_t node_offset() const {
     return node_offset_;
   }
 
-  //! Some information (ExportInfo::FLAGS) about the export.
-  //! (like weak export, reexport, ...)
+  /// Some information (ExportInfo::FLAGS) about the export.
+  /// (like weak export, reexport, ...)
   uint64_t flags() const {
     return flags_;
   }
@@ -81,13 +82,13 @@ class LIEF_API ExportInfo : public Object {
     flags_ = flags;
   }
 
-  //! The export flags() as a list
+  /// The export flags() as a list
   flag_list_t flags_list() const;
 
-  //! Check if the current entry contains the provided ExportInfo::FLAGS
+  /// Check if the current entry contains the provided ExportInfo::FLAGS
   bool has(FLAGS flag) const;
 
-  //! The export's kind (regular, thread local, absolute, ...)
+  /// The export's kind (regular, thread local, absolute, ...)
   KIND kind() const {
     static constexpr auto MASK = uint64_t(3);
     return KIND(flags_ & MASK);
@@ -97,7 +98,7 @@ class LIEF_API ExportInfo : public Object {
     return other_;
   }
 
-  //! The address of the export
+  /// The address of the export
   uint64_t address() const {
     return address_;
   }
@@ -105,12 +106,12 @@ class LIEF_API ExportInfo : public Object {
     address_ = addr;
   }
 
-  //! Check if a symbol is associated with this export
+  /// Check if a symbol is associated with this export
   bool has_symbol() const {
     return symbol() != nullptr;
   }
 
-  //! MachO::Symbol associated with this export or a nullptr if no symbol
+  /// MachO::Symbol associated with this export or a nullptr if no symbol
   const Symbol* symbol() const {
     return symbol_;
   }
@@ -118,8 +119,8 @@ class LIEF_API ExportInfo : public Object {
     return symbol_;
   }
 
-  //! If the export is a ExportInfo::FLAGS::REEXPORT,
-  //! this returns the (optional) MachO::Symbol
+  /// If the export is a ExportInfo::FLAGS::REEXPORT,
+  /// this returns the (optional) MachO::Symbol
   Symbol* alias() {
     return alias_;
   }
@@ -127,8 +128,8 @@ class LIEF_API ExportInfo : public Object {
     return alias_;
   }
 
-  //! If the export is a ExportInfo::FLAGS::REEXPORT,
-  //! this returns the (optional) library (MachO::DylibCommand)
+  /// If the export is a ExportInfo::FLAGS::REEXPORT,
+  /// this returns the (optional) library (MachO::DylibCommand)
   DylibCommand* alias_library() {
     return alias_location_;
   }

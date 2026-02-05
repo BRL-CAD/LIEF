@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,18 +35,40 @@ class LIEF_API BuildVersion : public LoadCommand {
   friend class BinaryParser;
 
   public:
-  //! Version is an array of **3** integers
+  /// Version is an array of **3** integers
   using version_t = std::array<uint32_t, 3>;
 
   using tools_list_t = std::vector<BuildToolVersion>;
 
   public:
-  enum class PLATFORMS {
-    UNKNOWN = 0,
-    MACOS   = 1,
-    IOS     = 2,
-    TVOS    = 3,
-    WATCHOS = 4,
+  enum class PLATFORMS : uint32_t {
+    UNKNOWN               = 0,
+    MACOS                 = 1,
+    IOS                   = 2,
+    TVOS                  = 3,
+    WATCHOS               = 4,
+    BRIDGEOS              = 5,
+    MAC_CATALYST          = 6,
+    IOS_SIMULATOR         = 7,
+    TVOS_SIMULATOR        = 8,
+    WATCHOS_SIMULATOR     = 9,
+    DRIVERKIT             = 10,
+    VISIONOS              = 11,
+    VISIONOS_SIMULATOR    = 12,
+    FIRMWARE              = 13,
+    SEPOS                 = 14,
+    MACOS_EXCLAVE_CORE    = 15,
+    MACOS_EXCLAVE_KIT     = 16,
+    IOS_EXCLAVE_CORE      = 17,
+    IOS_EXCLAVE_KIT       = 18,
+    TVOS_EXCLAVE_CORE     = 19,
+    TVOS_EXCLAVE_KIT      = 20,
+    WATCHOS_EXCLAVE_CORE  = 21,
+    WATCHOS_EXCLAVE_KIT   = 22,
+    VISIONOS_EXCLAVE_CORE = 23,
+    VISIONOS_EXCLAVE_KIT  = 24,
+
+    ANY                = 0xFFFFFFFF
   };
 
   public:

@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,13 @@ class MachO_FatBinary : private Mirror<LIEF::MachO::FatBinary> {
 
   std::unique_ptr<MachO_Binary> binary_at(uint32_t index) const {
     if (auto* bin = get().at(index)) {
+      return std::make_unique<MachO_Binary>(*bin);
+    }
+    return nullptr;
+  }
+
+  std::unique_ptr<MachO_Binary> binary_from_arch(int32_t cpu) const {
+    if (auto* bin = get().get((LIEF::MachO::Header::CPU_TYPE)cpu)) {
       return std::make_unique<MachO_Binary>(*bin);
     }
     return nullptr;

@@ -25,7 +25,7 @@ class Versioning:
     IS_TAGGED_CMD   = '{git} tag --list --points-at=HEAD'
     FMT_DEV         = '{tag}.dev0'
     FMT_TAGGED      = '{tag}'
-    CMAKE_VERSION_R = r"set\(LIEF_VERSION_(MAJOR|MINOR|PATCH)\s\"(\d+)\"\)"
+    CMAKE_VERSION_R = r"set\(LIEF_VERSION_(MAJOR|MINOR|PATCH)\s(\d+)\)"
 
     def __init__(self):
         self._git = which("git")
@@ -59,6 +59,9 @@ class Versioning:
 
         if branch is not None and branch.startswith("release/"):
             _, version = branch.split("release/")
+            major, minor, patch = version.split('.')
+            if patch == 'x':
+                return f"{major}.{minor}"
             return version
 
         parts = version.split('-')
@@ -68,7 +71,12 @@ class Versioning:
         MA, MI, PA = map(int, tag.split(".")) # 0.9.0 -> (0, 9, 0)
 
         if is_dev:
-            tag = f"{MA}.{MI + 1}.{0}"
+            if MI == 17:
+                # Special case for the 0.17.0 which is the last version of
+                # the 0.X.Y series
+                tag = "1.0.0"
+            else:
+                tag = f"{MA}.{MI + 1}.{0}"
 
         if count == '0' and not dirty:
             return tag

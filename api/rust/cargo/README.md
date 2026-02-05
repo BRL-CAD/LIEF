@@ -8,7 +8,7 @@ These are the offical rust bindings for LIEF.
 
 ```toml
 [dependencies]
-lief = "0.15.1"
+lief = "1.0.0"
 ```
 
 The bindings require Rust edition 2021 and `rustc >= 1.74.0`
@@ -32,3 +32,9 @@ if let Some(lief::Binary::ELF(elf)) = lief::Binary::from(&mut file) {
     }
 }
 ```
+
+
+## Documentation
+
+- Rust API: https://lief.re/doc/stable/rust/lief/
+- Bootstrapping and tweaks: https://lief.re/doc/latest/api/rust/index.html

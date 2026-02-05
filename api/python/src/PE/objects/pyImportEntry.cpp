@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,20 +37,11 @@ void create<ImportEntry>(nb::module_& m) {
     .def(nb::init<>())
 
     .def(nb::init<const std::string&>(),
-        "Constructor from a :attr:`~lief.PE.ImportEntry.name`"_doc,
+        "Constructor from a :attr:`~ImportEntry.name`"_doc,
         "import_name"_a)
 
-    .def(nb::init<uint64_t, const std::string&>(),
-        "Constructor from a :attr:`~lief.PE.ImportEntry.data` and an optionally :attr:`~lief.PE.ImportEntry.name`"_doc,
-        "data"_a, "name"_a = "")
-
-    .def(nb::init<uint64_t, PE_TYPE, const std::string&>(),
-        "Constructor from a :attr:`~lief.PE.ImportEntry.data`, a :attr:`~lief.PE.ImportEntry.type` and an optional :attr:`~lief.PE.ImportEntry.name`"_doc,
-        "data"_a, "type"_a, "name"_a = "")
-
-    .def(nb::init<const std::string&, PE_TYPE>(),
-        "Constructor from a :attr:`~lief.PE.ImportEntry.name`, and a :attr:`~lief.PE.ImportEntry.type`"_doc,
-        "name"_a, "type"_a)
+    .def(nb::init<uint64_t, PE_TYPE>(),
+        "data"_a, "type"_a)
 
     .def_prop_rw("name",
         [] (const ImportEntry& obj) {
@@ -63,6 +54,14 @@ void create<ImportEntry>(nb::module_& m) {
         nb::overload_cast<>(&ImportEntry::data, nb::const_),
         nb::overload_cast<uint64_t>(&ImportEntry::data),
         "Raw value"_doc)
+
+    .def_prop_ro("demangled_name",
+      &ImportEntry::demangled_name,
+      R"doc(
+      Demangled representation of the symbol or an empty string if it can't
+      be demangled.
+      )doc"_doc
+    )
 
     .def_prop_ro("is_ordinal",
         &ImportEntry::is_ordinal,
@@ -80,8 +79,16 @@ void create<ImportEntry>(nb::module_& m) {
         &ImportEntry::iat_value,
         "Value of the current entry in the Import Address Table. It should match the lookup table value."_doc)
 
+    .def_prop_ro("ilt_value", &ImportEntry::ilt_value,
+      R"doc(
+      Original value in the import lookup table.
+
+      This value should match the :attr:`~ImportEntry.iat_value`
+      )doc"_doc
+    )
+
     .def_prop_ro("iat_address",
-        &ImportEntry::iat_address,
+        nb::overload_cast<>(&ImportEntry::iat_address, nb::const_),
         "**Original** address of the entry in the Import Address Table"_doc)
 
     LIEF_COPYABLE(ImportEntry)

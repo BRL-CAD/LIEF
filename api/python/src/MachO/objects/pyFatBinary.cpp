@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,10 +62,18 @@ void create<FatBinary>(nb::module_& m) {
     .def("raw", &FatBinary::raw,
         "Build a Mach-O universal binary and return its bytes"_doc)
 
+    .def("get", nb::overload_cast<Header::CPU_TYPE>(&FatBinary::get),
+        "Gets the :class:`~.Binary` that matches the given architecture"_doc,
+        nb::rv_policy::reference_internal)
+
     .def("__len__", &FatBinary::size)
 
     .def("__getitem__",
         nb::overload_cast<size_t>(&FatBinary::operator[]),
+        nb::rv_policy::reference_internal)
+
+    .def("__getitem__",
+        nb::overload_cast<Header::CPU_TYPE>(&FatBinary::operator[]),
         nb::rv_policy::reference_internal)
 
     .def("__iter__",

@@ -1,4 +1,4 @@
-/* Copyright 2021 - 2024 R. Thomas
+/* Copyright 2021 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,19 @@
 #ifndef LIEF_MACHO_ENUMS_H
 #define LIEF_MACHO_ENUMS_H
 
-#include "LIEF/MachO/undef.h"
 #include <cstdint>
 
 namespace LIEF {
 namespace MachO {
 
 enum class MACHO_TYPES: uint32_t {
-  UNKNOWN     = 0,
-  MH_MAGIC    = 0xFEEDFACEu, ///< 32-bit big-endian magic
-  MH_CIGAM    = 0xCEFAEDFEu, ///< 32-bit little-endian magic
-  MH_MAGIC_64 = 0xFEEDFACFu, ///< 64-bit big-endian magic
-  MH_CIGAM_64 = 0xCFFAEDFEu, ///< 64-bit little-endian magic
-  FAT_MAGIC   = 0xCAFEBABEu, ///< big-endian fat magic
-  FAT_CIGAM   = 0xBEBAFECAu,  ///< little-endian fat magic
+  UNKNOWN    = 0,
+  MAGIC      = 0xFEEDFACEu, ///< 32-bit big-endian magic
+  CIGAM      = 0xCEFAEDFEu, ///< 32-bit little-endian magic
+  MAGIC_64   = 0xFEEDFACFu, ///< 64-bit big-endian magic
+  CIGAM_64   = 0xCFFAEDFEu, ///< 64-bit little-endian magic
+  MAGIC_FAT  = 0xCAFEBABEu, ///< big-endian fat magic
+  CIGAM_FAT  = 0xBEBAFECAu,  ///< little-endian fat magic
 
   NEURAL_MODEL = 0xbeeffaceu,
 };

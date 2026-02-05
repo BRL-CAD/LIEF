@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,26 +43,22 @@ void create<RelocationEntry>(nb::module_& m) {
     ENTRY(HIGHLOW)
     ENTRY(HIGHADJ)
     ENTRY(MIPS_JMPADDR)
-    ENTRY(ARM_MOV32A)
     ENTRY(ARM_MOV32)
     ENTRY(RISCV_HI20)
     ENTRY(SECTION)
-    ENTRY(REL)
-    ENTRY(ARM_MOV32T)
     ENTRY(THUMB_MOV32)
     ENTRY(RISCV_LOW12I)
     ENTRY(RISCV_LOW12S)
     ENTRY(MIPS_JMPADDR16)
-    ENTRY(IA64_IMM64)
     ENTRY(DIR64)
     ENTRY(HIGH3ADJ);
   #undef ENTRY
 
   entry
     .def(nb::init<>())
-    .def_prop_rw("data",
+    .def(nb::init<uint16_t, RelocationEntry::BASE_TYPES>())
+    .def_prop_ro("data",
         nb::overload_cast<>(&RelocationEntry::data, nb::const_),
-        nb::overload_cast<uint16_t>(&RelocationEntry::data),
         R"delim(
         Raw data of the relocation:
 

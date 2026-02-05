@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,51 +17,60 @@
 #include "MachO/enums.hpp"
 #include "MachO/pyMachO.hpp"
 
-#include <LIEF/MachO/ParserConfig.hpp>
-#include <LIEF/MachO/Parser.hpp>
-#include <LIEF/MachO/FatBinary.hpp>
 #include <LIEF/MachO/Binary.hpp>
-#include <LIEF/MachO/Header.hpp>
-#include <LIEF/MachO/LoadCommand.hpp>
-#include <LIEF/MachO/UUIDCommand.hpp>
-#include <LIEF/MachO/SymbolCommand.hpp>
-#include <LIEF/MachO/SegmentCommand.hpp>
-#include <LIEF/MachO/Section.hpp>
-#include <LIEF/MachO/MainCommand.hpp>
-#include <LIEF/MachO/DynamicSymbolCommand.hpp>
-#include <LIEF/MachO/DylinkerCommand.hpp>
-#include <LIEF/MachO/DyldInfo.hpp>
-#include <LIEF/MachO/DyldChainedFixups.hpp>
-#include <LIEF/MachO/DyldExportsTrie.hpp>
-#include <LIEF/MachO/DylibCommand.hpp>
-#include <LIEF/MachO/ThreadCommand.hpp>
-#include <LIEF/MachO/RPathCommand.hpp>
-#include <LIEF/MachO/Symbol.hpp>
-#include <LIEF/MachO/Relocation.hpp>
-#include <LIEF/MachO/RelocationObject.hpp>
-#include <LIEF/MachO/RelocationDyld.hpp>
-#include <LIEF/MachO/RelocationFixup.hpp>
 #include <LIEF/MachO/BindingInfo.hpp>
-#include <LIEF/MachO/DyldBindingInfo.hpp>
-#include <LIEF/MachO/ExportInfo.hpp>
-#include <LIEF/MachO/FunctionStarts.hpp>
+#include <LIEF/MachO/BuildVersion.hpp>
+#include <LIEF/MachO/Builder.hpp>
+#include <LIEF/MachO/ChainedBindingInfo.hpp>
 #include <LIEF/MachO/CodeSignature.hpp>
 #include <LIEF/MachO/CodeSignatureDir.hpp>
-#include <LIEF/MachO/DataInCode.hpp>
 #include <LIEF/MachO/DataCodeEntry.hpp>
-#include <LIEF/MachO/SourceVersion.hpp>
-#include <LIEF/MachO/VersionMin.hpp>
-#include <LIEF/MachO/SegmentSplitInfo.hpp>
-#include <LIEF/MachO/SubFramework.hpp>
+#include <LIEF/MachO/DataInCode.hpp>
+#include <LIEF/MachO/DyldBindingInfo.hpp>
+#include <LIEF/MachO/DyldChainedFixups.hpp>
 #include <LIEF/MachO/DyldEnvironment.hpp>
+#include <LIEF/MachO/DyldExportsTrie.hpp>
+#include <LIEF/MachO/DyldInfo.hpp>
+#include <LIEF/MachO/DylibCommand.hpp>
+#include <LIEF/MachO/DylinkerCommand.hpp>
+#include <LIEF/MachO/DynamicSymbolCommand.hpp>
 #include <LIEF/MachO/EncryptionInfo.hpp>
-#include <LIEF/MachO/BuildVersion.hpp>
+#include <LIEF/MachO/ExportInfo.hpp>
+#include <LIEF/MachO/FatBinary.hpp>
 #include <LIEF/MachO/FilesetCommand.hpp>
-#include <LIEF/MachO/ChainedBindingInfo.hpp>
-#include <LIEF/MachO/UnknownCommand.hpp>
-#include <LIEF/MachO/TwoLevelHints.hpp>
+#include <LIEF/MachO/FunctionStarts.hpp>
+#include <LIEF/MachO/FunctionVariants.hpp>
+#include <LIEF/MachO/FunctionVariantFixups.hpp>
+#include <LIEF/MachO/AtomInfo.hpp>
+#include <LIEF/MachO/Header.hpp>
+#include <LIEF/MachO/IndirectBindingInfo.hpp>
 #include <LIEF/MachO/LinkerOptHint.hpp>
-#include <LIEF/MachO/Builder.hpp>
+#include <LIEF/MachO/LoadCommand.hpp>
+#include <LIEF/MachO/MainCommand.hpp>
+#include <LIEF/MachO/NoteCommand.hpp>
+#include <LIEF/MachO/Parser.hpp>
+#include <LIEF/MachO/ParserConfig.hpp>
+#include <LIEF/MachO/RPathCommand.hpp>
+#include <LIEF/MachO/Relocation.hpp>
+#include <LIEF/MachO/RelocationDyld.hpp>
+#include <LIEF/MachO/RelocationFixup.hpp>
+#include <LIEF/MachO/RelocationObject.hpp>
+#include <LIEF/MachO/Routine.hpp>
+#include <LIEF/MachO/Section.hpp>
+#include <LIEF/MachO/SegmentCommand.hpp>
+#include <LIEF/MachO/SegmentSplitInfo.hpp>
+#include <LIEF/MachO/SourceVersion.hpp>
+#include <LIEF/MachO/Stub.hpp>
+#include <LIEF/MachO/SubClient.hpp>
+#include <LIEF/MachO/SubFramework.hpp>
+#include <LIEF/MachO/Symbol.hpp>
+#include <LIEF/MachO/SymbolCommand.hpp>
+#include <LIEF/MachO/ThreadCommand.hpp>
+#include <LIEF/MachO/TwoLevelHints.hpp>
+#include <LIEF/MachO/UUIDCommand.hpp>
+#include <LIEF/MachO/UnknownCommand.hpp>
+#include <LIEF/MachO/VersionMin.hpp>
+#include <LIEF/MachO/ChainedPointerAnalysis.hpp>
 
 #define CREATE(X,Y) create<X>(Y)
 
@@ -71,6 +80,7 @@ void init_objects(nb::module_& m) {
   CREATE(ParserConfig, m);
   CREATE(Parser, m);
 
+  CREATE(ChainedPointerAnalysis, m);
   CREATE(FatBinary, m);
   CREATE(Binary, m);
   CREATE(Header, m);
@@ -80,6 +90,7 @@ void init_objects(nb::module_& m) {
   CREATE(SegmentCommand, m);
   CREATE(Section, m);
   CREATE(MainCommand, m);
+  CREATE(NoteCommand, m);
   CREATE(DynamicSymbolCommand, m);
   CREATE(DylinkerCommand, m);
   CREATE(DyldInfo, m);
@@ -97,14 +108,19 @@ void init_objects(nb::module_& m) {
   CREATE(DyldBindingInfo, m);
   CREATE(ExportInfo, m);
   CREATE(FunctionStarts, m);
+  CREATE(FunctionVariants, m);
+  CREATE(FunctionVariantFixups, m);
+  CREATE(AtomInfo, m);
   CREATE(CodeSignature, m);
   CREATE(CodeSignatureDir, m);
   CREATE(DataInCode, m);
   CREATE(DataCodeEntry, m);
   CREATE(SourceVersion, m);
+  CREATE(Routine, m);
   CREATE(VersionMin, m);
   CREATE(SegmentSplitInfo, m);
   CREATE(SubFramework, m);
+  CREATE(SubClient, m);
   CREATE(DyldEnvironment, m);
   CREATE(EncryptionInfo, m);
   CREATE(BuildVersion, m);
@@ -112,7 +128,9 @@ void init_objects(nb::module_& m) {
   CREATE(ChainedBindingInfo, m);
   CREATE(TwoLevelHints, m);
   CREATE(LinkerOptHint, m);
+  CREATE(IndirectBindingInfo, m);
   CREATE(UnknownCommand, m);
+  CREATE(Stub, m);
   CREATE(Builder, m);
 }
 

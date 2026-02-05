@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ bool LoadCommand::is_linkedit_data(const LoadCommand& cmd) {
 std::ostream& LoadCommand::print(std::ostream& os) const {
   os << fmt::format("Command: {}", to_string(command())) << '\n'
      << fmt::format("Offset:  0x{:x}", command_offset()) << '\n'
-     << fmt::format("Size:    0x{:x}", size()) << '\n';
+     << fmt::format("Size:    0x{:x}", size());
 
   return os;
 }
@@ -132,6 +132,10 @@ const char* to_string(LoadCommand::TYPE e) {
     ENTRY(DYLD_EXPORTS_TRIE),
     ENTRY(DYLD_CHAINED_FIXUPS),
     ENTRY(FILESET_ENTRY),
+    ENTRY(ATOM_INFO),
+    ENTRY(FUNCTION_VARIANTS),
+    ENTRY(FUNCTION_VARIANT_FIXUPS),
+    ENTRY(TARGET_TRIPLE),
     ENTRY(LIEF_UNKNOWN),
   };
   #undef ENTRY

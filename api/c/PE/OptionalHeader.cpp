@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ namespace PE {
 void init_c_optional_header(Pe_Binary_t* c_binary, Binary* binary) {
 
   const OptionalHeader& optional_header = binary->optional_header();
-  c_binary->optional_header.magic                          = static_cast<enum LIEF_PE_PE_TYPES>(optional_header.magic());
+  c_binary->optional_header.magic                          = static_cast<uint16_t>(optional_header.magic());
   c_binary->optional_header.major_linker_version           = optional_header.major_linker_version();
   c_binary->optional_header.minor_linker_version           = optional_header.minor_linker_version();
   c_binary->optional_header.sizeof_code                    = optional_header.sizeof_code();

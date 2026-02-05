@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,16 +51,14 @@ void ContentInfo::accept(Visitor& visitor) const {
 }
 
 std::vector<uint8_t> ContentInfo::digest() const {
-  if (SpcIndirectData::classof(value_.get())) {
-    const auto* spc_ind_data = value_->as<SpcIndirectData>();
+  if (const auto* spc_ind_data = value_->cast<SpcIndirectData>()) {
     return as_vector(spc_ind_data->digest());
   }
   return {};
 }
 
 ALGORITHMS ContentInfo::digest_algorithm() const {
-  if (SpcIndirectData::classof(value_.get())) {
-    const auto* spc_ind_data = value_->as<SpcIndirectData>();
+  if (const auto* spc_ind_data = value_->cast<SpcIndirectData>()) {
     return spc_ind_data->digest_algorithm();
   }
   return ALGORITHMS::UNKNOWN;

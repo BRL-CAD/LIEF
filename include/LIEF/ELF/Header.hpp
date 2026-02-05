@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,9 @@
 #include <ostream>
 #include <array>
 #include <vector>
-#include <set>
 
 #include "LIEF/Object.hpp"
 #include "LIEF/visibility.h"
-#include "LIEF/Abstract/enums.hpp"
 
 #include "LIEF/ELF/enums.hpp"
 #include "LIEF/ELF/ProcessorFlags.hpp"
@@ -38,22 +36,21 @@ class LIEF_API Header : public Object {
   friend class Parser;
   public:
   using identity_t = std::array<uint8_t, 16>;
-  using abstract_architecture_t = std::pair<ARCHITECTURES, std::set<MODES>>;
 
   public:
   /// e_ident size and indices.
-  enum {
-    EI_MAG0       = 0,  ///< File identification index.
-    EI_MAG1       = 1,  ///< File identification index.
-    EI_MAG2       = 2,  ///< File identification index.
-    EI_MAG3       = 3,  ///< File identification index.
-    EI_CLASS      = 4,  ///< File class.
-    EI_DATA       = 5,  ///< Data encoding.
-    EI_VERSION    = 6,  ///< File version.
-    EI_OSABI      = 7,  ///< OS/ABI identification.
-    EI_ABIVERSION = 8,  ///< ABI version.
-    EI_PAD        = 9,  ///< Start of padding bytes.
-    EI_NIDENT     = 16  ///< Number of bytes in e_ident.
+  enum ELF_INDENT {
+    ELI_MAG0       = 0,  ///< File identification index.
+    ELI_MAG1       = 1,  ///< File identification index.
+    ELI_MAG2       = 2,  ///< File identification index.
+    ELI_MAG3       = 3,  ///< File identification index.
+    ELI_CLASS      = 4,  ///< File class.
+    ELI_DATA       = 5,  ///< Data encoding.
+    ELI_VERSION    = 6,  ///< File version.
+    ELI_OSABI      = 7,  ///< OS/ABI identification.
+    ELI_ABIVERSION = 8,  ///< ABI version.
+    ELI_PAD        = 9,  ///< Start of padding bytes.
+    ELI_NIDENT     = 16  ///< Number of bytes in e_ident.
   };
 
   /// The type of the underlying ELF file. This enum matches
@@ -125,19 +122,10 @@ class LIEF_API Header : public Object {
     return file_type_;
   }
 
-  /// LIEF abstract object type
-  OBJECT_TYPES abstract_object_type() const;
-
   /// Target architecture
   ARCH machine_type() const {
     return machine_type_;
   }
-
-  /// LIEF abstract architecture
-  abstract_architecture_t abstract_architecture() const;
-
-  /// LIEF abstract endianness
-  ENDIANNESS abstract_endianness() const;
 
   /// Version of the object file format
   VERSION object_file_version() const {
@@ -176,7 +164,7 @@ class LIEF_API Header : public Object {
     return program_header_size_;
   }
 
-  /// Return the the number of segments
+  /// Return the number of segments
   uint32_t numberof_segments() const {
     return numberof_segments_;
   }
@@ -211,27 +199,27 @@ class LIEF_API Header : public Object {
 
   /// Return the object's class. `ELF64` or `ELF32`
   CLASS identity_class() const {
-    return CLASS(identity_[EI_CLASS]);
+    return CLASS(identity_[ELI_CLASS]);
   }
 
   /// Specify the data encoding
   ELF_DATA identity_data() const {
-    return ELF_DATA(identity_[EI_DATA]);
+    return ELF_DATA(identity_[ELI_DATA]);
   }
 
   /// @see object_file_version
   VERSION identity_version() const {
-    return VERSION(identity_[EI_VERSION]);
+    return VERSION(identity_[ELI_VERSION]);
   }
 
   /// Identifies the version of the ABI for which the object is prepared
   OS_ABI identity_os_abi() const {
-    return OS_ABI(identity_[EI_OSABI]);
+    return OS_ABI(identity_[ELI_OSABI]);
   }
 
   /// ABI Version
   uint32_t identity_abi_version() const {
-    return identity_[EI_ABIVERSION];
+    return identity_[ELI_ABIVERSION];
   }
 
   bool has(PROCESSOR_FLAGS flag) const;
@@ -292,23 +280,23 @@ class LIEF_API Header : public Object {
   void identity(const identity_t& identity);
 
   void identity_class(CLASS cls) {
-    identity_[EI_CLASS] = static_cast<uint8_t>(cls);
+    identity_[ELI_CLASS] = static_cast<uint8_t>(cls);
   }
 
   void identity_data(ELF_DATA data) {
-    identity_[EI_DATA] = static_cast<uint8_t>(data);
+    identity_[ELI_DATA] = static_cast<uint8_t>(data);
   }
 
   void identity_version(VERSION version) {
-    identity_[EI_VERSION] = static_cast<uint8_t>(version);
+    identity_[ELI_VERSION] = static_cast<uint8_t>(version);
   }
 
   void identity_os_abi(OS_ABI osabi) {
-    identity_[EI_OSABI] = static_cast<uint8_t>(osabi);
+    identity_[ELI_OSABI] = static_cast<uint8_t>(osabi);
   }
 
   void identity_abi_version(uint8_t version) {
-    identity_[EI_ABIVERSION] = version;
+    identity_[ELI_ABIVERSION] = version;
   }
 
   void accept(Visitor& visitor) const override;

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 #ifndef LIEF_ELF_NOTE_DETAILS_PROPERTIES_AARCH64_FEATURE_H
 #define LIEF_ELF_NOTE_DETAILS_PROPERTIES_AARCH64_FEATURE_H
 
+#include "LIEF/visibility.h"
 #include "LIEF/ELF/NoteDetails/NoteGnuProperty.hpp"
 
 namespace LIEF {
@@ -24,7 +25,7 @@ class BinaryStream;
 namespace ELF {
 
 /// This class represents the `GNU_PROPERTY_AARCH64_FEATURE_1_AND` property.
-class AArch64Feature : public NoteGnuProperty::Property {
+class LIEF_API AArch64Feature : public NoteGnuProperty::Property {
   public:
   enum class FEATURE {
     UNKNOWN = 0,

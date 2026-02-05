@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 #include "PE/pyPE.hpp"
-#include "nanobind/extra/memoryview.hpp"
+#include "nanobind/extra/stl/lief_span.h"
+#include "nanobind/utils.hpp"
 
 #include "LIEF/PE/resources/ResourceIcon.hpp"
+#include "pyErr.hpp"
 
 #include <vector>
 #include <string>
 #include <sstream>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
 
 namespace LIEF::PE::py {
 
@@ -74,16 +77,24 @@ void create<ResourceIcon>(nb::module_& m) {
         "Bits per pixel"_doc)
 
     .def_prop_rw("pixels",
-        [] (ResourceIcon& self) {
-          const span<const uint8_t> content = self.pixels();
-          return nb::memoryview::from_memory(content.data(), content.size());
-        },
-        nb::overload_cast<const std::vector<uint8_t>&>(&ResourceIcon::pixels))
+        nb::overload_cast<>(&ResourceIcon::pixels, nb::const_),
+        nb::overload_cast<std::vector<uint8_t>>(&ResourceIcon::pixels))
 
-    .def("save",
-        &ResourceIcon::save,
+    .def("save", &ResourceIcon::save,
         "Save the icon to the given filepath"_doc,
         "filepath"_a)
+
+    .def("serialize", [] (ResourceIcon& self) {
+          return nb::to_bytes(self.serialize());
+        },
+        "Serialize the current icon into bytes"_doc)
+
+    .def_static("from_serialization", [] (nb::bytes bytes) {
+        return LIEF::py::error_or(
+          nb::overload_cast<const uint8_t*, size_t>(&ResourceIcon::from_serialization),
+          (const uint8_t*)bytes.data(), bytes.size());
+      },
+      "Create an icon instance from the serialized bytes"_doc)
 
     LIEF_DEFAULT_STR(ResourceIcon);
 }

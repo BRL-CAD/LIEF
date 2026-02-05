@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,12 +48,46 @@ DelayImport::DelayImport(const details::delay_imports& import, PE_TYPE type) :
   type_{type}
 {}
 
+
+DelayImport::DelayImport(const DelayImport& other) :
+  Object(other),
+  attribute_(other.attribute_),
+  name_(other.name_),
+  handle_(other.handle_),
+  iat_(other.iat_),
+  names_table_(other.names_table_),
+  bound_iat_(other.bound_iat_),
+  unload_iat_(other.unload_iat_),
+  timestamp_(other.timestamp_),
+  type_(other.type_)
+{
+  if (!other.entries_.empty()) {
+    entries_.reserve(other.entries_.size());
+    for (const DelayImportEntry& entry : other.entries()) {
+      entries_.emplace_back(new DelayImportEntry(entry));
+    }
+  }
+}
+
 void DelayImport::accept(LIEF::Visitor& visitor) const {
   visitor.visit(*this);
 }
 
 std::ostream& operator<<(std::ostream& os, const DelayImport& entry) {
-  os << fmt::format("{:<20}: #{} imports", entry.name(), entry.entries().size());
+  using namespace fmt;
+  os << entry.name() << '\n'
+     << format("  Characteristics:          0x{:08x}\n", entry.attribute())
+     << format("  Address of HMODULE:       0x{:08x}\n", entry.handle())
+     << format("  Import Address Table:     0x{:08x}\n", entry.iat())
+     << format("  Import Name Table:        0x{:08x}\n", entry.names_table())
+     << format("  Bound Import Name Table:  0x{:08x}\n", entry.biat())
+     << format("  Unload Import Name Table: 0x{:08x}\n", entry.uiat())
+     << format("  Timestamp:                {}\n", entry.uiat())
+     << "Entries:\n";
+
+  for (const DelayImportEntry& delayed : entry.entries()) {
+    os << "    " << delayed << '\n';
+  }
   return os;
 }
 }

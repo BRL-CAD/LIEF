@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,20 +28,37 @@ class Builder;
 
 namespace details {
 struct pe_pdb_70;
+struct pe_pdb_20;
 }
 
-//! CodeView PDB specialization
+/// CodeView PDB specialization
 class LIEF_API CodeViewPDB : public CodeView {
   friend class Parser;
   friend class Builder;
 
   public:
   using signature_t = std::array<uint8_t, 16>;
-  CodeViewPDB() = default;
+  CodeViewPDB() :
+    CodeView(CodeView::SIGNATURES::PDB_70)
+  {}
+
+  CodeViewPDB(std::string filename) :
+    CodeView(CodeView::SIGNATURES::PDB_70),
+    signature_{0},
+    filename_(std::move(filename))
+  {}
+
   CodeViewPDB(const details::pe_debug& debug_info,
-              const details::pe_pdb_70& pdb_70);
+              const details::pe_pdb_70& pdb_70, Section* sec);
+
+  CodeViewPDB(const details::pe_debug& debug_info,
+              const details::pe_pdb_20& pdb_70, Section* sec);
+
   CodeViewPDB(const CodeViewPDB& other) = default;
   CodeViewPDB& operator=(const CodeViewPDB& other) = default;
+
+  CodeViewPDB(CodeViewPDB&& other) = default;
+  CodeViewPDB& operator=(CodeViewPDB&& other) = default;
 
   /// The GUID signature to verify against the .pdb file signature.
   /// This attribute might be used to lookup remote PDB file on a symbol server
@@ -90,13 +107,14 @@ class LIEF_API CodeViewPDB : public CodeView {
   }
 
   void accept(Visitor& visitor) const override;
-  LIEF_API friend std::ostream& operator<<(std::ostream& os, const CodeViewPDB& entry);
+
+  std::string to_string() const override;
 
   ~CodeViewPDB() override = default;
 
   protected:
-  uint32_t    age_ = 0;
-  signature_t signature_;
+  uint32_t age_ = 0;
+  signature_t signature_ = {0};
   std::string filename_;
 };
 

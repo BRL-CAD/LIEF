@@ -1,5 +1,6 @@
 use lief_ffi as ffi;
 
+use std::path::Path;
 use std::marker::PhantomData;
 use crate::common::{FromFFI, into_optional};
 use crate::generic;
@@ -29,8 +30,8 @@ impl FromFFI<ffi::PDB_DebugInfo> for DebugInfo<'_> {
 
 impl DebugInfo<'_> {
     /// Create a DebugInfo from a PDB file path
-    pub fn from(path: &str) -> Option<DebugInfo> {
-        into_optional(ffi::PDB_DebugInfo::from_file(path))
+    pub fn from<P: AsRef<Path>>(path: P) -> Option<DebugInfo<'static>> {
+        into_optional(ffi::PDB_DebugInfo::from_file(path.as_ref().to_str().unwrap()))
     }
 
     /// The number of times the PDB file has been written.
@@ -45,12 +46,12 @@ impl DebugInfo<'_> {
 
     /// Iterator over the CompilationUnit from the PDB's DBI stream.
     /// [`crate::pdb::CompilationUnit`] are also named "Module" in the PDB's official documentation
-    pub fn compilation_units(&self) -> CompilationUnits {
+    pub fn compilation_units(&self) -> CompilationUnits<'_> {
         CompilationUnits::new(self.ptr.compilation_units())
     }
 
     /// Return an iterator over the public symbol stream ([`PublicSymbol`])
-    pub fn public_symbols(&self) -> PublicSymbols {
+    pub fn public_symbols(&self) -> PublicSymbols<'_> {
         PublicSymbols::new(self.ptr.public_symbols())
     }
 
@@ -62,17 +63,17 @@ impl DebugInfo<'_> {
     ///   // FOUND!
     /// }
     /// ```
-    pub fn public_symbol_by_name(&self, name: &str) -> Option<PublicSymbol> {
+    pub fn public_symbol_by_name(&self, name: &str) -> Option<PublicSymbol<'_>> {
         into_optional(self.ptr.public_symbol_by_name(name))
     }
 
     /// Return an iterator over the different [`crate::pdb::Type`] registered for this PDB file
-    pub fn types(&self) -> Types {
+    pub fn types(&self) -> Types<'_> {
         Types::new(self.ptr.types())
     }
 
     /// Try to find the type with the given name
-    pub fn type_by_name(&self, name: &str) -> Option<Type> {
+    pub fn type_by_name(&self, name: &str) -> Option<Type<'_>> {
         into_optional(self.ptr.find_type(name))
     }
 }
@@ -80,5 +81,12 @@ impl DebugInfo<'_> {
 impl generic::DebugInfo for DebugInfo<'_> {
     fn as_generic(&self) -> &ffi::AbstracDebugInfo {
         self.ptr.as_ref().unwrap().as_ref()
+    }
+}
+
+
+impl std::fmt::Display for DebugInfo<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.ptr.to_string())
     }
 }

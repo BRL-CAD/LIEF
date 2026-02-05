@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ void DynamicSymbolCommand::accept(Visitor& visitor) const {
 }
 
 std::ostream& DynamicSymbolCommand::print(std::ostream& os) const {
-  LoadCommand::print(os);
+  LoadCommand::print(os) << '\n';
   static constexpr auto DEFAULT_FMT = "{:36}: 0x{:x}\n";
   os << fmt::format(DEFAULT_FMT, "First local symbol index", idx_local_symbol());
   os << fmt::format(DEFAULT_FMT, "Number of local symbols", nb_local_symbols());

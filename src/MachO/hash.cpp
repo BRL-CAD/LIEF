@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,6 +106,10 @@ void Hash::visit(const MainCommand& maincmd) {
   process(maincmd.stack_size());
 }
 
+void Hash::visit(const NoteCommand& note) {
+  visit(*note.as<LoadCommand>());
+}
+
 void Hash::visit(const DynamicSymbolCommand& dynamic_symbol) {
   visit(*dynamic_symbol.as<LoadCommand>());
   process(dynamic_symbol.idx_local_symbol());
@@ -160,6 +164,10 @@ void Hash::visit(const ThreadCommand& threadcmd) {
 void Hash::visit(const RPathCommand& rpath) {
   visit(*rpath.as<LoadCommand>());
   process(rpath.path());
+}
+
+void Hash::visit(const Routine& routine) {
+  visit(*routine.as<LoadCommand>());
 }
 
 void Hash::visit(const Symbol& symbol) {

@@ -9,7 +9,7 @@ set(LIEF_EXAMPLES_BINARY_DIR "${PROJECT_BINARY_DIR}/examples")
 
 # Fuzzing
 # =======
-if(UNIX AND NOT APPLE)
+if(LIEF_USE_MELKOR AND UNIX AND NOT APPLE)
   set(MELKOR_VERSION ac2495b) # From the fork: https://github.com/romainthomas/elf_fuzzer
   set(MELKOR_SHA256 SHA256=8cccc4ca5e05e305215cc74761413746b660b76f5869a563f52cec1f23d79f2e)
   set(MELKOR_URL "${THIRD_PARTY_DIRECTORY}/Melkor_ELF_Fuzzer-${MELKOR_VERSION}.zip" CACHE STRING "URL to the Melkor package")
@@ -33,6 +33,17 @@ if(UNIX AND NOT APPLE)
 endif()
 
 add_subdirectory(unittests)
+
+add_executable(test_define_conflicts
+  test_define_conflicts.cpp
+)
+
+set_target_properties(test_define_conflicts
+  PROPERTIES CXX_STANDARD           17
+             CXX_STANDARD_REQUIRED  ON)
+
+target_link_libraries(test_define_conflicts LIB_LIEF)
+
 
 if (CMAKE_CONFIGURATION_TYPES)
   add_custom_target(check-lief

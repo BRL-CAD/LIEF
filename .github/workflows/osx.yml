@@ -6,7 +6,7 @@ env:
 
 jobs:
   osx-sdk:
-    runs-on: macos-11.0
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
         with:
@@ -60,7 +60,7 @@ jobs:
           path: install/x64
           retention-days: 1
   osx-testing:
-    runs-on: macos-11.0
+    runs-on: macos-14
     if: "!contains(github.event.commits[0].message, '[skip-test]')"
     steps:
       - uses: actions/checkout@v4
@@ -124,11 +124,11 @@ jobs:
           python tests/run_tools_check.py ${LIEF_BUILD_DIR}/
           ctest --output-on-failure --test-dir ${LIEF_BUILD_DIR}/
   wheels:
-    runs-on: macos-11.0
+    runs-on: macos-14
     needs: osx-sdk
     strategy:
       matrix:
-        python-version: [3.8, 3.9, '3.10', '3.11', '3.12', '3.13']
+        python-version: [3.9, '3.10', '3.11', '3.12', '3.13']
         arch: ['x64', 'arm64']
       fail-fast: false
     steps:
@@ -186,7 +186,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     if: ${{ always() }}
-    needs: [osx-sdk, wheels]
+    needs: [wheels]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -216,6 +216,6 @@ jobs:
             -e LIEF_S3_KEY=$LIEF_S3_KEY                       \
             -e LIEF_S3_SECRET=$LIEF_S3_SECRET                 \
             liefproject/deploy                                \
-            python3 /src/.github/deploy.py /runner_tmp/artifacts
+            python3 /src/.github/deploy.py --skip-sdk /runner_tmp/artifacts
 
 

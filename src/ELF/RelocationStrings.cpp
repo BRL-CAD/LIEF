@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,6 +160,48 @@ const char* to_string<Relocation::R_SYSZ>(Relocation::TYPE type) {
   return "UNKNOWN";
 }
 
+template<>
+const char* to_string<Relocation::R_RISCV>(Relocation::TYPE type) {
+  #define ENTRY(X) std::pair(Relocation::TYPE::X, #X)
+  STRING_MAP enums2str {
+    #include "LIEF/ELF/Relocations/RISCV.def"
+  };
+  #undef ENTRY
+
+  if (auto it = enums2str.find(type); it != enums2str.end()) {
+    return it->second;
+  }
+  return "UNKNOWN";
+}
+
+template<>
+const char* to_string<Relocation::R_BPF>(Relocation::TYPE type) {
+  #define ENTRY(X) std::pair(Relocation::TYPE::X, #X)
+  STRING_MAP enums2str {
+    #include "LIEF/ELF/Relocations/BPF.def"
+  };
+  #undef ENTRY
+
+  if (auto it = enums2str.find(type); it != enums2str.end()) {
+    return it->second;
+  }
+  return "UNKNOWN";
+}
+
+template<>
+const char* to_string<Relocation::R_SH4>(Relocation::TYPE type) {
+  #define ENTRY(X) std::pair(Relocation::TYPE::X, #X)
+  STRING_MAP enums2str {
+    #include "LIEF/ELF/Relocations/SH4.def"
+  };
+  #undef ENTRY
+
+  if (auto it = enums2str.find(type); it != enums2str.end()) {
+    return it->second;
+  }
+  return "UNKNOWN";
+}
+
 const char* to_string(Relocation::TYPE type) {
   auto raw_type = static_cast<uint64_t>(type);
 
@@ -207,6 +249,18 @@ const char* to_string(Relocation::TYPE type) {
 
   if (ID == Relocation::R_SYSZ) {
     return to_string<Relocation::R_SYSZ>(type);
+  }
+
+  if (ID == Relocation::R_RISCV) {
+    return to_string<Relocation::R_RISCV>(type);
+  }
+
+  if (ID == Relocation::R_BPF) {
+    return to_string<Relocation::R_BPF>(type);
+  }
+
+  if (ID == Relocation::R_SH4) {
+    return to_string<Relocation::R_SH4>(type);
   }
 
   return "UNKNOWN";

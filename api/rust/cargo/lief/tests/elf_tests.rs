@@ -1,5 +1,6 @@
 mod utils;
 use std::env;
+use lief::elf::builder::Config;
 use lief::logging;
 use lief::elf::dynamic;
 use lief::elf::dynamic::DynamicEntry;
@@ -17,6 +18,10 @@ fn explore_elf(name: &str, elf: &lief::elf::Binary) {
     format!("{} {} {}", elf.entrypoint(), elf.imagebase(), elf.is_pie());
     format!("{} {} {}", elf.has_nx(), elf.original_size(), elf.virtual_size());
     format!("{}", elf.interpreter());
+
+    for func in elf.functions() {
+        format!("{func:?}");
+    }
 
     if let Some(sysv) = elf.sysv_hash() {
         format!("{sysv:?}");
@@ -104,6 +109,7 @@ fn explore_elf(name: &str, elf: &lief::elf::Binary) {
     for sym in elf.dynamic_symbols() {
         format!("{sym:?}: {sym}");
         format!("{}: {} ({})", sym.name(), sym.value(), sym.size());
+        format!("{}", sym.demangled_name());
     }
 
     for sym_ver in elf.symbols_version() {
@@ -146,6 +152,9 @@ fn explore_elf(name: &str, elf: &lief::elf::Binary) {
             dynamic::Entries::SharedObject(shared) => {
                 format!("{:?}: {}", shared.tag(), shared.name());
             }
+            dynamic::Entries::Flags(flags) => {
+                format!("{:?}: {:?}", flags.tag(), flags.flags());
+            }
         }
     }
 
@@ -181,6 +190,12 @@ fn explore_elf(name: &str, elf: &lief::elf::Binary) {
         assert!(elf.section_from_virtual_address(0x400318, /*skip_nobits*/ true).is_some());
         assert!(elf.section_from_virtual_address(0x100000000, /*skip_nobits*/ true).is_none());
         assert!(!elf.content_from_virtual_address(0x400318, 0x10).is_empty());
+
+
+        assert!(elf.get_int_from_virtual_address::<i8>(0x401126).expect("Read error") != 0);
+        assert!(elf.get_int_from_virtual_address::<i16>(0x401126).expect("Read error") != 0);
+        assert!(elf.get_int_from_virtual_address::<u32>(0x401126).expect("Read error") != 0);
+        assert!(elf.get_int_from_virtual_address::<i64>(0x401126).expect("Read error") != 0);
     }
 }
 
@@ -211,5 +226,19 @@ fn test_api() {
     test_with("ELF64_x86-64_binary_systemd-resolve.bin");
     test_with("art_reader.loongarch");
     test_with("simple-gcc-c.bin");
+}
+
+#[test]
+fn test_mut_api() {
+    let path = utils::get_elf_sample("elf_reader.mips.elf").unwrap();
+    let Binary::ELF(mut bin) = Binary::parse(path.to_str().unwrap()).unwrap() else { panic!("Expecting an ELF"); };
+    bin.add_library("this_is_a_test.so");
+    let tmpfile = tempfile::NamedTempFile::new().unwrap();
+    bin.write(tmpfile.path());
+
+    let path = utils::get_elf_sample("ELF_Core_issue_808.core").unwrap();
+    let Binary::ELF(mut bin) = Binary::parse(path.to_str().unwrap()).unwrap() else { panic!("Expecting an ELF"); };
+    let tmpfile = tempfile::NamedTempFile::new().unwrap();
+    bin.write_with_config(tmpfile.path(), Config::default());
 }
 

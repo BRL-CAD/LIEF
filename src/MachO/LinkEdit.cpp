@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 #include "logging.hpp"
 #include "LIEF/errors.hpp"
 
+#include "LIEF/MachO/AtomInfo.hpp"
 #include "LIEF/MachO/CodeSignature.hpp"
 #include "LIEF/MachO/CodeSignatureDir.hpp"
 #include "LIEF/MachO/DataInCode.hpp"
@@ -23,6 +24,8 @@
 #include "LIEF/MachO/DyldExportsTrie.hpp"
 #include "LIEF/MachO/DyldInfo.hpp"
 #include "LIEF/MachO/FunctionStarts.hpp"
+#include "LIEF/MachO/FunctionVariants.hpp"
+#include "LIEF/MachO/FunctionVariantFixups.hpp"
 #include "LIEF/MachO/LinkEdit.hpp"
 #include "LIEF/MachO/LinkerOptHint.hpp"
 #include "LIEF/MachO/SegmentSplitInfo.hpp"
@@ -68,8 +71,8 @@ inline ok_error_t update_span(span<uint8_t>& sp, uintptr_t original_data_addr,
   return ok();
 }
 
-//! @param[in] offset    Offset where the insertion took place
-//! @param[in] size      Size of the inserted data
+/// @param[in] offset    Offset where the insertion took place
+/// @param[in] size      Size of the inserted data
 inline ok_error_t update_span(span<uint8_t>& sp, uintptr_t original_data_addr, uintptr_t original_data_end,
                               size_t offset, size_t size, std::vector<uint8_t>& new_data)
 {
@@ -196,6 +199,24 @@ void LinkEdit::update_data(const update_fnc_t& f) {
       LIEF_WARN("Error while re-spanning the LC_DYLIB_CODE_SIGN_DRS in segment {}", name_);
     }
   }
+
+  if (atom_info_ != nullptr) {
+    if (!update_span(atom_info_->content_, original_data_addr, original_data_end, data_)) {
+      LIEF_WARN("Error while re-spanning the LC_ATOM_INFO in segment {}", name_);
+    }
+  }
+
+  if (func_variants_ != nullptr) {
+    if (!update_span(func_variants_->content_, original_data_addr, original_data_end, data_)) {
+      LIEF_WARN("Error while re-spanning the LC_FUNCTION_VARIANTS in segment {}", name_);
+    }
+  }
+
+  if (func_variant_fixups_ != nullptr) {
+    if (!update_span(func_variant_fixups_->content_, original_data_addr, original_data_end, data_)) {
+      LIEF_WARN("Error while re-spanning the LC_FUNCTION_VARIANT_FIXUPS in segment {}", name_);
+    }
+  }
 }
 
 void LinkEdit::update_data(const update_fnc_ws_t& f, size_t where, size_t size) {
@@ -281,6 +302,24 @@ void LinkEdit::update_data(const update_fnc_ws_t& f, size_t where, size_t size) 
   if (code_sig_dir_ != nullptr) {
     if (!update_span(code_sig_dir_->content_, original_data_addr, original_data_end, data_)) {
       LIEF_WARN("Error while re-spanning the LC_DYLIB_CODE_SIGN_DRS in segment {}", name_);
+    }
+  }
+
+  if (atom_info_ != nullptr) {
+    if (!update_span(atom_info_->content_, original_data_addr, original_data_end, data_)) {
+      LIEF_WARN("Error while re-spanning the LC_ATOM_INFO in segment {}", name_);
+    }
+  }
+
+  if (func_variants_ != nullptr) {
+    if (!update_span(func_variants_->content_, original_data_addr, original_data_end, data_)) {
+      LIEF_WARN("Error while re-spanning the LC_FUNCTION_VARIANTS in segment {}", name_);
+    }
+  }
+
+  if (func_variant_fixups_ != nullptr) {
+    if (!update_span(func_variant_fixups_->content_, original_data_addr, original_data_end, data_)) {
+      LIEF_WARN("Error while re-spanning the LC_FUNCTION_VARIANT_FIXUPS in segment {}", name_);
     }
   }
 }

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "spdlog/fmt/fmt.h"
+#include "spdlog/fmt/ranges.h"
 #include "LIEF/utils.hpp"
 #include "LIEF/Visitor.hpp"
 
@@ -25,9 +26,10 @@ namespace MachO {
 
 DylibCommand::DylibCommand(const details::dylib_command& cmd) :
   LoadCommand::LoadCommand{static_cast<LoadCommand::TYPE>(cmd.cmd), cmd.cmdsize},
-  timestamp_{cmd.dylib.timestamp},
-  current_version_{cmd.dylib.current_version},
-  compatibility_version_{cmd.dylib.compatibility_version}
+  name_offset_{cmd.name},
+  timestamp_{cmd.timestamp},
+  current_version_{cmd.current_version},
+  compatibility_version_{cmd.compatibility_version}
 {}
 
 
@@ -36,12 +38,12 @@ void DylibCommand::accept(Visitor& visitor) const {
 }
 
 std::ostream& DylibCommand::print(std::ostream& os) const {
-  LoadCommand::print(os);
+  LoadCommand::print(os) << '\n';
   os << fmt::format("name={}, timestamp={}, "
                     "current_version={},  compatibility_version={}",
                     name(), timestamp(),
                     fmt::join(current_version(), "."),
-                    fmt::join(compatibility_version(), ".")) << '\n';
+                    fmt::join(compatibility_version(), "."));
    return os;
 }
 
@@ -52,11 +54,11 @@ DylibCommand DylibCommand::create(LoadCommand::TYPE type,
     uint32_t compat_version) {
 
   details::dylib_command raw_cmd;
-  raw_cmd.cmd                         = static_cast<uint32_t>(type);
-  raw_cmd.cmdsize                     = align(sizeof(details::dylib_command) + name.size() + 1, sizeof(uint64_t));
-  raw_cmd.dylib.timestamp             = timestamp;
-  raw_cmd.dylib.current_version       = current_version;
-  raw_cmd.dylib.compatibility_version = compat_version;
+  raw_cmd.cmd                   = static_cast<uint32_t>(type);
+  raw_cmd.cmdsize               = align(sizeof(details::dylib_command) + name.size() + 1, sizeof(uint64_t));
+  raw_cmd.timestamp             = timestamp;
+  raw_cmd.current_version       = current_version;
+  raw_cmd.compatibility_version = compat_version;
 
   DylibCommand dylib{raw_cmd};
   dylib.name(name);

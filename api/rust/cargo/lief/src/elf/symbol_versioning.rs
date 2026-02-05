@@ -23,8 +23,27 @@ impl SymbolVersion<'_> {
     }
 
     /// SymbolVersionAux associated with the current Version if any.
-    pub fn symbol_version_auxiliary(&self) -> Option<SymbolVersionAux> {
+    pub fn symbol_version_auxiliary(&self) -> Option<SymbolVersionAux<'_>> {
         into_optional(self.ptr.symbol_version_auxiliary())
+    }
+
+    /// Drop the versioning requirement and replace the value (local/global)
+    pub fn drop_version(&mut self, value: u16) {
+        self.ptr.pin_mut().drop_version(value)
+    }
+
+    /// Redefine this version as local by dropping its auxiliary version
+    ///
+    /// See: [`SymbolVersion::as_global`], [`SymbolVersion::drop_version`]
+    pub fn as_local(&mut self) {
+        self.ptr.pin_mut().as_local()
+    }
+
+    /// Redefine this version as global by dropping its auxiliary version
+    ///
+    /// See: [`SymbolVersion::as_local`], [`SymbolVersion::drop_version`]
+    pub fn as_global(&mut self) {
+        self.ptr.pin_mut().as_global()
     }
 }
 
@@ -99,7 +118,7 @@ impl SymbolVersionAuxRequirement<'_> {
     }
 
 
-    /// Symbol's aux name (e.g. ``GLIBC_2.2.5``)
+    /// Symbol's aux name (e.g. `GLIBC_2.2.5`)
     pub fn name(&self) -> String {
         self.ptr.name().to_string()
     }
@@ -158,7 +177,7 @@ impl SymbolVersionDefinition<'_> {
     }
 
     /// Iterator over the [`SymbolVersionAux`] associated with this entry
-    pub fn auxiliary_symbols(&self) -> DefAuxiliarySymbols {
+    pub fn auxiliary_symbols(&self) -> DefAuxiliarySymbols<'_> {
         DefAuxiliarySymbols::new(self.ptr.sym_aux())
     }
 }
@@ -184,7 +203,7 @@ impl FromFFI<ffi::ELF_SymbolVersionDefinition> for SymbolVersionDefinition<'_> {
 }
 
 
-/// Structure which represents an entry in the ``DT_VERNEED`` or ``.gnu.version_r`` table
+/// Structure which represents an entry in the `DT_VERNEED` or `.gnu.version_r` table
 pub struct SymbolVersionRequirement<'a> {
     ptr: cxx::UniquePtr<ffi::ELF_SymbolVersionRequirement>,
     _owner: PhantomData<&'a ()>
@@ -210,8 +229,35 @@ impl SymbolVersionRequirement<'_> {
     }
 
     /// Auxiliary entries as an iterator over [`SymbolVersionAuxRequirement`]
-    pub fn auxiliary_symbols(&self) -> AuxiliarySymbols {
+    pub fn auxiliary_symbols(&self) -> AuxiliarySymbols<'_> {
         AuxiliarySymbols::new(self.ptr.auxiliary_symbols())
+    }
+
+    pub fn set_name(&mut self, name: &str) {
+        self.ptr.pin_mut().set_name(name.to_string());
+    }
+
+    pub fn set_version(&mut self, version: u16) {
+        self.ptr.pin_mut().set_version(version);
+    }
+
+    /// Try to find the [`SymbolVersionAuxRequirement`] with the given name (e.g. `GLIBC_2.27`)
+    pub fn find_aux(&self, name: &str) -> Option<SymbolVersionAuxRequirement<'_>> {
+        into_optional(self.ptr.find_aux(name.to_string()))
+    }
+
+
+    /// Try to remove the auxiliary requirement symbol with the given name.
+    /// The function returns true if the operation succeed, false otherwise.
+    ///
+    /// **warning**:
+    ///
+    /// This function invalidates all the references of
+    /// [`SymbolVersionAuxRequirement`]. Therefore, the user is reponsible
+    /// to ensure that the auxiliary requirement is no longer used in the
+    /// ELF binary (e.g. in [`SymbolVersion`])
+    pub fn remove_aux_requirement_by_name(&mut self, name: &str) -> bool {
+        self.ptr.pin_mut().remove_aux_requirement_by_name(name.to_string())
     }
 }
 

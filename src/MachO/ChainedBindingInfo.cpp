@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ namespace LIEF {
 namespace MachO {
 
 ChainedBindingInfo::ChainedBindingInfo(ChainedBindingInfo&&) noexcept = default;
+ChainedBindingInfo& ChainedBindingInfo::operator=(ChainedBindingInfo&&) noexcept = default;
+
 ChainedBindingInfo::ChainedBindingInfo(const ChainedBindingInfo& other) :
   BindingInfo(other),
   format_{other.format_},
@@ -44,6 +46,10 @@ ChainedBindingInfo::ChainedBindingInfo(DYLD_CHAINED_FORMAT fmt, bool is_weak) :
   format_{fmt}
 {
   is_weak_import_ = is_weak;
+}
+
+ChainedBindingInfo::~ChainedBindingInfo() {
+  clear();
 }
 
 ChainedBindingInfo& ChainedBindingInfo::operator=(ChainedBindingInfo other) {

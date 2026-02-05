@@ -1,4 +1,4 @@
-/* Copyright 2021 - 2024 R. Thomas
+/* Copyright 2021 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,6 +111,9 @@ bool chained_fixup::is_rebase(uint16_t ptr_format) const {
       {
         return true;
       }
+    case LIEF::MachO::DYLD_CHAINED_PTR_FORMAT::PTR_ARM64E_SEGMENTED:
+      return true;
+
     default:
       {
         LIEF_ERR("Unknown pointer format: 0x{:04x}", ptr_format);

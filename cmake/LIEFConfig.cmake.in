@@ -58,6 +58,13 @@ endif()
 set(LIEF_static_export "${CMAKE_CURRENT_LIST_DIR}/LIEFExport-static.cmake")
 set(LIEF_shared_export "${CMAKE_CURRENT_LIST_DIR}/LIEFExport-shared.cmake")
 
+# Fix when cross-compiling for OSX with 'CMAKE_INSTALL_NAME_DIR'
+if (APPLE AND (NOT CMAKE_OSX_DEPLOYMENT_TARGET OR
+               CMAKE_OSX_DEPLOYMENT_TARGET VERSION_GREATER 10.4))
+  if(NOT CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG)
+    set(CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG "-Wl,-rpath,")
+  endif()
+endif()
 
 # Helper macro to load the requested targets, where `lib_type` is `static` or
 # `shared`
@@ -93,6 +100,11 @@ macro(LIEF_load_targets lib_type)
     if(NOT @LIEF_DISABLE_FROZEN@ AND @LIEF_OPT_FROZEN_EXTERNAL@)
       find_dependency(frozen)
     endif()
+
+    if(@LIEF_OPT_EXTERNAL_EXPECTED@)
+      find_dependency(tl-expected)
+    endif()
+
   endif()
 
   # Include the respective targets file
@@ -154,6 +166,11 @@ if(@LIEF_EXTERNAL_SPAN@)
   )
 endif()
 
+if(@LIEF_EXTENDED@)
+  set(LIEF_CORE_EXTENDED TRUE)
+else()
+  set(LIEF_CORE_EXTENDED FALSE)
+endif()
 
 # Set this for backwards compatibility. This isn't quite the path to the
 # actual library file, but using the target is strictly better because it

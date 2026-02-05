@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ DyldChainedFixups::DyldChainedFixups() = default;
 DyldChainedFixups& DyldChainedFixups::operator=(const DyldChainedFixups& other) {
   if (&other != this) {
     data_offset_ = other.data_offset_;
-    data_offset_ = other.data_offset_;
+    data_size_ = other.data_size_;
   }
   return *this;
 }
@@ -95,11 +95,9 @@ std::ostream& DyldChainedFixups::print(std::ostream& os) const {
     os << info << "\n";
 
     for (const Relocation& reloc : info.segment.relocations()) {
-      if (!RelocationFixup::classof(reloc)) {
-        continue;
+      if (const auto* r = reloc.cast<RelocationFixup>()) {
+        os << fmt::format("[RELOC] 0x{:08x}: 0x{:08x}\n", r->address(), r->target());
       }
-      const auto& r = static_cast<const RelocationFixup&>(reloc);
-      os << fmt::format("[RELOC] 0x{:08x}: 0x{:08x}\n", r.address(), r.target());
     }
     os << "\n";
   }
@@ -144,12 +142,6 @@ DyldChainedFixups::chained_starts_in_segment::chained_starts_in_segment(uint32_t
   pointer_format{static_cast<DYLD_CHAINED_PTR_FORMAT>(info.pointer_format)},
   segment{segment}
 {}
-
-DyldChainedFixups::chained_starts_in_segment::chained_starts_in_segment(uint32_t offset, SegmentCommand& segment) :
-  offset{offset},
-  segment{segment}
-{}
-
 
 std::ostream& operator<<(std::ostream& os, const DyldChainedFixups::chained_starts_in_segment& info) {
   os << fmt::format("size              = {}\n",     info.size);

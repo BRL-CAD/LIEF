@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@
 #include "spdlog/fmt/fmt.h"
 
 #include "LIEF/Visitor.hpp"
+#include "LIEF/config.h"
+#include "LIEF/utils.hpp"
 
 #include "LIEF/MachO/Symbol.hpp"
 #include "MachO/Structures.hpp"
@@ -47,7 +49,7 @@ Symbol::Symbol(const details::nlist_32& cmd) :
   type_{cmd.n_type},
   numberof_sections_{cmd.n_sect},
   description_{static_cast<uint16_t>(cmd.n_desc)},
-  origin_{ORIGIN::LC_SYMTAB}
+  origin_{ORIGIN::SYMTAB}
 {
   value_ = cmd.n_value;
 }
@@ -56,11 +58,10 @@ Symbol::Symbol(const details::nlist_64& cmd) :
   type_{cmd.n_type},
   numberof_sections_{cmd.n_sect},
   description_{cmd.n_desc},
-  origin_{ORIGIN::LC_SYMTAB}
+  origin_{ORIGIN::SYMTAB}
 {
   value_ = cmd.n_value;
 }
-
 
 void Symbol::swap(Symbol& other) noexcept {
   LIEF::Symbol::swap(other);
@@ -74,20 +75,28 @@ void Symbol::swap(Symbol& other) noexcept {
 }
 
 std::string Symbol::demangled_name() const {
+  if constexpr (lief_extended) {
+    std::string sym_name = name();
+    if (sym_name.find("__Z") == 0) {
+      sym_name = sym_name.substr(1);
+    }
+    return LIEF::demangle(sym_name).value_or("");
+  } else {
 #if defined(__unix__)
-  int status;
-  const std::string& name = this->name().c_str();
-  char* demangled_name = abi::__cxa_demangle(name.c_str(), 0, 0, &status);
+    int status;
+    const std::string& name = this->name().c_str();
+    char* demangled_name = abi::__cxa_demangle(name.c_str(), 0, 0, &status);
 
-  if (status == 0) {
-    std::string realname = demangled_name;
-    free(demangled_name);
-    return realname;
-  }
-  return name;
+    if (status == 0) {
+      std::string realname = demangled_name;
+      free(demangled_name);
+      return realname;
+    }
+    return name;
 #else
-  return "";
+      return "";
 #endif
+  }
 }
 
 void Symbol::accept(Visitor& visitor) const {
@@ -104,23 +113,17 @@ const Symbol& Symbol::indirect_local() {
   return local;
 }
 
+const Symbol& Symbol::indirect_abs_local() {
+  static const Symbol local(CATEGORY::INDIRECT_ABS_LOCAL);
+  return local;
+}
 
 std::ostream& operator<<(std::ostream& os, const Symbol& symbol) {
-  //if ((symbol.type_ & MACHO_SYMBOL_TYPES::N_TYPE) == MACHO_SYMBOL_TYPES::N_TYPE) {
-  //  type = to_string(
-  //      static_cast<N_LIST_TYPES>(symbol.type_ & MACHO_SYMBOL_TYPES::N_TYPE));
-  //} else if((symbol.type_ & MACHO_SYMBOL_TYPES::N_STAB) > 0) {
-  //  type = to_string(MACHO_SYMBOL_TYPES::N_STAB);
-  //} else if((symbol.type_ & MACHO_SYMBOL_TYPES::N_PEXT) == MACHO_SYMBOL_TYPES::N_PEXT) {
-  //  type = to_string(MACHO_SYMBOL_TYPES::N_PEXT);
-  //}  else if((symbol.type_ & MACHO_SYMBOL_TYPES::N_EXT) == MACHO_SYMBOL_TYPES::N_EXT) {
-  //  type = to_string(MACHO_SYMBOL_TYPES::N_EXT);
-  //}
-
   os << fmt::format(
-    "name={}, type={}, desc={}, value={}",
-    symbol.name(), symbol.raw_type(), symbol.description(), symbol.value()
-  ) << '\n';
+    "name={}, type={}, desc={}, value=0x{:08x}, origin={}",
+    symbol.name(), symbol.raw_type(), symbol.description(), symbol.value(),
+    to_string(symbol.origin())
+  );
   return os;
 }
 
@@ -130,7 +133,7 @@ const char* to_string(Symbol::ORIGIN e) {
     ENTRY(UNKNOWN),
     ENTRY(DYLD_EXPORT),
     ENTRY(DYLD_BIND),
-    ENTRY(LC_SYMTAB),
+    ENTRY(SYMTAB),
   };
   #undef ENTRY
 

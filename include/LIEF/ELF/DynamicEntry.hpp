@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,8 @@ struct Elf64_Dyn;
 struct Elf32_Dyn;
 }
 
-//! Class which represents an entry in the dynamic table
-//! These entries are located in the ``.dynamic`` section or the ``PT_DYNAMIC`` segment
+/// Class which represents an entry in the dynamic table
+/// These entries are located in the ``.dynamic`` section or the ``PT_DYNAMIC`` segment
 class LIEF_API DynamicEntry : public Object {
   public:
   static constexpr uint64_t MIPS_DISC    = 0x100000000;
@@ -41,10 +41,12 @@ class LIEF_API DynamicEntry : public Object {
   static constexpr uint64_t PPC_DISC     = 0x400000000;
   static constexpr uint64_t PPC64_DISC   = 0x500000000;
   static constexpr uint64_t RISCV_DISC   = 0x600000000;
+  static constexpr uint64_t X86_64_DISC  = 0x700000000;
+  static constexpr uint64_t IA_64_DISC   = 0x800000000;
 
   enum class TAG : uint64_t {
     UNKNOWN                    = uint64_t(-1),
-    DT_NULL                    = 0, /**< Marks end of dynamic array. */
+    DT_NULL_                   = 0, /**< Marks end of dynamic array. */
     NEEDED                     = 1, /**< String table offset of needed library. */
     PLTRELSZ                   = 2, /**< Size of relocation entries in PLT. */
     PLTGOT                     = 3, /**< Address associated with linkage table. */
@@ -174,6 +176,42 @@ class LIEF_API DynamicEntry : public Object {
     PPC64_OPT                  = PPC64_DISC   + 0x70000003,
 
     RISCV_VARIANT_CC           = RISCV_DISC   + 0x70000003,
+
+    X86_64_PLT                 = X86_64_DISC  + 0x70000000,
+    X86_64_PLTSZ               = X86_64_DISC  + 0x70000001,
+    X86_64_PLTENT              = X86_64_DISC  + 0x70000003,
+
+    IA_64_PLT_RESERVE          = IA_64_DISC + (0x70000000 + 0),
+    IA_64_VMS_SUBTYPE          = IA_64_DISC + (0x60000000 + 0),
+    IA_64_VMS_IMGIOCNT         = IA_64_DISC + (0x60000000 + 2),
+    IA_64_VMS_LNKFLAGS         = IA_64_DISC + (0x60000000 + 8),
+    IA_64_VMS_VIR_MEM_BLK_SIZ  = IA_64_DISC + (0x60000000 + 10),
+    IA_64_VMS_IDENT            = IA_64_DISC + (0x60000000 + 12),
+    IA_64_VMS_NEEDED_IDENT     = IA_64_DISC + (0x60000000 + 16),
+    IA_64_VMS_IMG_RELA_CNT     = IA_64_DISC + (0x60000000 + 18),
+    IA_64_VMS_SEG_RELA_CNT     = IA_64_DISC + (0x60000000 + 20),
+    IA_64_VMS_FIXUP_RELA_CNT   = IA_64_DISC + (0x60000000 + 22),
+    IA_64_VMS_FIXUP_NEEDED     = IA_64_DISC + (0x60000000 + 24),
+    IA_64_VMS_SYMVEC_CNT       = IA_64_DISC + (0x60000000 + 26),
+    IA_64_VMS_XLATED           = IA_64_DISC + (0x60000000 + 30),
+    IA_64_VMS_STACKSIZE        = IA_64_DISC + (0x60000000 + 32),
+    IA_64_VMS_UNWINDSZ         = IA_64_DISC + (0x60000000 + 34),
+    IA_64_VMS_UNWIND_CODSEG    = IA_64_DISC + (0x60000000 + 36),
+    IA_64_VMS_UNWIND_INFOSEG   = IA_64_DISC + (0x60000000 + 38),
+    IA_64_VMS_LINKTIME         = IA_64_DISC + (0x60000000 + 40),
+    IA_64_VMS_SEG_NO           = IA_64_DISC + (0x60000000 + 42),
+    IA_64_VMS_SYMVEC_OFFSET    = IA_64_DISC + (0x60000000 + 44),
+    IA_64_VMS_SYMVEC_SEG       = IA_64_DISC + (0x60000000 + 46),
+    IA_64_VMS_UNWIND_OFFSET    = IA_64_DISC + (0x60000000 + 48),
+    IA_64_VMS_UNWIND_SEG       = IA_64_DISC + (0x60000000 + 50),
+    IA_64_VMS_STRTAB_OFFSET    = IA_64_DISC + (0x60000000 + 52),
+    IA_64_VMS_SYSVER_OFFSET    = IA_64_DISC + (0x60000000 + 54),
+    IA_64_VMS_IMG_RELA_OFF     = IA_64_DISC + (0x60000000 + 56),
+    IA_64_VMS_SEG_RELA_OFF     = IA_64_DISC + (0x60000000 + 58),
+    IA_64_VMS_FIXUP_RELA_OFF   = IA_64_DISC + (0x60000000 + 60),
+    IA_64_VMS_PLTGOT_OFFSET    = IA_64_DISC + (0x60000000 + 62),
+    IA_64_VMS_PLTGOT_SEG       = IA_64_DISC + (0x60000000 + 64),
+    IA_64_VMS_FPMODE           = IA_64_DISC + (0x60000000 + 66),
   };
 
   static TAG from_value(uint64_t value, ARCH arch);
@@ -191,20 +229,26 @@ class LIEF_API DynamicEntry : public Object {
   DynamicEntry(const DynamicEntry&) = default;
   ~DynamicEntry() override = default;
 
+  static std::unique_ptr<DynamicEntry> create(TAG tag, uint64_t value);
+
+  static std::unique_ptr<DynamicEntry> create(TAG tag) {
+    return create(tag, /*value=*/0);
+  }
+
   virtual std::unique_ptr<DynamicEntry> clone() const {
     return std::unique_ptr<DynamicEntry>(new DynamicEntry(*this));
   }
 
-  //! Tag of the current entry. The most common tags are:
-  //! DT_NEEDED, DT_INIT, ...
+  /// Tag of the current entry. The most common tags are:
+  /// DT_NEEDED, DT_INIT, ...
   TAG tag() const {
     return tag_;
   }
 
-  //! Return the entry's value
-  //!
-  //! The meaning of the value strongly depends on the tag.
-  //! It can be an offset, an index, a flag, ...
+  /// Return the entry's value
+  ///
+  /// The meaning of the value strongly depends on the tag.
+  /// It can be an offset, an index, a flag, ...
   uint64_t value() const {
     return value_;
   }
@@ -221,13 +265,30 @@ class LIEF_API DynamicEntry : public Object {
 
   virtual std::ostream& print(std::ostream& os) const;
 
+  std::string to_string() const;
+
   LIEF_API friend
   std::ostream& operator<<(std::ostream& os, const DynamicEntry& entry) {
     return entry.print(os);
   }
 
+  template<class T>
+  const T* cast() const {
+    static_assert(std::is_base_of<DynamicEntry, T>::value,
+                  "Require DynamicEntry inheritance");
+    if (T::classof(this)) {
+      return static_cast<const T*>(this);
+    }
+    return nullptr;
+  }
+
+  template<class T>
+  T* cast() {
+    return const_cast<T*>(static_cast<const DynamicEntry*>(this)->cast<T>());
+  }
+
   protected:
-  TAG      tag_ = TAG::DT_NULL;
+  TAG      tag_ = TAG::DT_NULL_;
   uint64_t value_ = 0;
 };
 

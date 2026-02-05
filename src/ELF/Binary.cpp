@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,10 +98,10 @@ LIEF::Binary::sections_t Binary::get_abstract_sections() {
 }
 
 LIEF::Binary::functions_t Binary::get_abstract_exported_functions() const {
-  LIEF::Binary::functions_t result;
+  functions_t result;
   for (const Symbol& symbol : exported_symbols()) {
     if (symbol.type() == Symbol::TYPE::FUNC) {
-      result.emplace_back(symbol.name(), symbol.value(), Function::flags_list_t{Function::FLAGS::EXPORTED});
+      result.emplace_back(symbol.name(), symbol.value(), Function::FLAGS::EXPORTED);
     }
   }
   return result;
@@ -109,10 +109,10 @@ LIEF::Binary::functions_t Binary::get_abstract_exported_functions() const {
 
 
 LIEF::Binary::functions_t Binary::get_abstract_imported_functions() const {
-  LIEF::Binary::functions_t result;
+  functions_t result;
   for (const Symbol& symbol : imported_symbols()) {
     if (symbol.type() == Symbol::TYPE::FUNC) {
-      result.emplace_back(symbol.name(), symbol.value(), Function::flags_list_t{Function::FLAGS::IMPORTED});
+      result.emplace_back(symbol.name(), symbol.value(), Function::FLAGS::IMPORTED);
     }
   }
   return result;
@@ -122,8 +122,8 @@ LIEF::Binary::functions_t Binary::get_abstract_imported_functions() const {
 std::vector<std::string> Binary::get_abstract_imported_libraries() const {
   std::vector<std::string> result;
   for (const DynamicEntry& entry : dynamic_entries()) {
-    if (DynamicEntryLibrary::classof(&entry)) {
-      result.push_back(entry.as<DynamicEntryLibrary>()->name());
+    if (const auto* lib = entry.cast<DynamicEntryLibrary>()) {
+      result.push_back(lib->name());
     }
   }
   return result;
@@ -136,7 +136,7 @@ DynamicEntry& Binary::add(const DynamicEntry& entry) {
 
   const auto it_new_place = std::find_if(std::begin(dynamic_entries_), std::end(dynamic_entries_),
       [&new_one] (const std::unique_ptr<DynamicEntry>& e) {
-        return e->tag() == new_one->tag() || e->tag() == DynamicEntry::TAG::DT_NULL;
+        return e->tag() == new_one->tag() || e->tag() == DynamicEntry::TAG::DT_NULL_;
       });
 
   auto* ptr = new_one.get();
@@ -151,29 +151,25 @@ Note& Binary::add(const Note& note) {
   return *notes_.back();
 }
 
-
 void Binary::remove(const DynamicEntry& entry) {
   const auto it_entry = std::find_if(std::begin(dynamic_entries_), std::end(dynamic_entries_),
       [&entry] (const std::unique_ptr<DynamicEntry>& e) {
-        return *e == entry;
+        return e.get() == &entry;
       });
 
   if (it_entry == std::end(dynamic_entries_)) {
-    LIEF_WARN("Can't find {} in the dynamic table. This entry can't be removed", to_string(entry));
+    LIEF_WARN("Can't find {} in the dynamic table. This entry can't be removed",
+              to_string(entry));
     return;
   }
   dynamic_entries_.erase(it_entry);
 }
 
-
 void Binary::remove(DynamicEntry::TAG tag) {
-  for (auto it = std::begin(dynamic_entries_); it != std::end(dynamic_entries_);) {
-    if ((*it)->tag() == tag) {
-      it = dynamic_entries_.erase(it);
-    } else {
-      ++it;
-    }
-  }
+  dynamic_entries_.erase(
+      std::remove_if(dynamic_entries_.begin(), dynamic_entries_.end(),
+        [tag] (const std::unique_ptr<DynamicEntry>& E) { return E->tag() == tag; }
+      ), dynamic_entries_.end());
 }
 
 void Binary::remove(const Section& section, bool clear) {
@@ -408,18 +404,6 @@ Symbol& Binary::add_exported_function(uint64_t address, const std::string& name)
 
 }
 
-
-bool Binary::has_dynamic_symbol(const std::string& name) const {
-  const auto it_symbol = std::find_if(
-      std::begin(dynamic_symbols_), std::end(dynamic_symbols_),
-      [&name] (const std::unique_ptr<Symbol>& s) {
-        return s->name() == name;
-      }
-  );
-
-  return it_symbol != std::end(dynamic_symbols_);
-}
-
 const Symbol* Binary::get_dynamic_symbol(const std::string& name) const {
   const auto it_symbol = std::find_if(
       std::begin(dynamic_symbols_), std::end(dynamic_symbols_),
@@ -431,10 +415,6 @@ const Symbol* Binary::get_dynamic_symbol(const std::string& name) const {
     return nullptr;
   }
   return it_symbol->get();
-}
-
-Symbol* Binary::get_dynamic_symbol(const std::string& name) {
-  return const_cast<Symbol*>(static_cast<const Binary*>(this)->get_dynamic_symbol(name));
 }
 
 const Symbol* Binary::get_symtab_symbol(const std::string& name) const {
@@ -487,11 +467,6 @@ Binary::string_list_t Binary::strings(size_t min_size) const {
 
   return list;
 }
-
-Symbol* Binary::get_symtab_symbol(const std::string& name) {
-  return const_cast<Symbol*>(static_cast<const Binary*>(this)->get_symtab_symbol(name));
-}
-
 
 std::vector<Symbol*> Binary::symtab_dyn_symbols() const {
   std::vector<Symbol*> symbols;
@@ -633,27 +608,41 @@ void Binary::remove_dynamic_symbol(Symbol* symbol) {
     R.symbol(nullptr);
   }
 
-  it_relocation = std::find_if(std::begin(relocations_), std::end(relocations_),
-      [symbol] (const std::unique_ptr<Relocation>& relocation) {
-        return relocation->purpose() == Relocation::PURPOSE::DYNAMIC &&
-               relocation->has_symbol() && relocation->symbol() == symbol;
-      });
+  const size_t nb_relocs = relocations_.size();
+  size_t rel_sizeof = 0;
 
-  if (it_relocation != std::end(relocations_)) {
-    const size_t rel_sizeof = get_relocation_sizeof(*this, **it_relocation);
+  relocations_.erase(
+    std::remove_if(relocations_.begin(), relocations_.end(),
+      [symbol, this, &rel_sizeof] (const std::unique_ptr<Relocation>& reloc) {
+        if (reloc->purpose() != Relocation::PURPOSE::DYNAMIC) {
+          return false;
+        }
+
+        if (const Symbol* sym = reloc->symbol(); sym == symbol) {
+          rel_sizeof = get_relocation_sizeof(*this, *reloc);
+          return true;
+        }
+
+        return false;
+      }
+    ), relocations_.end());
+
+  const size_t nb_deleted_relocs = nb_relocs - relocations_.size();
+
+  if (nb_deleted_relocs > 0) {
+    const size_t relocs_size = nb_deleted_relocs * rel_sizeof;
     if (auto* DT = get(DynamicEntry::TAG::RELASZ)) {
       const uint64_t sizes = DT->value();
-      if (sizes >= rel_sizeof) {
-        DT->value(sizes - rel_sizeof);
+      if (sizes >= relocs_size) {
+        DT->value(sizes - relocs_size);
       }
     }
     else if (auto* DT = get(DynamicEntry::TAG::RELSZ)) {
       const uint64_t sizes = DT->value();
-      if (sizes >= rel_sizeof) {
-        DT->value(sizes - rel_sizeof);
+      if (sizes >= relocs_size) {
+        DT->value(sizes - relocs_size);
       }
     }
-    relocations_.erase(it_relocation);
   }
 
   // Update symbol versions
@@ -858,11 +847,6 @@ LIEF::Binary::symbols_t Binary::get_abstract_symbols() {
 
 }
 
-
-Section* Binary::get_section(const std::string& name) {
-  return const_cast<Section*>(static_cast<const Binary*>(this)->get_section(name));
-}
-
 const Section* Binary::get_section(const std::string& name) const {
   const auto it_section = std::find_if(
       std::begin(sections_), std::end(sections_),
@@ -938,17 +922,16 @@ uint64_t Binary::virtual_size() const {
       virtual_size = std::max(virtual_size, segment->virtual_address() + segment->virtual_size());
     }
   }
-  virtual_size = align(virtual_size, static_cast<uint64_t>(get_pagesize(*this)));
+  virtual_size = align(virtual_size, page_size());
   return virtual_size - imagebase();
 }
 
 
 std::vector<uint8_t> Binary::raw() {
-  Builder builder{*this};
+  Builder builder{*this, Builder::config_t{}};
   builder.build();
   return builder.get_build();
 }
-
 
 result<uint64_t> Binary::get_function_address(const std::string& func_name) const {
   if (auto res = get_function_address(func_name, /* demangle */true)) {
@@ -959,12 +942,14 @@ result<uint64_t> Binary::get_function_address(const std::string& func_name) cons
     return *res;
   }
 
-  return make_error_code(lief_errors::not_found);
+  return LIEF::Binary::get_function_address(func_name);;
 }
 
 result<uint64_t> Binary::get_function_address(const std::string& func_name, bool demangled) const {
-  const auto it_symbol = std::find_if(std::begin(symtab_symbols_), std::end(symtab_symbols_),
-      [&func_name, demangled] (const std::unique_ptr<Symbol>& symbol) {
+
+  const auto it_dynsym = std::find_if(
+    dynamic_symbols_.begin(), dynamic_symbols_.end(),
+    [&func_name, demangled] (const std::unique_ptr<Symbol>& symbol) {
         std::string sname;
         if (demangled) {
           sname = symbol->demangled_name();
@@ -973,25 +958,49 @@ result<uint64_t> Binary::get_function_address(const std::string& func_name, bool
         if (sname.empty()) {
           sname = symbol->name();
         }
+
         return sname == func_name &&
                symbol->type() == Symbol::TYPE::FUNC;
       });
 
-  if (it_symbol == std::end(symtab_symbols_)) {
-    return make_error_code(lief_errors::not_found);
+  if (it_dynsym != dynamic_symbols_.end()) {
+    return (*it_dynsym)->value();
   }
 
-  return (*it_symbol)->value();
+  const auto it_symtab = std::find_if(
+    symtab_symbols_.begin(), symtab_symbols_.end(),
+    [&func_name, demangled] (const std::unique_ptr<Symbol>& symbol) {
+        std::string sname;
+        if (demangled) {
+          sname = symbol->demangled_name();
+        }
+
+        if (sname.empty()) {
+          sname = symbol->name();
+        }
+
+        return sname == func_name &&
+               symbol->type() == Symbol::TYPE::FUNC;
+      });
+
+  if (it_symtab != symtab_symbols_.end()) {
+    uint64_t value = (*it_symtab)->value();
+    if (value > 0) {
+      return value;
+    }
+  }
+  return make_error_code(lief_errors::not_found);
+
 }
 
-Section* Binary::add(const Section& section, bool loaded) {
+Section* Binary::add(const Section& section, bool loaded, SEC_INSERT_POS pos) {
   if (section.is_frame()) {
     return add_frame_section(section);
   }
   if (loaded) {
-    return add_section<true>(section);
+    return add_section<true>(section, pos);
   }
-  return add_section<false>(section);
+  return add_section<false>(section, pos);
 }
 
 
@@ -1109,7 +1118,7 @@ Segment* Binary::replace(const Segment& new_segment, const Segment& original_seg
   const uint64_t last_offset_segments = last_offset_segment();
   const uint64_t last_offset          = std::max<uint64_t>(last_offset_sections, last_offset_segments);
 
-  const auto psize = static_cast<uint64_t>(get_pagesize(*this));
+  const auto psize = page_size();
   const uint64_t last_offset_aligned = align(last_offset, psize);
   new_segment_ptr->file_offset(last_offset_aligned);
 
@@ -1165,11 +1174,11 @@ Segment* Binary::replace(const Segment& new_segment, const Segment& original_seg
 }
 
 
-void Binary::remove(const Segment& segment) {
+void Binary::remove(const Segment& segment, bool clear) {
   const auto it_segment = std::find_if(
       std::begin(segments_), std::end(segments_),
       [&segment] (const std::unique_ptr<Segment>& s) {
-         return *s == segment;
+         return s.get() == &segment;
       });
 
   if (it_segment == std::end(segments_)) {
@@ -1178,6 +1187,11 @@ void Binary::remove(const Segment& segment) {
   }
 
   std::unique_ptr<Segment> local_segment = std::move(*it_segment);
+
+  if (clear) {
+    local_segment->clear();
+  }
+
   datahandler_->remove(local_segment->file_offset(), local_segment->physical_size(),
                        DataHandler::Node::SEGMENT);
   if (phdr_reloc_info_.new_offset > 0) {
@@ -1186,6 +1200,23 @@ void Binary::remove(const Segment& segment) {
   header().numberof_segments(header().numberof_segments() - 1);
 
   segments_.erase(it_segment);
+}
+
+void Binary::remove(Segment::TYPE type, bool clear) {
+  std::vector<Segment*> to_remove;
+  for (std::unique_ptr<Segment>& S : segments_) {
+    if (S->type() == type) {
+      to_remove.push_back(S.get());
+    }
+  }
+
+  if (to_remove.empty()) {
+    return;
+  }
+
+  for (Segment* S : to_remove) {
+    remove(*S, clear);
+  }
 }
 
 
@@ -1476,10 +1507,6 @@ const Segment* Binary::segment_from_virtual_address(uint64_t address) const {
 
 }
 
-Segment* Binary::segment_from_virtual_address(Segment::TYPE type, uint64_t address) {
-  return const_cast<Segment*>(static_cast<const Binary*>(this)->segment_from_virtual_address(type, address));
-}
-
 const Segment* Binary::segment_from_virtual_address(Segment::TYPE type, uint64_t address) const {
   const auto it_segment = std::find_if(segments_.cbegin(), segments_.cend(),
       [address, type] (const std::unique_ptr<Segment>& segment) {
@@ -1496,10 +1523,6 @@ const Segment* Binary::segment_from_virtual_address(Segment::TYPE type, uint64_t
 
 }
 
-Segment* Binary::segment_from_virtual_address(uint64_t address) {
-  return const_cast<Segment*>(static_cast<const Binary*>(this)->segment_from_virtual_address(address));
-}
-
 const Segment* Binary::segment_from_offset(uint64_t offset) const {
   const auto it_segment = std::find_if(segments_.cbegin(), segments_.cend(),
       [&offset] (const std::unique_ptr<Segment>& segment) {
@@ -1514,20 +1537,12 @@ const Segment* Binary::segment_from_offset(uint64_t offset) const {
   return it_segment->get();
 }
 
-Segment* Binary::segment_from_offset(uint64_t offset) {
-  return const_cast<Segment*>(static_cast<const Binary*>(this)->segment_from_offset(offset));
-}
-
 void Binary::remove_section(const std::string& name, bool clear) {
   Section* sec = get_section(name);
   if (sec == nullptr) {
     return;
   }
   remove(*sec, clear);
-}
-
-bool Binary::has_section(const std::string& name) const {
-  return get_section(name) != nullptr;
 }
 
 bool Binary::has_section_with_offset(uint64_t offset) const {
@@ -1632,38 +1647,14 @@ bool Binary::has_interpreter() const {
   return it_segment_interp != std::end(segments_) && !interpreter_.empty();
 }
 
-const std::string& Binary::interpreter() const {
-  return interpreter_;
-}
-
-void Binary::interpreter(const std::string& interpreter) {
-  interpreter_ = interpreter;
-}
-
-
-void Binary::write(const std::string& filename) {
-  Builder builder{*this};
+void Binary::write(const std::string& filename, const Builder::config_t& config) {
+  Builder builder{*this, config};
   builder.build();
   builder.write(filename);
 }
 
-
-void Binary::write(const std::string& filename, Builder::config_t config) {
-  Builder builder{*this};
-  builder.set_config(config);
-  builder.build();
-  builder.write(filename);
-}
-
-void Binary::write(std::ostream& os) {
-  Builder builder{*this};
-  builder.build();
-  builder.write(os);
-}
-
-void Binary::write(std::ostream& os, Builder::config_t config) {
-  Builder builder{*this};
-  builder.set_config(config);
+void Binary::write(std::ostream& os, const Builder::config_t& config) {
+  Builder builder{*this, config};
   builder.build();
   builder.write(os);
 }
@@ -1685,11 +1676,6 @@ const Section* Binary::section_from_offset(uint64_t offset, bool skip_nobits) co
   return it_section->get();
 }
 
-Section* Binary::section_from_offset(uint64_t offset, bool skip_nobits) {
-  return const_cast<Section*>(static_cast<const Binary*>(this)->section_from_offset(offset, skip_nobits));
-}
-
-
 const Section* Binary::section_from_virtual_address(uint64_t address, bool skip_nobits) const {
   const auto it_section = std::find_if(sections_.cbegin(), sections_.cend(),
       [address, skip_nobits] (const std::unique_ptr<Section>& section) {
@@ -1706,10 +1692,6 @@ const Section* Binary::section_from_virtual_address(uint64_t address, bool skip_
   }
 
   return it_section->get();
-}
-
-Section* Binary::section_from_virtual_address(uint64_t address, bool skip_nobits) {
-  return const_cast<Section*>(static_cast<const Binary*>(this)->section_from_virtual_address(address, skip_nobits));
 }
 
 span<const uint8_t>
@@ -1764,11 +1746,6 @@ const Segment* Binary::get(Segment::TYPE type) const {
   return it_segment->get();
 }
 
-
-Segment* Binary::get(Segment::TYPE type) {
-  return const_cast<Segment*>(static_cast<const Binary*>(this)->get(type));
-}
-
 const Note* Binary::get(Note::TYPE type) const {
   const auto it_note = std::find_if(
       std::begin(notes_), std::end(notes_),
@@ -1780,11 +1757,6 @@ const Note* Binary::get(Note::TYPE type) const {
   }
 
   return it_note->get();
-}
-
-
-Note* Binary::get(Note::TYPE type) {
-  return const_cast<Note*>(static_cast<const Binary*>(this)->get(type));
 }
 
 const Section* Binary::get(Section::TYPE type) const {
@@ -1799,10 +1771,6 @@ const Section* Binary::get(Section::TYPE type) const {
   }
 
   return it_section->get();
-}
-
-Section* Binary::get(Section::TYPE type) {
-  return const_cast<Section*>(static_cast<const Binary*>(this)->get(type));
 }
 
 void Binary::permute_dynamic_symbols(const std::vector<size_t>& permutation) {
@@ -1827,25 +1795,6 @@ void Binary::permute_dynamic_symbols(const std::vector<size_t>& permutation) {
 
   }
 }
-
-LIEF::Header Binary::get_abstract_header() const {
-  LIEF::Header header;
-  const std::pair<ARCHITECTURES, std::set<MODES>>& am = this->header().abstract_architecture();
-  header.architecture(am.first);
-  header.modes(am.second);
-  header.entrypoint(this->header().entrypoint());
-
-  if (this->header().file_type() == Header::FILE_TYPE::DYN && has_interpreter()) { // PIE
-    header.object_type(OBJECT_TYPES::TYPE_EXECUTABLE);
-  } else {
-    header.object_type(this->header().abstract_object_type());
-  }
-
-  header.endianness(this->header().abstract_endianness());
-
-  return header;
-}
-
 
 bool Binary::has_notes() const {
   const auto it_segment_note = std::find_if(
@@ -1982,9 +1931,21 @@ void Binary::shift_relocations(uint64_t from, uint64_t shift) {
     case ARCH::PPC:
       patch_relocations<ARCH::PPC>(from, shift); return;
 
+    case ARCH::PPC64:
+      patch_relocations<ARCH::PPC64>(from, shift); return;
+
+    case ARCH::RISCV:
+      patch_relocations<ARCH::RISCV>(from, shift); return;
+
+    case ARCH::SH:
+      patch_relocations<ARCH::SH>(from, shift); return;
+
+    case ARCH::S390:
+      patch_relocations<ARCH::S390>(from, shift); return;
+
     default:
       {
-        LIEF_DEBUG("Relocations for architecture {} is not handled", to_string(arch));
+        LIEF_DEBUG("Relocations for architecture {} are not supported", to_string(arch));
       }
   }
 }
@@ -2042,27 +2003,19 @@ void Binary::remove_library(const std::string& library_name) {
   remove(*lib);
 }
 
-
-DynamicEntryLibrary* Binary::get_library(const std::string& library_name) {
-  return const_cast<DynamicEntryLibrary*>(static_cast<const Binary*>(this)->get_library(library_name));
-}
-
 const DynamicEntryLibrary* Binary::get_library(const std::string& library_name) const {
   const auto it_needed = std::find_if(std::begin(dynamic_entries_), std::end(dynamic_entries_),
       [&library_name] (const std::unique_ptr<DynamicEntry>& entry) {
-        return DynamicEntryLibrary::classof(entry.get()) &&
-               entry->as<const DynamicEntryLibrary>()->name() == library_name;
+        if (const auto* lib = entry->cast<DynamicEntryLibrary>()) {
+          return lib->name() == library_name;
+        }
+        return false;
       });
   if (it_needed == std::end(dynamic_entries_)) {
     return nullptr;
   }
   return static_cast<const DynamicEntryLibrary*>(it_needed->get());
 }
-
-bool Binary::has_library(const std::string& name) const {
-  return get_library(name) != nullptr;
-}
-
 
 LIEF::Binary::functions_t Binary::tor_functions(DynamicEntry::TAG tag) const {
   LIEF::Binary::functions_t functions;
@@ -2112,7 +2065,7 @@ LIEF::Binary::functions_t Binary::ctor_functions() const {
   const DynamicEntry* dt_init = get(DynamicEntry::TAG::INIT);
   if (dt_init != nullptr) {
     functions.emplace_back("__dt_init",
-          dt_init->value(), Function::flags_list_t{Function::FLAGS::CONSTRUCTOR});
+          dt_init->value(), Function::FLAGS::CONSTRUCTOR);
   }
   return functions;
 }
@@ -2135,7 +2088,7 @@ LIEF::Binary::functions_t Binary::dtor_functions() const {
   const DynamicEntry* dt_fini = get(DynamicEntry::TAG::FINI);
   if (dt_fini != nullptr) {
     functions.emplace_back("__dt_fini",
-        dt_fini->value(), Function::flags_list_t{Function::FLAGS::DESTRUCTOR});
+        dt_fini->value(), Function::FLAGS::DESTRUCTOR);
   }
   return functions;
 }
@@ -2155,10 +2108,6 @@ const Relocation* Binary::get_relocation(uint64_t address) const {
 
 }
 
-Relocation* Binary::get_relocation(uint64_t address) {
-  return const_cast<Relocation*>(static_cast<const Binary*>(this)->get_relocation(address));
-}
-
 const Relocation* Binary::get_relocation(const Symbol& symbol) const {
   const auto it = std::find_if(std::begin(relocations_), std::end(relocations_),
                                [&symbol] (const std::unique_ptr<Relocation>& r) {
@@ -2172,10 +2121,6 @@ const Relocation* Binary::get_relocation(const Symbol& symbol) const {
   return nullptr;
 }
 
-Relocation* Binary::get_relocation(const Symbol& symbol) {
-  return const_cast<Relocation*>(static_cast<const Binary*>(this)->get_relocation(symbol));
-}
-
 const Relocation* Binary::get_relocation(const std::string& symbol_name) const {
   const LIEF::Symbol* sym = get_symbol(symbol_name);
   if (sym == nullptr) {
@@ -2183,11 +2128,6 @@ const Relocation* Binary::get_relocation(const std::string& symbol_name) const {
   }
   return get_relocation(*sym->as<Symbol>());
 }
-
-Relocation* Binary::get_relocation(const std::string& symbol_name) {
-  return const_cast<Relocation*>(static_cast<const Binary*>(this)->get_relocation(symbol_name));
-}
-
 
 LIEF::Binary::functions_t Binary::armexid_functions() const {
   LIEF::Binary::functions_t funcs;
@@ -2614,21 +2554,32 @@ uint64_t Binary::relocate_phdr_table_auto() {
     return phdr_reloc_info_.new_offset;
   }
 
+  const bool has_phdr_s = has(Segment::TYPE::PHDR);
+  const bool has_interp_s = has(Segment::TYPE::INTERP);
+  const bool has_soname = has(DynamicEntry::TAG::SONAME);
+  const bool is_dyn = header_.file_type() == Header::FILE_TYPE::DYN;
+  const bool is_exec = header_.file_type() == Header::FILE_TYPE::EXEC;
+  const bool has_ep = entrypoint() > 0;
+
   uint64_t offset = 0;
-  if (header_.file_type() == Header::FILE_TYPE::DYN) {
-    offset = relocate_phdr_table_pie();
-    if (offset == 0) {
-      LIEF_ERR("Can't relocated phdr table for this PIE binary");
-    } else {
+  if (is_dyn && (has_phdr_s || has_interp_s || has_soname)) {
+    if (offset = relocate_phdr_table_pie(); offset > 0) {
+      return offset;
+    }
+    LIEF_ERR("Can't relocated phdr table for this PIE binary");
+  }
+
+  if (is_dyn && !(has_phdr_s || has_interp_s) && !has_ep) {
+    // See libm-ubuntu24.so
+    if (offset = relocate_phdr_table_pie(); offset > 0) {
       return offset;
     }
   }
 
   /* This is typically static binaries */
   const bool is_valid_for_v3 =
-    header_.file_type() == Header::FILE_TYPE::EXEC &&
-                           get(Segment::TYPE::PHDR)   == nullptr &&
-                           get(Segment::TYPE::INTERP) == nullptr;
+    (is_dyn || is_exec) && !has_phdr_s && !has_interp_s;
+
   if (is_valid_for_v3) {
     LIEF_DEBUG("Try v3 relocator");
     offset = relocate_phdr_table_v3();
@@ -2745,6 +2696,14 @@ uint64_t Binary::relocate_phdr_table_v3() {
   // Reserve space for 10 user's segments
   static constexpr size_t USER_SEGMENTS = 10;
 
+  uint64_t last_off = 0;
+  for (const std::unique_ptr<Segment>& segment : segments_) {
+    if (segment != nullptr && segment->is_load()) {
+      last_off = std::max(last_off, segment->physical_size() + segment->file_offset());
+    }
+  }
+  uint64_t last_off_aligned = align(last_off, page_size());
+
   if (phdr_reloc_info_.new_offset > 0) {
     return phdr_reloc_info_.new_offset;
   }
@@ -2756,19 +2715,17 @@ uint64_t Binary::relocate_phdr_table_v3() {
   const uint64_t phdr_size =
     type() == Header::CLASS::ELF32 ? sizeof(details::ELF32::Elf_Phdr) :
                                      sizeof(details::ELF64::Elf_Phdr);
-
-  const uint64_t last_offset = virtual_size();
-
   LIEF_DEBUG("Moving segment table at the end of the binary (0x{:010x})",
-             last_offset);
+             last_off_aligned);
 
-  phdr_reloc_info_.new_offset = last_offset;
-  header.program_headers_offset(last_offset);
+  phdr_reloc_info_.new_offset = last_off_aligned;
+  header.program_headers_offset(last_off_aligned);
 
   const size_t new_segtbl_sz = (header.numberof_segments() + USER_SEGMENTS) * phdr_size;
+  const uint64_t delta = last_off_aligned - last_off + new_segtbl_sz;
+  shift_sections(last_off, delta);
 
-  uint64_t sections_tbl_off = header.section_headers_offset() + new_segtbl_sz;
-
+  uint64_t sections_tbl_off = header.section_headers_offset() + delta;
   header.section_headers_offset(sections_tbl_off);
 
   auto alloc = datahandler_->make_hole(phdr_reloc_info_.new_offset,
@@ -2785,7 +2742,7 @@ uint64_t Binary::relocate_phdr_table_v3() {
   phdr_load_segment->file_offset(phdr_reloc_info_.new_offset);
   phdr_load_segment->physical_size(new_segtbl_sz);
   phdr_load_segment->virtual_size(new_segtbl_sz);
-  phdr_load_segment->virtual_address(imagebase() + phdr_reloc_info_.new_offset);
+  phdr_load_segment->virtual_address(imagebase() + virtual_size());
   phdr_load_segment->physical_address(phdr_load_segment->virtual_address());
   phdr_load_segment->alignment(0x1000);
   phdr_load_segment->add(Segment::FLAGS::R);
@@ -2794,7 +2751,6 @@ uint64_t Binary::relocate_phdr_table_v3() {
   DataHandler::Node new_node{phdr_reloc_info_.new_offset, new_segtbl_sz,
                              DataHandler::Node::SEGMENT};
   datahandler_->add(std::move(new_node));
-
 
   const auto it_new_place = std::find_if(
       segments_.rbegin(), segments_.rend(),
@@ -2808,6 +2764,7 @@ uint64_t Binary::relocate_phdr_table_v3() {
                      std::move(phdr_load_segment));
   }
 
+  header.numberof_segments(header.numberof_segments() + 1);
   phdr_reloc_info_.nb_segments = USER_SEGMENTS - /* For the PHDR LOAD */ 1;
   return phdr_reloc_info_.new_offset;
 }
@@ -3164,6 +3121,151 @@ std::vector<uint64_t> Binary::get_relocated_dynamic_array(DynamicEntry::TAG tag)
   }
 
   return result;
+}
+
+bool Binary::is_targeting_android() const {
+  static constexpr auto ANDROID_DT = {
+    DynamicEntry::TAG::ANDROID_REL_OFFSET,
+    DynamicEntry::TAG::ANDROID_REL_SIZE,
+    DynamicEntry::TAG::ANDROID_REL,
+    DynamicEntry::TAG::ANDROID_RELSZ,
+    DynamicEntry::TAG::ANDROID_RELA,
+    DynamicEntry::TAG::ANDROID_RELASZ,
+    DynamicEntry::TAG::ANDROID_RELR,
+    DynamicEntry::TAG::ANDROID_RELRSZ,
+    DynamicEntry::TAG::ANDROID_RELRENT,
+    DynamicEntry::TAG::ANDROID_RELRCOUNT,
+  };
+
+  static constexpr auto ANDROID_NOTES = {
+    Note::TYPE::ANDROID_IDENT,
+    Note::TYPE::ANDROID_KUSER,
+    Note::TYPE::ANDROID_MEMTAG,
+  };
+
+  if (format_ == Binary::FORMATS::OAT) {
+    return true;
+  }
+
+  if (std::any_of(ANDROID_DT.begin(), ANDROID_DT.end(),
+      [this] (DynamicEntry::TAG t) {
+        return has(t);
+      }))
+  {
+    return true;
+  }
+
+  if (std::any_of(ANDROID_NOTES.begin(), ANDROID_NOTES.end(),
+      [this] (Note::TYPE t) {
+        return has(t);
+      }))
+  {
+    return true;
+  }
+
+  if (has_section(".note.android.ident")) {
+    return true;
+  }
+
+  const std::string& interp = interpreter();
+
+  if (interp == "/system/bin/linker64" || interp == "/system/bin/linker") {
+    return true;
+  }
+
+  return false;
+}
+
+
+Section* Binary::add_section(std::unique_ptr<Section> sec) {
+  Section* sec_ptr = sec.get();
+
+  const auto it_new_sec_place = std::find_if(
+    sections_.begin(), sections_.end(), [sec_ptr] (const std::unique_ptr<Section>& S) {
+      return S->file_offset() > sec_ptr->file_offset();
+    });
+
+  if (it_new_sec_place == sections_.end()) {
+    sections_.push_back(std::move(sec));
+  } else {
+    size_t idx = std::distance(sections_.begin(), it_new_sec_place);
+    for (size_t i = 0; i < sections_.size(); ++i) {
+      const uint32_t link = sections_[i]->link();
+      if (link >= idx) {
+        sections_[i]->link(link + 1);
+      }
+    }
+    if (header_.section_name_table_idx() >= idx) {
+      header_.section_name_table_idx(header_.section_name_table_idx() + 1);
+    }
+    sections_.insert(it_new_sec_place, std::move(sec));
+  }
+
+  return sec_ptr;
+}
+
+uint64_t Binary::page_size() const {
+  if (pagesize_ > 0) {
+    return pagesize_;
+  }
+  return LIEF::Binary::page_size();
+}
+
+const SymbolVersionRequirement* Binary::find_version_requirement(const std::string& libname) const {
+  auto it = std::find_if(
+      symbol_version_requirements_.begin(), symbol_version_requirements_.end(),
+      [&libname] (const std::unique_ptr<SymbolVersionRequirement>& symver) {
+        return symver->name() == libname;
+      }
+  );
+
+  if (it == symbol_version_requirements_.end()) {
+    return nullptr;
+  }
+
+  return (*it).get();
+}
+
+bool Binary::remove_version_requirement(const std::string& libname) {
+  auto it = std::find_if(
+      symbol_version_requirements_.begin(), symbol_version_requirements_.end(),
+      [&libname] (const std::unique_ptr<SymbolVersionRequirement>& symver) {
+        return symver->name() == libname;
+      }
+  );
+
+  if (it == symbol_version_requirements_.end()) {
+    return false;
+  }
+  std::set<std::string> versions;
+
+  SymbolVersionRequirement* sym_ver_req = it->get();
+  auto aux = sym_ver_req->auxiliary_symbols();
+  std::transform(aux.begin(), aux.end(), std::inserter(versions, versions.begin()),
+    [] (const SymbolVersionAuxRequirement& req) {
+      return req.name();
+    }
+  );
+
+  for (Symbol& sym : dynamic_symbols()) {
+    SymbolVersion* symver = sym.symbol_version();
+    if (symver == nullptr) {
+      continue;
+    }
+
+    if (const SymbolVersionAux* vers = symver->symbol_version_auxiliary();
+        vers != nullptr && versions.count(vers->name()))
+    {
+      symver->as_global();
+    }
+  }
+
+  symbol_version_requirements_.erase(it);
+  if (DynamicEntry* dt = get(DynamicEntry::TAG::VERNEEDNUM)) {
+    dt->value(symbol_version_requirements_.size());
+  }
+
+  return true;
 }
 
 std::ostream& Binary::print(std::ostream& os) const {

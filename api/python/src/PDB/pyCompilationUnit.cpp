@@ -1,4 +1,6 @@
+#include <sstream>
 #include "LIEF/PDB/CompilationUnit.hpp"
+#include "LIEF/PDB/BuildMetadata.hpp"
 #include "PDB/pyPDB.hpp"
 
 #include <nanobind/stl/string.h>
@@ -31,7 +33,7 @@ void create<pdb::CompilationUnit>(nb::module_& m) {
     .def_prop_ro("sources",
         [] (const pdb::CompilationUnit& self) {
           auto sources = self.sources();
-          return nb::make_iterator(
+          return nb::make_iterator<nb::rv_policy::reference_internal>(
               nb::type<pdb::CompilationUnit>(), "sources_it", sources);
         },
       R"doc(
@@ -42,7 +44,7 @@ void create<pdb::CompilationUnit>(nb::module_& m) {
     .def_prop_ro("functions",
         [] (const pdb::CompilationUnit& self) {
           auto functions = self.functions();
-          return nb::make_iterator(
+          return nb::make_iterator<nb::rv_policy::reference_internal>(
               nb::type<pdb::CompilationUnit>(), "functions_it", functions);
         },
       R"doc(
@@ -51,7 +53,9 @@ void create<pdb::CompilationUnit>(nb::module_& m) {
       an empty iterator.
       )doc"_doc, nb::keep_alive<0, 1>()
     )
-  ;
+    .def_prop_ro("build_metadata", &CompilationUnit::build_metadata,
+                 nb::rv_policy::take_ownership, nb::keep_alive<0, 1>())
+  LIEF_DEFAULT_STR(CompilationUnit);
 }
 
 }

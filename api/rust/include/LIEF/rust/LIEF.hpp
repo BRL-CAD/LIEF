@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@
 
 #include "LIEF/rust/logging.hpp"
 #include "LIEF/rust/ELF.hpp"
+#include "LIEF/rust/COFF.hpp"
 #include "LIEF/rust/PE.hpp"
 #include "LIEF/rust/MachO.hpp"
 #include "LIEF/rust/Abstract.hpp"
 #include "LIEF/rust/PDB.hpp"
 #include "LIEF/rust/DWARF.hpp"
 #include "LIEF/rust/ObjC.hpp"
+#include "LIEF/rust/DyldSharedCache.hpp"
+#include "LIEF/rust/ASM.hpp"
 
 #include "LIEF/rust/Span.hpp"
 #include "LIEF/rust/range.hpp"

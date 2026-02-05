@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,17 @@
 #include <string>
 #include <sstream>
 
+#include <nanobind/stl/string.h>
+
 namespace LIEF::DEX::py {
 
 template<>
 void create<CodeInfo>(nb::module_& m) {
 
   nb::class_<CodeInfo, LIEF::Object>(m, "CodeInfo", "DEX CodeInfo representation"_doc)
-    LIEF_DEFAULT_STR(CodeInfo);
+    .def_prop_ro("nb_registers", nb::overload_cast<>(&CodeInfo::nb_registers, nb::const_),
+    "Number of registers used by the method"_doc)
 
+    LIEF_DEFAULT_STR(CodeInfo);
 }
 }

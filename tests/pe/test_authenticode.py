@@ -221,14 +221,13 @@ def test_ms_spc_nested_signature():
 
     # Check self-signed
     assert self_signed_ca.verify(self_signed_ca) == lief.PE.x509.VERIFICATION_FLAGS.OK
-
-    assert signer_cert.is_trusted_by([self_signed_ca]) == lief.PE.x509.VERIFICATION_FLAGS.OK
-    assert self_signed_ca.verify(signer_cert) == lief.PE.x509.VERIFICATION_FLAGS.OK
+    assert signer_cert.is_trusted_by([self_signed_ca]) == lief.PE.x509.VERIFICATION_FLAGS.BADCERT_EXPIRED
+    assert self_signed_ca.verify(signer_cert) == lief.PE.x509.VERIFICATION_FLAGS.BADCERT_EXPIRED
     assert signer_cert.verify(nvidia_cert) == lief.PE.x509.VERIFICATION_FLAGS.BADCERT_EXPIRED
 
     ca_bundles = lief.PE.x509.parse(get_sample("pkcs7/windows-ca-bundle.pem"))
     assert self_signed_ca.is_trusted_by(ca_bundles) == lief.PE.x509.VERIFICATION_FLAGS.OK
-    assert int(nvidia_cert.is_trusted_by(ca_bundles)) == \
+    assert nvidia_cert.is_trusted_by(ca_bundles) == \
            lief.PE.x509.VERIFICATION_FLAGS.BADCERT_NOT_TRUSTED | lief.PE.x509.VERIFICATION_FLAGS.BADCERT_EXPIRED
 
     assert nested_sig.check() == lief.PE.Signature.VERIFICATION_FLAGS.OK
@@ -277,9 +276,15 @@ def test_issue_912():
 def test_verification_flags_str():
     flag = lief.PE.Signature.VERIFICATION_FLAGS.BAD_DIGEST | \
            lief.PE.Signature.VERIFICATION_FLAGS.CERT_FUTURE
-    assert str(flag) == "lief.PE.VERIFICATION_FLAGS.BAD_DIGEST | lief.PE.VERIFICATION_FLAGS.CERT_FUTURE"
-    assert repr(flag) == "<lief.PE.VERIFICATION_FLAGS.BAD_DIGEST | CERT_FUTURE: 2176>"
-    assert str(lief.PE.Signature.VERIFICATION_FLAGS.from_value(0)) == "lief.PE.VERIFICATION_FLAGS.OK"
+    assert str(flag) in {
+        "VERIFICATION_FLAGS.BAD_DIGEST|CERT_FUTURE",
+        "VERIFICATION_FLAGS.CERT_FUTURE|BAD_DIGEST",
+    }
+    assert repr(flag) in {
+        "VERIFICATION_FLAGS.BAD_DIGEST|CERT_FUTURE",
+        "VERIFICATION_FLAGS.CERT_FUTURE|BAD_DIGEST",
+    }
+    assert str(lief.PE.Signature.VERIFICATION_FLAGS.from_value(0)) == "VERIFICATION_FLAGS.OK"
 
 def test_ms_manifest_binary_id():
     acres = lief.PE.parse(get_sample("PE/AcRes.dll"))
@@ -336,3 +341,26 @@ def test_playready_signature():
     sig = pe.signatures[0]
     spc = sig.signers[0].get_auth_attribute(lief.PE.Attribute.TYPE.SPC_RELAXED_PE_MARKER_CHECK)
     assert spc is not None
+
+
+def test_pkcs1_15_padding():
+    pe = lief.PE.parse(get_sample("PE/jar.exe"))
+    assert pe.signatures[0].check() == lief.PE.Signature.VERIFICATION_FLAGS.OK
+
+
+def test_font_signature():
+    sig = lief.PE.Signature.parse(get_sample("pkcs7/pr_1153.p7b"))
+    assert sig.content_info.value.url == "\x00<\x00<\x00<\x00O\x00b\x00s\x00o\x00l\x00e\x00t\x00e\x00>\x00>\x00>"
+    assert sig.signers[0].authenticated_attributes[4].program_name == "this is a test"
+    assert sig.signers[0].authenticated_attributes[4].more_info == "Monotype"
+
+    sig = lief.PE.Signature.parse(get_sample("pkcs7/consolab.p7b"))
+    assert sig.content_info.value.url == "\x00<\x00<\x00<\x00O\x00b\x00s\x00o\x00l\x00e\x00t\x00e\x00>\x00>\x00>"
+    assert sig.signers[0].authenticated_attributes[3].program_name == "Microsoft Typography"
+    assert sig.signers[0].authenticated_attributes[3].more_info == "http://www.microsoft.com/Typography "
+
+
+def test_issue_1219():
+    pe = lief.PE.parse(get_sample("PE/issue_1219_be5d6c4aa4b27548a06c2afaef3b4035abf65566e9a8bfd642b4a2032729656e.exe_MALWARE"))
+    cert = pe.signatures[0].signers[0].cert
+    assert "JURISDICTION_OF_INCORPORATION_C=CN" in str(cert.subject)

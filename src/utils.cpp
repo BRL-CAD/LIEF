@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,39 +14,24 @@
  * limitations under the License.
  */
 #include <algorithm>
-#include <iomanip>
 #include <iterator>
-#include <locale>
-#include <numeric>
-#include <sstream>
 #include <string>
 
 #include <spdlog/fmt/fmt.h>
 
 #include "LIEF/utils.hpp"
 #include "LIEF/errors.hpp"
+#include "LIEF/version.h"
 
 #include "third-party/utfcpp.hpp"
 
 #include "LIEF/config.h"
 
+#include "logging.hpp"
+#include "messages.hpp"
+#include "internal_utils.hpp"
+
 namespace LIEF {
-namespace LEB128 {
-std::vector<uint8_t> uencode(uint64_t value) {
-  std::vector<uint8_t> result;
-  do {
-    uint8_t b = value & 0x7F;
-    value >>= 7;
-    if (value > 0) {
-      b |= 0x80;
-    }
-    result.push_back(b);
-  } while (value != 0);
-  return result;
-}
-
-}
-
 
 template <typename octet_iterator>
 result<uint32_t> next(octet_iterator& it, octet_iterator end) {
@@ -106,32 +91,64 @@ result<std::u16string> u8tou16(const std::string& string) {
   return name;
 }
 
-std::string hex_str(uint8_t c) {
-  std::stringstream ss;
-  ss << std::setw(2) << std::setfill('0') << std::hex << static_cast<uint32_t>(c);
-  return ss.str();
+inline std::string pretty_hex(char c) {
+  if (is_printable(c)) {
+    return std::string("") + c;
+  }
+  return ".";
 }
 
-template<class T>
-std::string hex_dump_impl(T data, const std::string& sep) {
-  std::vector<std::string> hexdigits;
-  hexdigits.reserve(data.size());
-  std::transform(data.begin(), data.end(), std::back_inserter(hexdigits),
-                 [] (uint8_t x) { return fmt::format("{:02x}", x); });
-  return fmt::to_string(fmt::join(hexdigits, sep));
-}
+std::string dump(const uint8_t* buffer, size_t size, const std::string& title,
+                 const std::string& prefix, size_t limit)
+{
+  if (size < 2) {
+    return "";
+  }
 
-std::string hex_dump(const std::vector<uint8_t>& data, const std::string& sep) {
-  return hex_dump_impl(data, sep);
-}
+  std::string out;
+  std::string banner;
 
-std::string hex_dump(span<const uint8_t> data, const std::string& sep) {
-  return hex_dump_impl(data, sep);
-}
+  if (!title.empty()) {
+    banner  = prefix + "+" + std::string(22 * 3, '-') + "---+" + "\n" + prefix + "| ";
+    banner += title;
+    if (title.size() < 68) {
+      banner += std::string(68 - title.size(), ' ');
+    }
+    banner += "|\n";
+  }
 
+  out = std::string(22 * 3, '-') + "\n";
+  std::string lhs, rhs;
+  if (limit > 0) {
+    size = std::min<size_t>(size, limit);
+  }
 
-bool is_hex_number(const std::string& str) {
-  return std::all_of(std::begin(str), std::end(str), isxdigit);
+  for (size_t i = 0; i < size; ++i) {
+    if (i == 0) {
+      out = prefix + "+" + std::string(22 * 3, '-') + "---+" + "\n" + prefix + "| ";
+    }
+
+    if (i > 0 && i % 16 == 0) {
+      out += "\n" + prefix + "| ";
+    }
+
+    rhs += pretty_hex((char)(buffer[i]));
+    out += fmt::format("{:02x} ", buffer[i]);
+
+    if (i % 16 == 15 || i == (size - 1)) {
+      if (i == (size - 1)) {
+        out += std::string(((16 - ((size - 1) % 16) - 1)) * 3, ' ');
+        rhs += std::string(((16 - ((size - 1) % 16) - 1)) * 1, ' ');
+      }
+      out += " | ";
+      out += rhs + " |";
+      rhs = "";
+    }
+
+  }
+
+  out += std::string("\n") + prefix + '+' + std::string(22 * 3, '-') + "---+";
+  return banner + out;
 }
 
 
@@ -139,5 +156,37 @@ bool is_extended() {
   return lief_extended;
 }
 
+std::string lief_version_t::to_string() const {
+  if (id == 0) {
+    return fmt::format("{}.{}.{}", major, minor, patch);
+  }
+  return fmt::format("{}.{}.{}.{}", major, minor, patch, id);
+}
+
+lief_version_t version() {
+  if (lief_extended) {
+    return extended_version();
+  }
+  return {LIEF_VERSION_MAJOR, LIEF_VERSION_MINOR, LIEF_VERSION_PATCH, 0};
+}
+
+#if !defined(LIEF_EXTENDED)
+result<std::string> demangle(const std::string&/*mangled*/) {
+  logging::needs_lief_extended();
+  return make_error_code(lief_errors::require_extended_version);
+}
+#endif
+
+#if !defined(LIEF_EXTENDED)
+std::string extended_version_info() {
+  return "";
+}
+#endif
+
+#if !defined(LIEF_EXTENDED)
+lief_version_t extended_version() {
+  return {};
+}
+#endif
 
 } // namespace LIEF

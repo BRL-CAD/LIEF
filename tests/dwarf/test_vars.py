@@ -69,7 +69,7 @@ def test_vars_1():
 
     assert members[0].name == "_M_h"
     assert members[0].offset == 0
-    assert members[0].type.kind == lief.dwarf.Type.KIND.UNKNOWN
+    assert members[0].type.kind == lief.dwarf.Type.KIND.TYPEDEF
 
     main = dbg_info.find_function("main")
     assert main is not None
@@ -78,6 +78,7 @@ def test_vars_1():
 
     assert main_vars[0].name == "local_var_1"
     assert main_vars[0].address == -0x48
+    assert main_vars[0].is_stack_based
     assert main_vars[0].size == 4
     assert not main_vars[0].is_constexpr
     assert normalize_path(main_vars[0].debug_location.file) == "/workdir/DWARF/vars_1.cpp"

@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2024 R. Thomas
+/* Copyright 2022 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,11 @@
  */
 #pragma once
 #include "LIEF/rust/PDB/DebugInfo.hpp"
+#include "LIEF/rust/PDB/utils.hpp"
 #include "LIEF/rust/PDB/CompilationUnit.hpp"
 #include "LIEF/rust/PDB/Function.hpp"
 #include "LIEF/rust/PDB/PublicSymbol.hpp"
+#include "LIEF/rust/PDB/BuildMetadata.hpp"
 #include "LIEF/rust/PDB/Type.hpp"
 #include "LIEF/rust/PDB/types/Simple.hpp"
 #include "LIEF/rust/PDB/types/Array.hpp"

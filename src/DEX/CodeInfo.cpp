@@ -1,6 +1,6 @@
 
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,9 @@ void CodeInfo::accept(Visitor& visitor) const {
   visitor.visit(*this);
 }
 
+uint16_t CodeInfo::nb_registers() const {
+  return nb_registers_;
+}
 
 
 std::ostream& operator<<(std::ostream& os, const CodeInfo& /*cinfo*/) {

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 #ifndef LIEF_INTERNAL_UTILS_HEADER
 #define LIEF_INTERNAL_UTILS_HEADER
+#include <memory>
 #include <string>
 #include <vector>
 #include <set>
@@ -22,8 +23,10 @@
 #include <unordered_map>
 #include <sstream>
 #include "spdlog/fmt/fmt.h"
+#include "spdlog/fmt/ranges.h"
 
 #include "LIEF/span.hpp"
+#include "LIEF/optional.hpp"
 #include "LIEF/errors.hpp"
 #include "LIEF/iterators.hpp"
 
@@ -100,7 +103,7 @@ std::vector<std::string> optimize(const HANDLER& container,
   std::vector<std::string> string_table_optimized;
   string_table_optimized.reserve(container.size());
 
-  // reverse all symbol names and sort them so we can merge then in the linear time:
+  // reverse all symbol names and sort them so we can merge them in the linear time:
   // aaa, aadd, aaaa, cca, ca -> aaaa, aaa, acc, ac ddaa
   std::transform(std::begin(container), std::end(container),
                  std::inserter(string_table, std::end(string_table)),
@@ -126,7 +129,7 @@ std::vector<std::string> optimize(const HANDLER& container,
   );
 
   // as all elements that can be merged are adjacent we can just go through the list once
-  // and memorize one we merged to calculate the offsets later
+  // and memorize ones we merged to calculate the offsets later
   std::unordered_map<std::string, std::string> merged_map;
   size_t to_set_idx = 0, cur_elm_idx = 1;
   for (; cur_elm_idx < string_table_optimized.size(); ++cur_elm_idx) {
@@ -163,12 +166,17 @@ std::vector<std::string> optimize(const HANDLER& container,
   if (of_map_p != nullptr) {
     std::unordered_map<std::string, size_t>& offset_map = *of_map_p;
     offset_map[""] = 0;
+
     for (const auto &v : string_table_optimized) {
-      offset_map[v] = offset_counter;
-      offset_counter += v.size() + 1;
+      if (!v.empty()) {
+        offset_map[v] = offset_counter;
+        offset_counter += v.size() + 1;
+      }
     }
     for (const auto &kv : merged_map) {
-      offset_map[kv.first] = offset_map[kv.second] + (kv.second.size() - kv.first.size());
+      if (!kv.first.empty()) {
+        offset_map[kv.first] = offset_map[kv.second] + (kv.second.size() - kv.first.size());
+      }
     }
   }
 
@@ -183,6 +191,75 @@ auto make_empty_iterator() {
       typename T::Iterator(std::move(begin)),
       typename T::Iterator(std::move(end))
   );
+}
+
+inline bool is_hex_number(const std::string& str) {
+  return std::all_of(std::begin(str), std::end(str), ::isxdigit);
+}
+
+inline std::string hex_str(uint8_t c) {
+  return fmt::format("{:02x}", c);
+}
+
+std::string hex_dump(const std::vector<uint8_t>& data,
+                     const std::string& sep = ":");
+
+std::string hex_dump(span<const uint8_t> data,
+                     const std::string& sep = ":");
+
+std::string indent(const std::string& input, size_t level);
+
+inline bool is_digit(char c) {
+  return '0' <= c && c <= '9';
+}
+
+inline bool is_digit(const std::string& str) {
+  return std::all_of(str.begin(), str.end(), (bool(*)(char))&is_digit);
+}
+
+inline bool is_digit(const char* str) {
+  while (*str != 0) {
+    if (!is_digit(*str)) {
+      return false;
+    }
+    ++str;
+  }
+  return true;
+}
+
+std::string ts_to_str(uint64_t timestamp);
+
+template <size_t N>
+inline std::string uuid_to_str_impl(uint8_t (&uuid)[N]) {
+  std::vector<std::string> hexstr;
+  std::transform(std::begin(uuid), std::end(uuid), std::back_inserter(hexstr),
+    [] (uint8_t x) { return fmt::format("{:02x}", x); }
+  );
+  return fmt::to_string(fmt::join(hexstr, ":"));
+}
+
+template <size_t N>
+inline std::string uuid_to_str_impl(const std::array<uint8_t, N>& uuid) {
+  std::vector<std::string> hexstr;
+  std::transform(std::begin(uuid), std::end(uuid), std::back_inserter(hexstr),
+    [] (uint8_t x) { return fmt::format("{:02x}", x); }
+  );
+  return fmt::to_string(fmt::join(hexstr, ":"));
+}
+
+inline bool endswith(const std::string& str, const std::string& suffix) {
+  if (suffix.size() > str.size()) {
+    return false;
+  }
+  return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+}
+
+inline optional<std::string> libname(const std::string& path, char sep = '/') {
+  size_t pos = path.rfind(sep);
+  if (pos == std::string::npos) {
+    return nullopt();
+  }
+  return path.substr(pos + 1);
 }
 
 }

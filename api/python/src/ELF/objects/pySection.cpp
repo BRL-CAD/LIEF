@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ void create<Section>(nb::module_& m) {
   init_ref_iterator<Section::it_segments>(sec, "it_segments");
 
   #define ENTRY(X) .value(to_string(Section::FLAGS::X), Section::FLAGS::X)
-  enum_<Section::FLAGS>(sec, "FLAGS", nb::is_arithmetic())
+  enum_<Section::FLAGS>(sec, "FLAGS", nb::is_flag())
     ENTRY(NONE)
     ENTRY(WRITE)
     ENTRY(ALLOC)
@@ -78,7 +78,7 @@ void create<Section>(nb::module_& m) {
 
   #define ENTRY(X) .value(to_string(Section::TYPE::X), Section::TYPE::X)
   enum_<Section::TYPE>(sec, "TYPE")
-    ENTRY(SHT_NULL)
+    ENTRY(SHT_NULL_)
     ENTRY(PROGBITS)
     ENTRY(SYMTAB)
     ENTRY(STRTAB)
@@ -114,9 +114,50 @@ void create<Section>(nb::module_& m) {
     ENTRY(ARM_OVERLAYSECTION)
     ENTRY(HEX_ORDERED)
     ENTRY(X86_64_UNWIND)
+
+    ENTRY(MIPS_LIBLIST)
+    ENTRY(MIPS_MSYM)
+    ENTRY(MIPS_CONFLICT)
+    ENTRY(MIPS_GPTAB)
+    ENTRY(MIPS_UCODE)
+    ENTRY(MIPS_DEBUG)
     ENTRY(MIPS_REGINFO)
+    ENTRY(MIPS_PACKAGE)
+    ENTRY(MIPS_PACKSYM)
+    ENTRY(MIPS_RELD)
+    ENTRY(MIPS_IFACE)
+    ENTRY(MIPS_CONTENT)
     ENTRY(MIPS_OPTIONS)
+    ENTRY(MIPS_SHDR)
+    ENTRY(MIPS_FDESC)
+    ENTRY(MIPS_EXTSYM)
+    ENTRY(MIPS_DENSE)
+    ENTRY(MIPS_PDESC)
+    ENTRY(MIPS_LOCSYM)
+    ENTRY(MIPS_AUXSYM)
+    ENTRY(MIPS_OPTSYM)
+    ENTRY(MIPS_LOCSTR)
+    ENTRY(MIPS_LINE)
+    ENTRY(MIPS_RFDESC)
+    ENTRY(MIPS_DELTASYM)
+    ENTRY(MIPS_DELTAINST)
+    ENTRY(MIPS_DELTACLASS)
+    ENTRY(MIPS_DWARF)
+    ENTRY(MIPS_DELTADECL)
+    ENTRY(MIPS_SYMBOL_LIB)
+    ENTRY(MIPS_EVENTS)
+    ENTRY(MIPS_TRANSLATE)
+    ENTRY(MIPS_PIXIE)
+    ENTRY(MIPS_XLATE)
+    ENTRY(MIPS_XLATE_DEBUG)
+    ENTRY(MIPS_WHIRL)
+    ENTRY(MIPS_EH_REGION)
+    ENTRY(MIPS_XLATE_OLD)
+    ENTRY(MIPS_PDR_EXCEPTION)
     ENTRY(MIPS_ABIFLAGS)
+    ENTRY(MIPS_XHASH)
+
+    ENTRY(RISCV_ATTRIBUTES)
   ;
   #undef ENTRY
 

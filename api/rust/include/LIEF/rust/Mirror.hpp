@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <vector>
 #include <memory>
 #include "LIEF/errors.hpp"
+#include "LIEF/optional.hpp"
 #include "LIEF/canbe_unique.hpp"
 
 #pragma once
@@ -25,10 +26,14 @@ class Mirror {
   public:
   Mirror(T& impl) : impl_(impl) {}
   Mirror(const T& impl) : impl_(impl) {}
+  Mirror(T&& impl) :
+    Mirror(std::make_unique<T>(std::move(impl)))
+  {}
   Mirror(std::unique_ptr<T> impl) : impl_(std::move(impl)) {}
 
   T& get() { return *impl_; }
   const T& get() const { return *impl_; }
+  T& force_get() const { return const_cast<T&>(*impl_); }
 
   private:
   LIEF::details::canbe_unique<T> impl_;
@@ -60,6 +65,16 @@ inline std::unique_ptr<T> try_unique(const V* value) {
 template<class T, class V>
 inline std::unique_ptr<T> try_unique(std::unique_ptr<V> value) {
   return value ? std::make_unique<T>(std::move(value)) : nullptr;
+}
+
+template<class T, class V>
+inline std::unique_ptr<T> try_unique(std::unique_ptr<const V> value) {
+  return try_unique<T, V>(std::unique_ptr<V>(const_cast<V*>(value.release())));
+}
+
+template<class T, class V>
+inline std::unique_ptr<T> try_unique(LIEF::optional<V> value) {
+  return value ? std::make_unique<T>(std::move(*value)) : nullptr;
 }
 
 template<class T, class V>

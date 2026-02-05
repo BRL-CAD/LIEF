@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,9 @@ Builder::Builder(Binary& binary, config_t config) :
   binary_{&binary},
   config_{std::move(config)}
 {
-  raw_.reserve(binary_->original_size());
+  if (binary_->original_size() != (uint64_t)-1) {
+    raw_.reserve(binary_->original_size());
+  }
   binaries_.push_back(binary_);
 }
 
@@ -61,6 +63,42 @@ ok_error_t Builder::build() {
   if (binaries_.size() > 1) {
     LIEF_ERR("More than one binary!");
     return make_error_code(lief_errors::build_error);
+  }
+
+  // Check if we need to extend some commands
+  {
+    int32_t original_size = 0;
+    int32_t required_size = 0;
+    for (std::unique_ptr<LoadCommand>& cmd : binary_->commands_) {
+      original_size += cmd->original_data_.size();
+      required_size += std::max(cmd->original_data_.size(), get_cmd_size<T>(*cmd));
+    }
+
+    int32_t delta = required_size - original_size;
+
+    LIEF_DEBUG("Original commands size:   0x{:08x}", original_size);
+    LIEF_DEBUG("Required commands size:   0x{:08x}", required_size);
+    LIEF_DEBUG("Delta:                    0x{:08x}", delta);
+    LIEF_DEBUG("available_command_space:  0x{:08x}", binary_->available_command_space_);
+    if (delta > 0) {
+      ok_error_t is_ok = binary_->ensure_command_space(delta);
+      if (!is_ok) {
+        return make_error_code(lief_errors::build_error);
+      }
+      uint64_t cmd_offset = sizeof(typename T::header);
+      for (std::unique_ptr<LoadCommand>& cmd : binary_->commands_) {
+        const size_t cmd_size = std::max(cmd->original_data_.size(), get_cmd_size<T>(*cmd));
+        cmd->command_offset_ = cmd_offset;
+        cmd_offset += cmd_size;
+        if (cmd->original_data_.size() < cmd_size) {
+          LIEF_DEBUG("Resizing: {} (+{} bytes)", to_string(cmd->command()),
+                     cmd_size - cmd->original_data_.size());
+          cmd->original_data_.resize(cmd_size);
+          cmd->size_ = cmd_size;
+        }
+      }
+      binary_->header().sizeof_cmds(required_size);
+      }
   }
 
   build_uuid();
@@ -90,8 +128,18 @@ ok_error_t Builder::build() {
       continue;
     }
 
+    if (Routine::classof(cmd.get())) {
+      build<T>(*cmd->as<Routine>());
+      continue;
+    }
+
     if (MainCommand::classof(cmd.get())) {
       build<T>(*cmd->as<MainCommand>());
+      continue;
+    }
+
+    if (SubClient::classof(cmd.get())) {
+      build<T>(*cmd->as<SubClient>());
       continue;
     }
 
@@ -119,12 +167,22 @@ ok_error_t Builder::build() {
       build<T>(*cmd->as<RPathCommand>());
       continue;
     }
+
+    if (EncryptionInfo::classof(cmd.get())) {
+      build<T>(*cmd->as<EncryptionInfo>());
+      continue;
+    }
+
+    if (NoteCommand::classof(cmd.get())) {
+      build<T>(*cmd->as<NoteCommand>());
+      continue;
+    }
   }
 
   build_segments<T>();
   build_load_commands();
 
-  build_header();
+  build_header<T>();
   return ok();
 }
 
@@ -144,11 +202,11 @@ ok_error_t Builder::build_fat() {
     auto* arch = reinterpret_cast<details::fat_arch*>(raw_.raw().data() + fat_header_sz + i * fat_arch_sz);
     std::vector<uint8_t> raw = build_raw(*binaries_[i], config_);
 
-    auto alignment = BinaryStream::swap_endian<uint32_t>(arch->align);
+    auto alignment = get_swapped_endian<uint32_t>(arch->align);
     uint32_t offset = align(raw_.size(), 1llu << alignment);
 
-    arch->offset = BinaryStream::swap_endian<uint32_t>(offset);
-    arch->size   = BinaryStream::swap_endian<uint32_t>(raw.size());
+    arch->offset = get_swapped_endian<uint32_t>(offset);
+    arch->size   = get_swapped_endian<uint32_t>(raw.size());
     raw_.seekp(offset);
     raw_.write(std::move(raw));
   }
@@ -162,8 +220,8 @@ ok_error_t Builder::build_fat_header() {
 
   std::memset(&header, 0, sizeof(details::fat_header));
 
-  header.magic     = static_cast<uint32_t>(MACHO_TYPES::FAT_CIGAM);
-  header.nfat_arch = BinaryStream::swap_endian<uint32_t>(binaries_.size());
+  header.magic     = static_cast<uint32_t>(MACHO_TYPES::CIGAM_FAT);
+  header.nfat_arch = get_swapped_endian<uint32_t>(binaries_.size());
 
   raw_.seekp(0);
   raw_.write(reinterpret_cast<const uint8_t*>(&header), sizeof(details::fat_header));
@@ -173,56 +231,17 @@ ok_error_t Builder::build_fat_header() {
     details::fat_arch arch_header;
     std::memset(&arch_header, 0, sizeof(details::fat_arch));
 
-    arch_header.cputype    = BinaryStream::swap_endian<uint32_t>(static_cast<uint32_t>(header.cpu_type()));
-    arch_header.cpusubtype = BinaryStream::swap_endian<uint32_t>(static_cast<uint32_t>(header.cpu_subtype()));
+    arch_header.cputype    = get_swapped_endian((uint32_t)header.cpu_type());
+    arch_header.cpusubtype = get_swapped_endian((uint32_t)header.cpu_subtype());
     arch_header.offset     = 0;
     arch_header.size       = 0;
-    arch_header.align      = BinaryStream::swap_endian<uint32_t>(ALIGNMENT);
+    arch_header.align      = get_swapped_endian<uint32_t>(ALIGNMENT);
     raw_.write(reinterpret_cast<const uint8_t*>(&arch_header), sizeof(details::fat_arch));
   }
   return ok();
 }
 
-
-ok_error_t Builder::build_header() {
-  LIEF_DEBUG("[+] Building header");
-  const Header& binary_header = binary_->header();
-  if (binary_->is64_) {
-    details::mach_header_64 header;
-    std::memset(&header, 0, sizeof(details::mach_header_64));
-    header.magic      = static_cast<uint32_t>(binary_header.magic());
-    header.cputype    = static_cast<uint32_t>(binary_header.cpu_type());
-    header.cpusubtype = static_cast<uint32_t>(binary_header.cpu_subtype());
-    header.filetype   = static_cast<uint32_t>(binary_header.file_type());
-    header.ncmds      = static_cast<uint32_t>(binary_header.nb_cmds());
-    header.sizeofcmds = static_cast<uint32_t>(binary_header.sizeof_cmds());
-    header.flags      = static_cast<uint32_t>(binary_header.flags());
-    header.reserved   = static_cast<uint32_t>(binary_header.reserved());
-
-    raw_.seekp(0);
-    raw_.write(reinterpret_cast<const uint8_t*>(&header), sizeof(details::mach_header_64));
-  } else {
-    details::mach_header header;
-    std::memset(&header, 0, sizeof(details::mach_header));
-
-    header.magic      = static_cast<uint32_t>(binary_header.magic());
-    header.cputype    = static_cast<uint32_t>(binary_header.cpu_type());
-    header.cpusubtype = static_cast<uint32_t>(binary_header.cpu_subtype());
-    header.filetype   = static_cast<uint32_t>(binary_header.file_type());
-    header.ncmds      = static_cast<uint32_t>(binary_header.nb_cmds());
-    header.sizeofcmds = static_cast<uint32_t>(binary_header.sizeof_cmds());
-    header.flags      = static_cast<uint32_t>(binary_header.flags());
-
-    raw_.seekp(0);
-    raw_.write(reinterpret_cast<const uint8_t*>(&header), sizeof(details::mach_header));
-  }
-  return ok();
-}
-
-
 ok_error_t Builder::build_load_commands() {
-  LIEF_DEBUG("[+] Building load segments");
-
   const auto& binary = binaries_.back();
   // Check if the number of segments is correct
   if (binary->header().nb_cmds() != binary->commands_.size()) {
@@ -235,19 +254,24 @@ ok_error_t Builder::build_load_commands() {
     if (LinkEdit::segmentof(*segment) && config_.linkedit) {
       raw_.seekp(linkedit_offset_);
       raw_.write(linkedit_);
-    } else {
-      span<const uint8_t> segment_content = segment->content();
-      raw_.seekp(segment->file_offset());
-      raw_.write(segment_content.data(), segment_content.size());
+      continue;
     }
+    span<const uint8_t> segment_content = segment->content();
+    raw_.seekp(segment->file_offset());
+    raw_.write(segment_content.data(), segment_content.size());
   }
 
-  //uint64_t loadCommandsOffset = raw_.size();
-  for (const std::unique_ptr<LoadCommand>& command : binary->commands_) {
-    const auto& data = command->data();
-    uint64_t loadCommandsOffset = command->command_offset();
-    LIEF_DEBUG("[+] Command offset: 0x{:04x}", loadCommandsOffset);
-    raw_.seekp(loadCommandsOffset);
+  uint64_t start_offset = binary_->is64_ ? sizeof(details::mach_header_64) :
+                                           sizeof(details::mach_header);
+  raw_.seekp(start_offset);
+  for (size_t i = 0; i < binary_->commands_.size(); ++i) {
+    const std::unique_ptr<LoadCommand>& command = binary_->commands_[i];
+    span<const uint8_t> data = command->data();
+
+    LIEF_DEBUG("Writing command #{:02d} {:30} offset=0x{:08x} size=0x{:08x}",
+               i, to_string(command->command()), (uint64_t)raw_.tellp(),
+               data.size());
+
     raw_.write(data);
   }
   return ok();

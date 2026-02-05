@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,10 @@ void create<ExportEntry>(nb::module_& m) {
     LIEF_DEFAULT_STR(ExportEntry::forward_information_t);
 
   export_entry
-    .def(nb::init<>())
+    .def(nb::init<>(), "Default constructor"_doc)
+    .def(nb::init<std::string, uint32_t>(),
+         "name"_a, "addr"_a,
+         "Constructor with export name and address"_doc)
 
     .def_prop_rw("name",
         [] (const ExportEntry& obj) {
@@ -65,6 +68,17 @@ void create<ExportEntry>(nb::module_& m) {
 
     .def_prop_ro("function_rva",
         &ExportEntry::function_rva)
+
+    .def_prop_ro("demangled_name",
+      &ExportEntry::demangled_name,
+      R"doc(
+      Demangled representation of the symbol or an empty string if it can't
+      be demangled.
+      )doc"_doc
+    )
+
+    .def("set_forward_info", &ExportEntry::set_forward_info,
+         "lib"_a, "function"_a)
 
     LIEF_DEFAULT_STR(ExportEntry);
 

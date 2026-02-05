@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2024 R. Thomas
+/* Copyright 2022 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,4 +30,6 @@ class PDB_Function : private Mirror<LIEF::pdb::Function> {
   auto debug_location() const {
     return details::make_location(get().debug_location());
   }
+
+  auto to_string() const { return get().to_string(); }
 };

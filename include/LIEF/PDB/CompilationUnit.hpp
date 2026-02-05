@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2024 R. Thomas
+/* Copyright 2022 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <ostream>
 
 #include "LIEF/iterators.hpp"
 #include "LIEF/PDB/Function.hpp"
@@ -25,6 +26,7 @@
 
 namespace LIEF {
 namespace pdb {
+class BuildMetadata;
 
 namespace details {
 class CompilationUnit;
@@ -116,6 +118,19 @@ class LIEF_API CompilationUnit {
   /// If the PDB does not contain or has an empty DBI stream, it returns
   /// an empty iterator.
   function_iterator functions() const;
+
+  /// Return build metadata such as the version of the compiler or
+  /// the original source language of this compilation unit
+  std::unique_ptr<BuildMetadata> build_metadata() const;
+
+  std::string to_string() const;
+
+  LIEF_API friend
+    std::ostream& operator<<(std::ostream& os, const CompilationUnit& CU)
+  {
+    os << CU.to_string();
+    return os;
+  }
 
   private:
   std::unique_ptr<details::CompilationUnit> impl_;

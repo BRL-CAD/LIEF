@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ result<FileStream> FileStream::from_file(const std::string& file) {
   ifs.seekg(0, std::ios::end);
   const auto size = static_cast<uint64_t>(ifs.tellg());
   ifs.seekg(0, std::ios::beg);
-  return FileStream{std::move(ifs), size};
+  return result<FileStream>(tl::in_place, std::move(ifs), size);
 }
 
 

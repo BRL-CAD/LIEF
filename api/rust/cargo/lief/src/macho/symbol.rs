@@ -1,4 +1,5 @@
 use std::marker::PhantomData;
+use std::pin::Pin;
 
 use crate::common::{into_optional, FromFFI};
 use crate::declare_iterator;
@@ -28,6 +29,7 @@ pub enum Category {
     UNDEFINED,
     INDIRECT_ABS,
     INDIRECT_LOCAL,
+    INDIRECT_ABS_LOCAL,
     UNKNOWN(u32),
 }
 
@@ -40,6 +42,7 @@ impl From<u32> for Category {
             0x00000003 => Category::UNDEFINED,
             0x00000004 => Category::INDIRECT_ABS,
             0x00000005 => Category::INDIRECT_LOCAL,
+            0x00000006 => Category::INDIRECT_ABS_LOCAL,
             _ => Category::UNKNOWN(value),
         }
     }
@@ -92,18 +95,23 @@ impl Symbol<'_> {
     }
 
     /// Export info associated with this symbol (if any)
-    pub fn export_info(&self) -> Option<ExportInfo> {
+    pub fn export_info(&self) -> Option<ExportInfo<'_>> {
         into_optional(self.ptr.export_info())
     }
 
     /// Binding info associated with this symbol (if any)
-    pub fn binding_info(&self) -> Option<BindingInfo> {
+    pub fn binding_info(&self) -> Option<BindingInfo<'_>> {
         into_optional(self.ptr.binding_info())
     }
 
     /// Return the library in which this symbol is defined (if any)
-    pub fn library(&self) -> Option<Dylib> {
+    pub fn library(&self) -> Option<Dylib<'_>> {
         into_optional(self.ptr.library())
+    }
+
+    /// Try to demangle the symbol or return an empty string if it is not possible
+    pub fn demangled_name(&self) -> String {
+        self.ptr.demangled_name().to_string()
     }
 }
 
@@ -136,6 +144,17 @@ impl<'a> FromFFI<ffi::MachO_Symbol> for Symbol<'a> {
 impl generic::Symbol for Symbol<'_> {
     fn as_generic(&self) -> &ffi::AbstractSymbol {
         self.ptr.as_ref().unwrap().as_ref()
+    }
+
+    fn as_pin_mut_generic(&mut self) -> Pin<&mut ffi::AbstractSymbol> {
+        unsafe {
+            Pin::new_unchecked({
+                (self.ptr.as_ref().unwrap().as_ref() as *const ffi::AbstractSymbol
+                    as *mut ffi::AbstractSymbol)
+                    .as_mut()
+                    .unwrap()
+            })
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2024 R. Thomas
+/* Copyright 2022 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,12 @@
 #include <LIEF/ObjC/Protocol.hpp>
 
 #include <LIEF/iterators.hpp>
+#include <LIEF/ObjC/DeclOpt.hpp>
 
 #include <memory>
 
 namespace LIEF {
+/// Namespace related to ObjC metadata
 namespace objc {
 
 namespace details {
@@ -53,7 +55,8 @@ class LIEF_API Metadata {
 
   /// Generate a header-like of all the Objective-C metadata identified in the
   /// binary.
-  std::string to_decl() const;
+  /// The generated output can be configured with the DeclOpt
+  std::string to_decl(const DeclOpt& opt = DeclOpt()) const;
 
   ~Metadata();
   private:

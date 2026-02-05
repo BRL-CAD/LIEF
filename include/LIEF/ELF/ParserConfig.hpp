@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,19 +21,19 @@
 namespace LIEF {
 namespace ELF {
 
-//! This structure is used to tweak the ELF Parser (ELF::Parser)
+/// This structure is used to tweak the ELF Parser (ELF::Parser)
 struct LIEF_API ParserConfig {
   /** Methods that can be used by the LIEF::ELF::Parser
       to count the number of dynamic symbols */
-  enum class DYNSYM_COUNT  {
+  enum class DYNSYM_COUNT {
     AUTO        = 0, /**< Automatic detection */
     SECTION     = 1, /**< Count based on sections (not very reliable) */
     HASH        = 2, /**< Count based on hash table (reliable) */
     RELOCATIONS = 3, /**< Count based on PLT/GOT relocations (very reliable but not accurate) */
   };
 
-  //! This returns a ParserConfig object configured to process all the ELF
-  //! elements.
+  /// This returns a ParserConfig object configured to process all the ELF
+  /// elements.
   static ParserConfig all() {
     static const ParserConfig DEFAULT;
     return DEFAULT;
@@ -48,6 +48,11 @@ struct LIEF_API ParserConfig {
 
   /** The method used to count the number of dynamic symbols */
   DYNSYM_COUNT count_mtd = DYNSYM_COUNT::AUTO;
+
+  /// Memory page size if the binary uses a non-standard value.
+  ///
+  /// For instance, SPARCV9 binary can use page size from 0x2000 to 0x100000.
+  uint64_t page_size = 0;
 };
 
 }

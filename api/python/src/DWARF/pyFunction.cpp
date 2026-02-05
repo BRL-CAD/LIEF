@@ -3,6 +3,7 @@
 #include "LIEF/DWARF/Scope.hpp"
 #include "LIEF/DWARF/Variable.hpp"
 #include "LIEF/DWARF/Type.hpp"
+#include "LIEF/DWARF/Parameter.hpp"
 #include "DWARF/pyDwarf.hpp"
 #include "pyErr.hpp"
 
@@ -20,26 +21,6 @@ void create<dw::Function>(nb::module_& m) {
     ``DW_TAG_subprogram`` or ``DW_TAG_inlined_subroutine``.
     )doc"_doc
   );
-
-  nb::class_<dw::Function::Parameter> param(func, "Parameter",
-    R"doc(
-    This class represents a DWARF function's parameter.
-    )doc"_doc
-  );
-
-  param
-    .def_prop_ro("name", &Function::Parameter::name,
-      R"doc(
-      The name of the parameter
-      )doc"_doc
-    )
-
-    .def_prop_ro("type", &Function::Parameter::type,
-      R"doc(
-      Type of the parameter
-      )doc"_doc
-    )
-  ;
 
   func
     .def_prop_ro("name", &dw::Function::name,
@@ -70,7 +51,7 @@ void create<dw::Function>(nb::module_& m) {
     .def_prop_ro("variables",
         [] (dw::Function& self) {
           auto vars = self.variables();
-          return nb::make_iterator(
+          return nb::make_iterator<nb::rv_policy::reference_internal>(
               nb::type<dw::Function>(), "variables_it", vars);
         }, nb::keep_alive<0, 1>(),
         R"delim(
@@ -84,6 +65,13 @@ void create<dw::Function>(nb::module_& m) {
       R"doc(
       Whether this function is created by the compiler and not
       present in the original source code.
+      )doc"_doc
+    )
+
+    .def_prop_ro("is_external", &dw::Function::is_external,
+      R"doc(
+      Whether the function is defined **outside** the current compilation unit
+      (``DW_AT_external``).
       )doc"_doc
     )
 
@@ -114,7 +102,24 @@ void create<dw::Function>(nb::module_& m) {
 
     .def_prop_ro("parameters", &dw::Function::parameters,
       R"doc(
-      Return the list of parameters used by this function.
+      Return the list of parameters used by this function
+      (including template parameters)
+      )doc"_doc
+    )
+
+    .def_prop_ro("thrown_types", &dw::Function::thrown_types,
+      R"doc(
+      List of exceptions (types) that can be thrown by the function.
+      For instance, given this Swift code:
+
+      .. code-block:: swift
+
+        func summarize(_ ratings: [Int]) throws(StatisticsError) {
+          // ...
+        }
+
+      :attr:`~.thrown_types` returns one element associated with the
+      :class:`~.Type`: ``StatisticsError``.
       )doc"_doc
     )
 
@@ -122,6 +127,32 @@ void create<dw::Function>(nb::module_& m) {
       R"doc(
       Scope in which this function is defined
       )doc"_doc
+    )
+    .def_prop_ro("instructions",
+      [] (dw::Function& self) {
+        auto insts = self.instructions();
+        return nb::make_iterator<nb::rv_policy::reference_internal>(
+            nb::type<dw::Function>(), "instructions_it", insts);
+      }, nb::keep_alive<0, 1>(),
+      R"doc(
+      Disassemble the current function by returning an iterator over the
+      :class:`lief.assembly.Instruction`.
+      )doc"_doc
+    )
+
+    .def_prop_ro("lexical_blocks",
+      [] (dw::Function& self) {
+        auto lexical_blocks = self.lexical_blocks();
+        return nb::make_iterator<nb::rv_policy::reference_internal>(
+            nb::type<dw::Function>(), "lexical_blocks_it", lexical_blocks);
+      }, nb::keep_alive<0, 1>(),
+      R"delim(
+      Iterator over the :class:`~.LexicalBlock` owned by this function
+      )delim"_doc
+    )
+
+    .def_prop_ro("description", &dw::Function::description,
+      "Description (``DW_AT_description``) of this function or an empty string"_doc
     )
   ;
 }

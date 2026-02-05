@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,9 +49,10 @@ void create<OptionalHeader>(nb::module_& m) {
     .value(PY_ENUM(OptionalHeader::SUBSYSTEM::EFI_RUNTIME_DRIVER))
     .value(PY_ENUM(OptionalHeader::SUBSYSTEM::EFI_ROM))
     .value(PY_ENUM(OptionalHeader::SUBSYSTEM::XBOX))
-    .value(PY_ENUM(OptionalHeader::SUBSYSTEM::WINDOWS_BOOT_APPLICATION));
+    .value(PY_ENUM(OptionalHeader::SUBSYSTEM::WINDOWS_BOOT_APPLICATION))
+    .value(PY_ENUM(OptionalHeader::SUBSYSTEM::XBOX_CODE_CATALOG));
 
-  enum_<OptionalHeader::DLL_CHARACTERISTICS>(opt_header, "DLL_CHARACTERISTICS", nb::is_arithmetic())
+  enum_<OptionalHeader::DLL_CHARACTERISTICS>(opt_header, "DLL_CHARACTERISTICS", nb::is_flag(), nb::is_arithmetic())
     .value(PY_ENUM(OptionalHeader::DLL_CHARACTERISTICS::HIGH_ENTROPY_VA))
     .value(PY_ENUM(OptionalHeader::DLL_CHARACTERISTICS::DYNAMIC_BASE))
     .value(PY_ENUM(OptionalHeader::DLL_CHARACTERISTICS::FORCE_INTEGRITY))

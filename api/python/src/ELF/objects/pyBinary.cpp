@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  */
 #include <sstream>
 
+#include "nanobind/utils.hpp"
 #include <nanobind/operators.h>
 #include <nanobind/stl/unique_ptr.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
-#include "nanobind/extra/memoryview.hpp"
+#include "nanobind/extra/stl/lief_span.h"
+#include "nanobind/extra/stl/pathlike.h"
 
 #include "ELF/pyELF.hpp"
 
@@ -103,6 +105,30 @@ void create<Binary>(nb::module_& m) {
            This kind of relocation is only doable when there is an alignment
            enforcement.
            )delim"_doc);
+
+  nb::enum_<Binary::SEC_INSERT_POS>(bin, "SEC_INSERT_POS", R"delim(
+    This enum defines where the content of a newly added section should be
+    inserted.
+    )delim"_doc)
+    .value("AUTO", Binary::SEC_INSERT_POS::AUTO,
+      "Defer the choice to LIEF"_doc
+    )
+    .value("POST_SECTION", Binary::SEC_INSERT_POS::POST_SECTION,
+      R"doc(
+      Insert the section after the last valid offset in the **segments** table.
+
+      With this choice, the section is inserted after the loaded content but
+      before any debug information.
+      )doc"_doc
+    )
+    .value("POST_SEGMENT", Binary::SEC_INSERT_POS::POST_SEGMENT,
+      R"doc(
+      Insert the section after the last valid offset in the **section** table.
+
+      With this choice, the section is inserted at the very end of the binary.
+      )doc"_doc
+    )
+  ;
 
   bin
     .def_prop_ro("type",
@@ -476,14 +502,14 @@ void create<Binary>(nb::module_& m) {
         "virtual_address"_a)
 
     .def("add",
-        nb::overload_cast<const Section&, bool>(&Binary::add),
+        nb::overload_cast<const Section&, bool, Binary::SEC_INSERT_POS>(&Binary::add),
         R"delim(
         Add the given :class:`~lief.ELF.Section` to the binary.
 
         If the section does not aim at being loaded in memory,
         the ``loaded`` parameter has to be set to ``False`` (default: ``True``)
         )delim"_doc,
-        "section"_a, "loaded"_a = true,
+        "section"_a, "loaded"_a = true, "pos"_a = Binary::SEC_INSERT_POS::AUTO,
         nb::rv_policy::reference_internal)
 
     .def("add",
@@ -540,6 +566,21 @@ void create<Binary>(nb::module_& m) {
         "section"_a, "clear"_a = false)
 
     .def("remove",
+        nb::overload_cast<const Segment&, bool>(&Binary::remove),
+        R"doc(
+        Remove the segment provided in parameter. If ``clear`` is set, the
+        original content of the segment will be filled with zeros before removal.
+        )doc"_doc, "segment"_a, "clear"_a = false)
+
+
+    .def("remove",
+        nb::overload_cast<Segment::TYPE, bool>(&Binary::remove),
+        R"doc(
+        Remove **all** segments with the given type. If ``clear`` is set, the
+        original content of the segment will be filled with zeros before removal.
+        )doc"_doc, "type"_a, "clear"_a = false)
+
+    .def("remove",
         nb::overload_cast<const Note&>(&Binary::remove),
         "Remove the given " RST_CLASS_REF(lief.ELF.Note) ""_doc,
         "note"_a)
@@ -568,16 +609,30 @@ void create<Binary>(nb::module_& m) {
         "permutation"_a)
 
     .def("write",
-        nb::overload_cast<const std::string&>(&Binary::write),
+        [] (Binary& self, nb::PathLike path) { return self.write(path); },
         "Rebuild the binary and write it in a file"_doc,
         "output"_a,
         nb::rv_policy::reference_internal)
 
     .def("write",
-        nb::overload_cast<const std::string&, Builder::config_t>(&Binary::write),
+        [] (Binary& self, nb::PathLike path, const Builder::config_t& config) {
+          return self.write(path, config);
+        },
         "Rebuild the binary with the given configuration and write it in a file"_doc,
         "output"_a, "config"_a,
         nb::rv_policy::reference_internal)
+
+    .def("write_to_bytes", [] (Binary& bin, const Builder::config_t& config) -> nb::bytes {
+          std::ostringstream out;
+          bin.write(out, config);
+          return nb::to_bytes(out.str());
+        }, "config"_a)
+
+    .def("write_to_bytes", [] (Binary& bin) -> nb::bytes {
+          std::ostringstream out;
+          bin.write(out);
+          return nb::to_bytes(out.str());
+        })
 
     .def_prop_ro("last_offset_section",
         &Binary::last_offset_section,
@@ -730,11 +785,28 @@ void create<Binary>(nb::module_& m) {
         &Binary::has_overlay,
         "True if data are appended to the end of the binary"_doc)
 
+    .def_prop_ro("is_targeting_android", &Binary::is_targeting_android,
+      R"doc(True if the current is targeting Android)doc"_doc
+    )
+
+    .def("get_section_idx", [] (const Binary& self, const Section& sec) {
+        return error_or(
+         nb::overload_cast<const Section&>(&Binary::get_section_idx, nb::const_),
+         self, sec);
+      },
+      R"doc(Find the index of the section given in the first parameter)doc"_doc
+    )
+
+    .def("get_section_idx", [] (const Binary& self, const std::string& name) {
+        return error_or(
+         nb::overload_cast<const std::string&>(&Binary::get_section_idx, nb::const_),
+         self, name);
+      },
+      R"doc(Find the index of the section with the name given in the first parameter)doc"_doc
+    )
+
     .def_prop_rw("overlay",
-        [] (const Binary& self) {
-          const span<const uint8_t> overlay = self.overlay();
-          return nb::memoryview::from_memory(overlay.data(), overlay.size());
-        },
+        nb::overload_cast<>(&Binary::overlay, nb::const_),
         [] (Binary& self, nb::bytes& bytes) {
           const auto* ptr = reinterpret_cast<const uint8_t*>(bytes.c_str());
           std::vector<uint8_t> buffer(ptr, ptr + bytes.size());
@@ -760,6 +832,26 @@ void create<Binary>(nb::module_& m) {
       :attr:`~.DynamicEntry.TAG.INIT_ARRAY` with relocations applied (if any)
       )doc"_doc,
       "array_tag"_a
+    )
+
+    .def("find_version_requirement",
+      nb::overload_cast<const std::string&>(&Binary::find_version_requirement),
+      R"doc(
+      Try to find the :class:`~.SymbolVersionRequirement` associated with the given library
+      name (e.g. ``libc.so.6``)
+      )doc"_doc, "libname"_a, nb::rv_policy::reference_internal
+    )
+
+    .def("remove_version_requirement", &Binary::remove_version_requirement,
+      R"doc(
+      Deletes all required symbol versions linked to the specified library name.
+      The function returns true if the operation succeed, false otherwise.
+
+      .. warning::
+
+          To maintain consistency, this function also removes versions associated
+          with dynamic symbols that are linked to the specified library name.
+      )doc"_doc, "libname"_a
     )
 
     .def(nb::self += Segment(), nb::rv_policy::reference_internal)

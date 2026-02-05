@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2024 R. Thomas
+/* Copyright 2022 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 #include "LIEF/visibility.h"
 #include "LIEF/DWARF/Type.hpp"
+#include "LIEF/DWARF/Function.hpp"
 
 namespace LIEF {
 namespace dwarf {
@@ -33,7 +34,7 @@ class LIEF_API ClassLike : public Type {
   using Type::Type;
 
   /// This represents a class/struct/union attribute
-  class Member {
+  class LIEF_API Member {
     public:
     Member(std::unique_ptr<details::Member> impl);
     Member(Member&& other) noexcept;
@@ -64,6 +65,10 @@ class LIEF_API ClassLike : public Type {
     /// If the offset can't be resolved it returns a lief_errors
     result<uint64_t> bit_offset() const;
 
+    /// If the current member is a bit-field, this function returns its size in
+    /// bits.
+    result<uint64_t> bit_size() const;
+
     /// Type of the current member
     std::unique_ptr<Type> type() const;
 
@@ -76,6 +81,8 @@ class LIEF_API ClassLike : public Type {
     std::unique_ptr<details::Member> impl_;
   };
 
+  using functions_it = iterator_range<Function::Iterator>;
+
   static bool classof(const Type* type) {
     const auto kind = type->kind();
     return kind == Type::KIND::CLASS || kind == Type::KIND::STRUCT || kind == Type::KIND::UNION;
@@ -86,6 +93,9 @@ class LIEF_API ClassLike : public Type {
 
   /// Try to find the attribute at the given offset
   std::unique_ptr<Member> find_member(uint64_t offset) const;
+
+  /// Iterator over the functions defined by the class-like.
+  functions_it functions() const;
 
   ~ClassLike() override;
 };
@@ -124,6 +134,18 @@ class LIEF_API Union : public ClassLike {
   }
 
   ~Union() override;
+};
+
+/// This class represents a DWARF `packed` type (`DW_TAG_packed_type`)
+class LIEF_API Packed : public ClassLike {
+  public:
+  using ClassLike::ClassLike;
+
+  static bool classof(const Type* type) {
+    return type->kind() == Type::KIND::PACKED;
+  }
+
+  ~Packed() override;
 };
 
 }

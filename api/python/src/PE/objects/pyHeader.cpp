@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,8 @@ void create<Header>(nb::module_& m) {
 
   enum_<Header::MACHINE_TYPES>(hdr, "MACHINE_TYPES")
     .value(PY_ENUM(Header::MACHINE_TYPES::UNKNOWN))
+    .value(PY_ENUM(Header::MACHINE_TYPES::ALPHA))
+    .value(PY_ENUM(Header::MACHINE_TYPES::ALPHA64))
     .value(PY_ENUM(Header::MACHINE_TYPES::AM33))
     .value(PY_ENUM(Header::MACHINE_TYPES::AMD64))
     .value(PY_ENUM(Header::MACHINE_TYPES::ARM))
@@ -45,21 +47,28 @@ void create<Header>(nb::module_& m) {
     .value(PY_ENUM(Header::MACHINE_TYPES::EBC))
     .value(PY_ENUM(Header::MACHINE_TYPES::I386))
     .value(PY_ENUM(Header::MACHINE_TYPES::IA64))
+    .value(PY_ENUM(Header::MACHINE_TYPES::LOONGARCH32))
+    .value(PY_ENUM(Header::MACHINE_TYPES::LOONGARCH64))
     .value(PY_ENUM(Header::MACHINE_TYPES::M32R))
     .value(PY_ENUM(Header::MACHINE_TYPES::MIPS16))
     .value(PY_ENUM(Header::MACHINE_TYPES::MIPSFPU))
     .value(PY_ENUM(Header::MACHINE_TYPES::MIPSFPU16))
     .value(PY_ENUM(Header::MACHINE_TYPES::POWERPC))
     .value(PY_ENUM(Header::MACHINE_TYPES::POWERPCFP))
+    .value(PY_ENUM(Header::MACHINE_TYPES::POWERPCBE))
     .value(PY_ENUM(Header::MACHINE_TYPES::R4000))
     .value(PY_ENUM(Header::MACHINE_TYPES::SH3))
     .value(PY_ENUM(Header::MACHINE_TYPES::SH3DSP))
     .value(PY_ENUM(Header::MACHINE_TYPES::SH4))
     .value(PY_ENUM(Header::MACHINE_TYPES::SH5))
     .value(PY_ENUM(Header::MACHINE_TYPES::THUMB))
-    .value(PY_ENUM(Header::MACHINE_TYPES::WCEMIPSV2));
+    .value(PY_ENUM(Header::MACHINE_TYPES::WCEMIPSV2))
+    .value(PY_ENUM(Header::MACHINE_TYPES::ARM64EC))
+    .value(PY_ENUM(Header::MACHINE_TYPES::ARM64X))
+    .value(PY_ENUM(Header::MACHINE_TYPES::CHPE_X86))
+  ;
 
-  enum_<Header::CHARACTERISTICS>(hdr, "CHARACTERISTICS", nb::is_arithmetic())
+  enum_<Header::CHARACTERISTICS>(hdr, "CHARACTERISTICS", nb::is_flag())
     .value(PY_ENUM(Header::CHARACTERISTICS::RELOCS_STRIPPED))
     .value(PY_ENUM(Header::CHARACTERISTICS::EXECUTABLE_IMAGE))
     .value(PY_ENUM(Header::CHARACTERISTICS::LINE_NUMS_STRIPPED))

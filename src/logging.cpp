@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,102 +20,126 @@
 #include "logging.hpp"
 
 #include "spdlog/spdlog.h"
+
+#if !defined(SPDLOG_FMT_EXTERNAL)
 #include "spdlog/fmt/bundled/args.h"
+#else
+#include "fmt/args.h"
+#endif
+
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/android_sink.h"
 
-
 namespace LIEF {
 namespace logging {
 
-Logger::Logger(Logger&&) = default;
-Logger& Logger::operator=(Logger&&) = default;
-Logger::~Logger() = default;
 
-Logger::Logger() {
-  if constexpr (lief_logging_support) {
-    if constexpr (current_platform() == PLATFORMS::ANDROID_PLAT) {
-      #if defined(__ANDROID__)
-      sink_ = spdlog::android_logger_mt("LIEF", "lief");
-      #else
-      // Should not append ...
-      #endif
-    }
-    else if (current_platform() == PLATFORMS::IOS) {
-      sink_ = spdlog::basic_logger_mt("LIEF", "/tmp/lief.log", /* truncate */ true);
-    }
-    else {
-      sink_ = spdlog::stderr_color_mt("LIEF");
-    }
+std::shared_ptr<spdlog::logger>
+  create_basic_logger_mt(const std::string& name, const std::string& path, bool truncate = false)
+{
+  spdlog::filename_t fname(path.begin(), path.end());
+  return spdlog::basic_logger_mt(name, fname, truncate);
+}
 
+static std::shared_ptr<spdlog::logger> default_logger(
+  [[maybe_unused]] const std::string& name = "LIEF",
+  [[maybe_unused]] const std::string& logcat_tag = "",
+  [[maybe_unused]] const std::string& filepath = "/tmp/lief.log",
+  [[maybe_unused]] bool truncate = true
+)
+{
+  auto& registry = spdlog::details::registry::instance();
+  registry.drop(name);
 
-    sink_->set_level(spdlog::level::warn);
-    sink_->set_pattern("%v");
-    sink_->flush_on(spdlog::level::warn);
+  std::shared_ptr<spdlog::logger> sink;
+  if constexpr (current_platform() == PLATFORMS::PLAT_ANDROID) {
+#if defined(__ANDROID__)
+    sink = spdlog::android_logger_mt(name, logcat_tag);
+#endif
   }
+  else if (current_platform() == PLATFORMS::PLAT_IOS) {
+    sink = create_basic_logger_mt(name, filepath, truncate);
+  }
+  else {
+    sink = spdlog::stderr_color_mt(name);
+  }
+
+  sink->set_level(spdlog::level::warn);
+  sink->set_pattern("%v");
+  sink->flush_on(spdlog::level::warn);
+  return sink;
+}
+
+LEVEL Logger::get_level() {
+  spdlog::level::level_enum lvl = sink_->level();
+  switch (lvl) {
+    default:
+    case spdlog::level::level_enum::off:
+      return LEVEL::OFF;
+    case spdlog::level::level_enum::trace:
+      return LEVEL::TRACE;
+    case spdlog::level::level_enum::debug:
+      return LEVEL::DEBUG;
+    case spdlog::level::level_enum::info:
+      return LEVEL::INFO;
+    case spdlog::level::level_enum::warn:
+      return LEVEL::WARN;
+    case spdlog::level::level_enum::err:
+      return LEVEL::ERR;
+    case spdlog::level::level_enum::critical:
+      return LEVEL::CRITICAL;
+  }
+  return LEVEL::TRACE;
 }
 
 
-Logger::Logger(const std::string& filepath) {
-  sink_ = spdlog::basic_logger_mt("LIEF", filepath, /* truncate */ true);
-  sink_->set_level(spdlog::level::warn);
-  sink_->set_pattern("%v");
-  sink_->flush_on(spdlog::level::warn);
+Logger& Logger::instance(const char* name) {
+  static Logger::instances_t instances;
+  static std::mutex mu;
+  std::lock_guard LK(mu);
 
-}
-
-Logger& Logger::instance() {
-  if (instance_ == nullptr) {
-    instance_ = new Logger{};
-    std::atexit(destroy);
+  if (auto it = instances.find(name); it != instances.end()) {
+    return *it->second;
   }
-  return *instance_;
+
+  if (instances.empty()) {
+    std::atexit([] {
+      std::lock_guard LK(mu);
+      for (const auto& [name, instance] : instances) {
+        delete instance;
+      }
+      instances.clear();
+    });
+  }
+
+  auto* impl = new Logger(default_logger(/*name=*/name));
+  instances.insert({name, impl});
+  return *impl;
 }
 
 void Logger::reset() {
-  Logger::destroy();
-  Logger::instance();
-}
-
-void Logger::destroy() {
-  spdlog::details::registry::instance().drop("LIEF");
-  delete instance_;
-  instance_ = nullptr;
+  set_logger(default_logger());
 }
 
 Logger& Logger::set_log_path(const std::string& path) {
-  if (instance_ == nullptr) {
-    instance_ = new Logger{path};
-    std::atexit(destroy);
-    return *instance_;
-  }
-  auto& logger = Logger::instance();
-  spdlog::details::registry::instance().drop("LIEF");
-  logger.sink_ = spdlog::basic_logger_mt("LIEF", path,
-                                         /*truncate=*/true);
-  logger.sink_->set_pattern("%v");
-  logger.sink_->set_level(spdlog::level::warn);
-  logger.sink_->flush_on(spdlog::level::warn);
-  return logger;
+  auto& registry = spdlog::details::registry::instance();
+  registry.drop(DEFAULT_NAME);
+  auto logger = create_basic_logger_mt(DEFAULT_NAME, path, /*truncate=*/true);
+  set_logger(std::move(logger));
+  return *this;
 }
 
-void Logger::set_logger(const spdlog::logger& logger) {
-  if (logger.name() != "LIEF") {
-    return;
-  }
-
-  auto& instance = Logger::instance();
-  spdlog::details::registry::instance().drop("LIEF");
-
-  instance.sink_ = std::make_shared<spdlog::logger>(logger);
-  instance.sink_->set_pattern("%v");
-  instance.sink_->set_level(spdlog::level::warn);
-  instance.sink_->flush_on(spdlog::level::warn);
+void Logger::set_logger(std::shared_ptr<spdlog::logger> logger) {
+  sink_ = logger;
+  sink_->set_pattern("%v");
+  sink_->set_level(spdlog::level::warn);
+  sink_->flush_on(spdlog::level::warn);
 }
 
 const char* to_string(LEVEL e) {
   switch (e) {
+    case LEVEL::OFF: return "OFF";
     case LEVEL::TRACE: return "TRACE";
     case LEVEL::DEBUG: return "DEBUG";
     case LEVEL::INFO: return "INFO";
@@ -127,64 +151,58 @@ const char* to_string(LEVEL e) {
   return "UNDEFINED";
 }
 
-
-void Logger::disable() {
-  if constexpr (lief_logging_support) {
-    Logger::instance().sink_->set_level(spdlog::level::off);
-  }
-}
-
-void Logger::enable() {
-  if constexpr (lief_logging_support) {
-    Logger::instance().sink_->set_level(spdlog::level::warn);
-  }
-}
-
 void Logger::set_level(LEVEL level) {
   if constexpr (!lief_logging_support) {
     return;
   }
   switch (level) {
+    case LEVEL::OFF:
+      {
+        sink_->set_level(spdlog::level::off);
+        sink_->flush_on(spdlog::level::off);
+        break;
+      }
+
     case LEVEL::TRACE:
       {
-        Logger::instance().sink_->set_level(spdlog::level::trace);
-        Logger::instance().sink_->flush_on(spdlog::level::trace);
+        sink_->set_level(spdlog::level::trace);
+        sink_->flush_on(spdlog::level::trace);
         break;
       }
 
     case LEVEL::DEBUG:
       {
-        Logger::instance().sink_->set_level(spdlog::level::debug);
-        Logger::instance().sink_->flush_on(spdlog::level::debug);
+        sink_->set_level(spdlog::level::debug);
+        sink_->flush_on(spdlog::level::debug);
         break;
       }
 
     case LEVEL::INFO:
       {
-        Logger::instance().sink_->set_level(spdlog::level::info);
-        Logger::instance().sink_->flush_on(spdlog::level::info);
+        sink_->set_level(spdlog::level::info);
+        sink_->flush_on(spdlog::level::info);
         break;
       }
 
     default:
     case LEVEL::WARN:
       {
-        Logger::instance().sink_->set_level(spdlog::level::warn);
-        Logger::instance().sink_->flush_on(spdlog::level::warn);
+        sink_->set_level(spdlog::level::warn);
+        sink_->flush_on(spdlog::level::warn);
         break;
       }
 
     case LEVEL::ERR:
       {
-        Logger::instance().sink_->set_level(spdlog::level::err);
-        Logger::instance().sink_->flush_on(spdlog::level::err);
+        sink_->set_level(spdlog::level::err);
+        sink_->flush_on(spdlog::level::err);
         break;
       }
 
     case LEVEL::CRITICAL:
       {
-        Logger::instance().sink_->set_level(spdlog::level::critical);
-        Logger::instance().sink_->flush_on(spdlog::level::critical);
+        sink_->set_level(spdlog::level::critical);
+        sink_->flush_on(spdlog::level::critical);
         break;
       }
   }
@@ -193,31 +211,37 @@ void Logger::set_level(LEVEL level) {
 // Public interface
 
 void disable() {
-  Logger::disable();
+  Logger::instance().disable();
 }
 
 void enable() {
-  Logger::enable();
+  Logger::instance().enable();
 }
 
 void set_level(LEVEL level) {
-  Logger::set_level(level);
+  Logger::instance().set_level(level);
 }
 
 void set_path(const std::string& path) {
-  Logger::set_log_path(path);
+  Logger::instance().set_log_path(path);
 }
 
-void set_logger(const spdlog::logger& logger) {
-  Logger::set_logger(logger);
+void set_logger(std::shared_ptr<spdlog::logger> logger) {
+  Logger::instance().set_logger(std::move(logger));
 }
 
 void reset() {
-  Logger::reset();
+  Logger::instance().reset();
+}
+
+LEVEL get_level() {
+  return Logger::instance().get_level();
 }
 
 void log(LEVEL level, const std::string& msg) {
   switch (level) {
+    case LEVEL::OFF:
+      break;
     case LEVEL::TRACE:
     case LEVEL::DEBUG:
       {
@@ -254,6 +278,57 @@ void log(LEVEL level, const std::string& fmt,
   log(level, result);
 }
 
+namespace named {
+LEVEL get_level(const char* name) {
+  return Logger::instance(name).get_level();
+}
+
+void disable(const char* name) {
+  Logger::instance(name).disable();
+}
+
+void enable(const char* name) {
+  Logger::instance(name).enable();
+}
+
+void set_level(const char* name, LEVEL level) {
+  Logger::instance(name).set_level(level);
+}
+
+void set_path(const char* name, const std::string& path) {
+  Logger::instance(name).set_log_path(path);
+}
+
+void log(const char* name, LEVEL level, const std::string& msg) {
+  switch (level) {
+    case LEVEL::OFF:
+      return;
+    case LEVEL::TRACE:
+    case LEVEL::DEBUG:
+      return Logger::instance(name).debug("{}", msg);
+    case LEVEL::INFO:
+      return Logger::instance(name).info("{}", msg);
+    case LEVEL::WARN:
+      return Logger::instance(name).warn("{}", msg);
+    case LEVEL::ERR:
+      return Logger::instance(name).err("{}", msg);
+    case LEVEL::CRITICAL:
+      return Logger::instance(name).critial("{}", msg);
+  }
+}
+
+void set_logger(const char* name, std::shared_ptr<spdlog::logger> logger) {
+  Logger::instance(name).set_logger(std::move(logger));
+}
+
+void reset(const char* name) {
+  Logger::instance(name).reset();
+}
+
+spdlog::logger& get_sink(const char* name) {
+  return Logger::instance(name).sink();
+}
+}
 
 }
 }

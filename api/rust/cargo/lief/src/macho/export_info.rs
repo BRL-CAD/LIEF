@@ -39,6 +39,7 @@ bitflags! {
         const WEAK_DEFINITION = 0x4;
         const REEXPORT = 0x8;
         const STUB_AND_RESOLVER = 0x10;
+        const STATIC_RESOLVER = 0x20;
     }
 }
 
@@ -96,19 +97,19 @@ impl ExportInfo<'_> {
     }
 
     /// Symbol associated with this export
-    pub fn symbol(&self) -> Option<Symbol> {
+    pub fn symbol(&self) -> Option<Symbol<'_>> {
         into_optional(self.ptr.symbol())
     }
 
     /// If the export is a re-export ([`Flags::REEXPORT`]) this function returns
     /// the symbol being re-exported
-    pub fn alias(&self) -> Option<Symbol> {
+    pub fn alias(&self) -> Option<Symbol<'_>> {
         into_optional(self.ptr.alias())
     }
 
     /// If the export is a re-export ([`Flags::REEXPORT`]) this function returns
     /// the library from which the symbol is re-exported
-    pub fn alias_library(&self) -> Option<Dylib> {
+    pub fn alias_library(&self) -> Option<Dylib<'_>> {
         into_optional(self.ptr.alias_library())
     }
 }

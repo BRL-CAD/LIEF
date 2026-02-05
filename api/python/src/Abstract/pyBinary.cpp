@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,10 @@
 #include "pyLIEF.hpp"
 #include "pyErr.hpp"
 #include "pySafeString.hpp"
-#include "nanobind/extra/memoryview.hpp"
+#include "nanobind/extra/stl/lief_span.h"
+#include "nanobind/extra/stl/pathlike.h"
 #include "pyIterator.hpp"
+#include "nanobind/utils.hpp"
 
 #include "LIEF/logging.hpp"
 
@@ -33,39 +35,48 @@
 #include "LIEF/Abstract/Symbol.hpp"
 #include "LIEF/Abstract/Section.hpp"
 #include "LIEF/Abstract/Header.hpp"
-#include "LIEF/Abstract/EnumToString.hpp"
 
 #include "LIEF/Abstract/DebugInfo.hpp"
+
+#include "LIEF/asm/Engine.hpp"
+#include "LIEF/asm/Instruction.hpp"
+
+#include "Abstract/pyDebugInfoTyHook.hpp"
 
 namespace LIEF::py {
 template<>
 void create<Binary>(nb::module_& m) {
   nb::class_<Binary, Object> pybinary(m, "Binary",
-      R"delim(
-      File format abstract representation.
+    R"doc(
+    Generic interface representing a binary executable.
 
-      This object represents the abstraction of an executable file format.
-      It enables to access common features (like the :attr:`~lief.Binary.entrypoint`) regardless
-      of the concrete format (e.g. :attr:`lief.ELF.Binary.entrypoint`)
-      )delim"_doc);
+    This class provides a unified interface across multiple binary formats
+    such as ELF, PE, Mach-O, and others. It enables users to access binary
+    components like headers, sections, symbols, relocations,
+    and functions in a format-agnostic way.
 
-# define ENTRY(X) .value(to_string(Binary::VA_TYPES::X), Binary::VA_TYPES::X)
-  nb::enum_<Binary::VA_TYPES>(pybinary, "VA_TYPES")
-    ENTRY(AUTO)
-    ENTRY(VA)
-    ENTRY(RVA)
-  ;
-# undef ENTRY
+    Subclasses (like :class:`lief.PE.Binary`) implement format-specific API
+    )doc"_doc);
 
-# define ENTRY(X) .value(to_string(Binary::FORMATS::X), Binary::FORMATS::X)
+  nb::enum_<Binary::VA_TYPES>(pybinary, "VA_TYPES",
+    "Enumeration of virtual address types used for patching and memory access."_doc
+  )
+  .value("AUTO", Binary::VA_TYPES::AUTO,
+    "Automatically determine if the address is absolute or relative (default behavior)"_doc
+  )
+  .value("RVA", Binary::VA_TYPES::RVA,
+    "Relative Virtual Address (RVA), offset from image base."_doc
+  )
+  .value("VA", Binary::VA_TYPES::VA,
+    "Absolute Virtual Address."
+  );
+
   nb::enum_<Binary::FORMATS>(pybinary, "FORMATS")
-    ENTRY(UNKNOWN)
-    ENTRY(ELF)
-    ENTRY(PE)
-    ENTRY(MACHO)
-    ENTRY(OAT)
-  ;
-# undef ENTRY
+    .value("UNKNOWN", Binary::FORMATS::UNKNOWN)
+    .value("ELF", Binary::FORMATS::ELF)
+    .value("PE", Binary::FORMATS::PE)
+    .value("MACHO", Binary::FORMATS::MACHO)
+    .value("OAT", Binary::FORMATS::OAT);
 
   init_ref_iterator<Binary::it_sections>(pybinary, "it_sections");
   init_ref_iterator<Binary::it_symbols>(pybinary, "it_symbols");
@@ -82,13 +93,13 @@ void create<Binary>(nb::module_& m) {
         if the binary embeds the DWARF debug info in the binary itself.
 
         For PE file, this function tries to find the **external** PDB using
-        the :attr:`lief::PE.CodeViewPDB.filename` output (if present). One can also
+        the :attr:`lief.PE.CodeViewPDB.filename` output (if present). One can also
         use :func:`lief.pdb.load` to manually load a PDB.
 
         .. warning::
 
             This function requires LIEF's extended version otherwise it
-            **always** return a nullptr
+            **always** return ``None``
         )doc"_doc,
         nb::keep_alive<0, 1>())
 
@@ -148,7 +159,7 @@ void create<Binary>(nb::module_& m) {
           return imported_libraries_encoded;
         },
         "Return binary's imported libraries (name)"_doc,
-        "(self) -> list[Union[str,bytes]]"_p)
+        nb::sig("def libraries(self) -> list[Union[str,bytes]]"))
 
     .def_prop_ro("symbols",
         nb::overload_cast<>(&Binary::symbols),
@@ -200,11 +211,7 @@ void create<Binary>(nb::module_& m) {
         "address"_a, "patch_value"_a, "size"_a = 8, "va_type"_a = Binary::VA_TYPES::AUTO)
 
 
-    .def("get_content_from_virtual_address",
-        [] (const Binary& self, uint64_t va, size_t size, Binary::VA_TYPES type) {
-        const span<const uint8_t> content = self.get_content_from_virtual_address(va, size, type);
-        return nb::memoryview::from_memory(content.data(), content.size());
-       },
+    .def("get_content_from_virtual_address", &Binary::get_content_from_virtual_address,
        R"delim(
        Return the content located at the provided virtual address.
        The virtual address is specified in the first argument and size to read (in bytes) in the second.
@@ -213,6 +220,30 @@ void create<Binary>(nb::module_& m) {
        a :attr:`~lief.Binary.VA_TYPES.VA`. By default, it is set to :attr:`~lief.Binary.VA_TYPES.AUTO`.
        )delim"_doc,
        "virtual_address"_a, "size"_a, "va_type"_a = Binary::VA_TYPES::AUTO)
+
+    .def("get_int_from_virtual_address",
+          [] (const Binary& self, uint64_t va, size_t int_size, Binary::VA_TYPES type) -> IntOrNone {
+            if (int_size == sizeof(uint8_t)) {
+              return value_or_none(&Binary::get_int_from_virtual_address<uint8_t>, self, va, type);
+            }
+
+            if (int_size == sizeof(uint16_t)) {
+              return value_or_none(&Binary::get_int_from_virtual_address<uint16_t>, self, va, type);
+            }
+
+            if (int_size == sizeof(uint32_t)) {
+              return value_or_none(&Binary::get_int_from_virtual_address<uint32_t>, self, va, type);
+            }
+
+            if (int_size == sizeof(uint64_t)) {
+              return value_or_none(&Binary::get_int_from_virtual_address<uint64_t>, self, va, type);
+            }
+
+            return nb::none();
+          }, R"doc(
+          Get an integer representation of the data at the given address
+          )doc"_doc, "address"_a, "interger_size"_a, "type"_a = Binary::VA_TYPES::AUTO
+        )
 
     .def_prop_ro("abstract",
         [] (nb::object& self) -> nb::object {
@@ -225,7 +256,7 @@ void create<Binary>(nb::module_& m) {
         R"delim(
         Return the abstract representation of the current binary (:class:`lief.Binary`)
         )delim"_doc,
-        "abstract(self) -> lief.Binary"_p,
+        nb::sig("def abstract(self) -> lief.Binary"),
         nb::rv_policy::reference_internal)
 
     .def_prop_ro("concrete",
@@ -238,7 +269,7 @@ void create<Binary>(nb::module_& m) {
 
         See also: :attr:`lief.Binary.abstract`
         )delim"_doc,
-        "concrete(self) -> lief.ELF.Binary | lief.PE.Binary | lief.MachO.Binary"_p,
+        nb::sig("def concrete(self) -> lief.ELF.Binary | lief.PE.Binary | lief.MachO.Binary"),
         nb::rv_policy::reference)
 
     .def_prop_ro("ctor_functions",
@@ -264,6 +295,145 @@ void create<Binary>(nb::module_& m) {
     .def_prop_ro("original_size",
         nb::overload_cast<>(&LIEF::Binary::original_size, nb::const_),
         "Original size of the binary"_doc)
+
+    .def("disassemble", [] (const Binary& self, uint64_t address) {
+          auto insts = self.disassemble(address);
+          return nb::make_iterator<nb::rv_policy::reference_internal>(
+            nb::type<Binary>(), "instructions_it", insts
+          );
+      }, "address"_a, nb::keep_alive<0, 1>(),
+      R"doc(
+      Disassemble code starting at the given virtual address.
+
+      .. code-block:: python
+
+        insts = binary.disassemble(0xacde, 100);
+        for inst in insts:
+            print(inst)
+
+      .. seealso:: :class:`lief.assembly.Instruction`
+      )doc"_doc
+    )
+
+    .def("disassemble", [] (const Binary& self, uint64_t address, size_t size) {
+          auto insts = self.disassemble(address, size);
+          return nb::make_iterator<nb::rv_policy::reference_internal>(
+              nb::type<Binary>(), "instructions_it", insts);
+      }, "address"_a, "size"_a, nb::keep_alive<0, 1>(),
+      R"doc(
+      Disassemble code starting at the given virtual address and with the given
+      size.
+
+      .. code-block:: python
+
+        insts = binary.disassemble(0xacde, 100);
+        for inst in insts:
+            print(inst)
+
+      .. seealso:: :class:`lief.assembly.Instruction`
+      )doc"_doc
+    )
+
+    .def("disassemble", [] (const Binary& self, const std::string& function) {
+          auto insts = self.disassemble(function);
+          return nb::make_iterator<nb::rv_policy::reference_internal>(
+              nb::type<Binary>(), "instructions_it", insts);
+      }, "function_name"_a, nb::keep_alive<0, 1>(),
+      R"doc(
+      Disassemble code for the given symbol name
+
+      .. code-block:: python
+
+        insts = binary.disassemble("__libc_start_main");
+        for inst in insts:
+            print(inst)
+
+      .. seealso:: :class:`lief.assembly.Instruction`
+      )doc"_doc
+    )
+
+    .def("disassemble_from_bytes",
+         [] (const Binary& self, const nb::bytes& buffer, uint64_t address) {
+          auto insts = self.disassemble(
+            reinterpret_cast<const uint8_t*>(buffer.c_str()),
+            buffer.size(), address
+          );
+          return nb::make_iterator<nb::rv_policy::reference_internal>(
+              nb::type<Binary>(), "instructions_it", insts);
+      }, "buffer"_a, "address"_a = 0, nb::keep_alive<0, 1>(), nb::keep_alive<0, 2>(),
+      R"doc(
+      Disassemble code from the provided bytes
+
+      .. code-block:: python
+
+        raw = bytes(binary.get_section(".text").content)
+        insts = binary.disassemble_from_bytes(raw);
+        for inst in insts:
+            print(inst)
+
+      .. seealso:: :class:`lief.assembly.Instruction`
+      )doc"_doc
+    )
+
+    .def("assemble",
+      [] (Binary& self, uint64_t address, const std::string& Asm,
+          assembly::AssemblerConfig& config)
+      {
+        return nb::to_bytes(self.assemble(address, Asm, config));
+      }, "address"_a, "assembly"_a, "config"_a = assembly::AssemblerConfig::default_config(),
+      R"doc(
+      Assemble **and patch** the provided assembly code at the specified address.
+
+      The function returns the generated assembly bytes.
+
+      Example:
+
+      .. code-block:: python
+
+         bin.assemble(0x12000440, """
+         xor rax, rbx;
+         mov rcx, rax;
+         """)
+
+      If you need to configure the assembly engine or to define addresses for
+      symbols, you can provide your own :class:`~.assembly.AssemblerConfig` instance.
+      )doc"_doc
+    )
+
+    .def_prop_ro("page_size", &Binary::page_size,
+      R"doc(
+      Get the default memory page size according to the architecture and the
+      format of the current binary
+      )doc"_doc
+    )
+
+    .def("load_debug_info", [] (Binary& self, const nb::PathLike& pathlike) {
+        return self.load_debug_info(pathlike);
+      }, "path"_a, nb::rv_policy::reference_internal,
+      R"doc(
+      Load and associate an external debug file (e.g., DWARF or PDB) with this
+      binary.
+
+      This method attempts to load the debug information from the file located
+      at the given path, and binds it to the current binary instance. If
+      successful, it returns the loaded :class:`~.DebugInfo` object.
+
+      .. warning::
+
+        It is the caller's responsibility to ensure that the debug file is
+        compatible with the binary. Incorrect associations may lead to
+        inconsistent or invalid results.
+
+      .. note::
+
+          This function does not verify that the debug file matches the binary's
+          unique identifier (e.g., build ID, GUID).
+      )doc"_doc
+    )
+
+    .def_prop_ro("virtual_size",
+      &Binary::virtual_size,
+      "Size of the binary when mapped in memory"_a)
 
     LIEF_DEFAULT_STR(Binary);
 

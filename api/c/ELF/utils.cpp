@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 #include "LIEF/ELF/utils.hpp"
 #include "LIEF/ELF/utils.h"
 
-bool is_elf(const char* file) {
+uint8_t is_elf(const char* file) {
   return LIEF::ELF::is_elf(file);
 }
 

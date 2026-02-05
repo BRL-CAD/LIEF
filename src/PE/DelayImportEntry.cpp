@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,26 @@
  */
 #include "spdlog/fmt/fmt.h"
 
+#include "logging.hpp"
+
+#include "LIEF/config.h"
+#include "LIEF/utils.hpp"
 #include "LIEF/Visitor.hpp"
 
 #include "LIEF/PE/DelayImportEntry.hpp"
 
 namespace LIEF {
 namespace PE {
+
+std::string DelayImportEntry::demangled_name() const {
+  logging::needs_lief_extended();
+
+  if constexpr (lief_extended) {
+    return LIEF::demangle(name()).value_or("");
+  } else {
+    return "";
+  }
+}
 
 bool DelayImportEntry::is_ordinal() const {
   // See: https://docs.microsoft.com/en-us/windows/desktop/debug/pe-format#the-idata-section
@@ -41,13 +55,10 @@ void DelayImportEntry::accept(LIEF::Visitor& visitor) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const DelayImportEntry& entry) {
-  if (entry.is_ordinal()) {
-    os << "#" << entry.ordinal();
-  } else {
-    os << fmt::format("{:<20}", entry.name());
-  }
-
-  os << fmt::format(": 0x{:x}", entry.iat_value());
+  os << fmt::format("0x{:08x} 0x{:04x} {}",
+                    entry.iat_value(), entry.hint(),
+                    entry.is_ordinal() ? std::to_string(entry.ordinal()) :
+                                         entry.name());
   return os;
 }
 

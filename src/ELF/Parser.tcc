@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 #include "LIEF/utils.hpp"
 #include "LIEF/BinaryStream/VectorStream.hpp"
+#include "LIEF/BinaryStream/SpanStream.hpp"
 
 #include "LIEF/ELF/hash.hpp"
 #include "LIEF/ELF/Parser.hpp"
@@ -53,7 +54,6 @@ namespace LIEF {
 namespace ELF {
 template<typename ELF_T>
 ok_error_t Parser::parse_binary() {
-  using Elf_Off  = typename ELF_T::Elf_Off;
 
   LIEF_DEBUG("Start parsing");
   // Parse header
@@ -81,24 +81,15 @@ ok_error_t Parser::parse_binary() {
     }
   }
 
-  // Parse Dynamic elements
-  // ======================
-
-  // Find the dynamic Segment
-  if (const Segment* seg_dyn = binary_->get(Segment::TYPE::DYNAMIC)) {
-    const Elf_Off offset = seg_dyn->file_offset();
-    const Elf_Off size   = seg_dyn->physical_size();
-
-    parse_dynamic_entries<ELF_T>(offset, size);
-    binary_->sizing_info_->dynamic = size;
+  if (Segment* seg_dyn = binary_->get(Segment::TYPE::DYNAMIC)) {
+    if (!parse_dyn_table<ELF_T>(*seg_dyn)) {
+      LIEF_WARN("PT_DYNAMIC parsing failed with error");
+    }
   }
 
   process_dynamic_table<ELF_T>();
 
   if (const Section* sec_symbtab = binary_->get(Section::TYPE::SYMTAB)) {
-    auto nb_entries = static_cast<uint32_t>((sec_symbtab->size() / sizeof(typename ELF_T::Elf_Sym)));
-    nb_entries = std::min(nb_entries, Parser::NB_MAX_SYMBOLS);
-
     if (sec_symbtab->link() == 0 || sec_symbtab->link() >= binary_->sections_.size()) {
       LIEF_WARN("section->link() is not valid !");
     } else {
@@ -106,7 +97,7 @@ ok_error_t Parser::parse_binary() {
         // We should have:
         // nb_entries == section->information())
         // but lots of compiler not respect this rule
-        parse_symtab_symbols<ELF_T>(sec_symbtab->file_offset(), nb_entries,
+        parse_symtab_symbols<ELF_T>(*sec_symbtab,
                                     *binary_->sections_[sec_symbtab->link()]);
       }
     }
@@ -124,11 +115,21 @@ ok_error_t Parser::parse_binary() {
   }
 
 
-  if (DynamicEntry* dt_gnu_hash = binary_->get(DynamicEntry::TAG::GNU_HASH)) {
-    if (auto res = binary_->virtual_address_to_offset(dt_gnu_hash->value())) {
-      parse_symbol_gnu_hash<ELF_T>(*res);
-    } else {
-      LIEF_WARN("Can't convert DT_GNU_HASH.virtual_address into an offset (0x{:x})", dt_gnu_hash->value());
+  if (DynamicEntry* dt = binary_->get(DynamicEntry::TAG::GNU_HASH)) {
+    if (Segment* seg = binary_->segment_from_virtual_address(dt->value())) {
+      const auto dynsymcount = (uint64_t)(binary_->dynamic_symbols_.size());
+      std::unique_ptr<SpanStream> strm = seg->stream();
+      const uint64_t addr = dt->value();
+      if (strm != nullptr) {
+        strm->set_endian_swap(stream_->should_swap());
+        assert(addr >= seg->virtual_address());
+        uint64_t offset = addr - seg->virtual_address();
+        strm->setpos(offset);
+        binary_->gnu_hash_ = GnuHash::parse<ELF_T>(*strm, dynsymcount);
+        if (binary_->gnu_hash_ != nullptr) {
+          binary_->sizing_info_->gnu_hash = binary_->gnu_hash_->original_size();
+        }
+      }
     }
   }
 
@@ -182,13 +183,82 @@ ok_error_t Parser::parse_binary() {
 }
 
 
+template<class ELF_T>
+ok_error_t Parser::parse_dyn_table(Segment& pt_dyn) {
+  // Parse the dynamic table. To process this table, we can either process
+  // the content of the PT_DYNAMIC segment or process the content of the PT_LOAD
+  // segment that wraps the dynamic table. The second approach should be
+  // preferred since it uses a more accurate representation.
+  // (c.f. samples `issue_dynamic_table.elf` provided by @lebr0nli)
+  using Elf_Off = typename ELF_T::Elf_Off;
+  std::vector<Segment*> segments;
+
+  // Find the PT_LOAD segment that wraps the PT_DYNAMIC table.
+  // As demonstrated in the library: ELF32_x86_library_libshellx.so
+  // we need to consider overlapping segments and take the "latest" one since
+  // this is what the loader would do.
+  for (const std::unique_ptr<Segment>& segment : binary_->segments_) {
+    if (!segment->is_load()) {
+      continue;
+    }
+    const uint64_t dyn_start = pt_dyn.virtual_address();
+    const uint64_t dyn_end = dyn_start + pt_dyn.virtual_size();
+    const uint64_t load_start = segment->virtual_address();
+    const uint64_t load_end = load_start + segment->virtual_size();
+    if (!(load_start <= dyn_start && dyn_start < load_end)) {
+      continue;
+    }
+
+    if (!(load_start < dyn_end && dyn_end <= load_end)) {
+      continue;
+    }
+    segments.push_back(segment.get());
+  }
+
+  binary_->sizing_info_->dynamic = pt_dyn.physical_size();
+
+  // Usually #segments is 1 but we might have > 1 for overlapping segments
+  LIEF_DEBUG("Nb segments: {}", segments.size());
+
+  if (segments.empty()) {
+    // No PT_LOAD segment wrapping up the PT_DYNAMIC table
+    const Elf_Off offset = pt_dyn.file_offset();
+    ScopedStream scoped(*stream_, offset);
+    return parse_dynamic_entries<ELF_T>(*scoped);
+  }
+  const Segment& load_seg = *segments.back();
+  LIEF_DEBUG("Dynamic content wrapped by segment LOAD: [0x{:016x}, 0x{:016x}] "
+             "[0x{:016x}, 0x{:016x}]", load_seg.virtual_address(),
+             load_seg.virtual_address() + load_seg.virtual_size(),
+             load_seg.file_offset(), load_seg.file_offset() + load_seg.physical_size());
+
+  span<const uint8_t> seg_content = load_seg.content();
+  if (seg_content.empty()) {
+    return make_error_code(lief_errors::corrupted);
+  }
+
+  int64_t rel_offset = (int64_t)pt_dyn.virtual_address() - (int64_t)load_seg.virtual_address();
+  if (rel_offset < 0 || (uint64_t)rel_offset >= seg_content.size()) {
+    return make_error_code(lief_errors::corrupted);
+  }
+
+  span<const uint8_t> dynamic_content = seg_content.subspan(rel_offset);
+  SpanStream stream(dynamic_content);
+  stream.set_endian_swap(stream_->should_swap());
+  return parse_dynamic_entries<ELF_T>(stream);
+}
+
 template<typename ELF_T>
 ok_error_t Parser::process_dynamic_table() {
   {
     DynamicEntry* dt_symtab = binary_->get(DynamicEntry::TAG::SYMTAB);
     DynamicEntry* dt_syment = binary_->get(DynamicEntry::TAG::SYMENT);
 
-    if (dt_symtab != nullptr && dt_syment != nullptr && config_.parse_dyn_symbols) {
+    if (dt_syment != nullptr && dt_syment->value() != sizeof(typename ELF_T::Elf_Sym)) {
+      LIEF_WARN("DT_SYMTENT is corrupted");
+    }
+
+    if (dt_symtab != nullptr && config_.parse_dyn_symbols) {
       const uint64_t virtual_address = dt_symtab->value();
       if (auto res = binary_->virtual_address_to_offset(virtual_address)) {
         parse_dynamic_symbols<ELF_T>(*res);
@@ -369,73 +439,73 @@ ok_error_t Parser::parse_header() {
     return make_error_code(lief_errors::read_error);
   }
 
-  if (auto res = stream_->read_conv<Elf_Half>()) {
+  if (auto res = stream_->read<Elf_Half>()) {
     binary_->header_.file_type_ = Header::FILE_TYPE(*res);
   } else {
     LIEF_ERR("Can't parse Elf_Ehdr.e_type");
     return make_error_code(lief_errors::read_error);
   }
 
-  if (auto res = stream_->read_conv<Elf_Half>()) {
+  if (auto res = stream_->read<Elf_Half>()) {
     binary_->header_.machine_type_ = static_cast<ARCH>(*res);
   } else {
     LIEF_ERR("Can't parse Elf_Ehdr.e_machine");
     return make_error_code(lief_errors::read_error);
   }
 
-  if (auto res = stream_->read_conv<Elf_Word>()) {
+  if (auto res = stream_->read<Elf_Word>()) {
     binary_->header_.object_file_version_ = Header::VERSION(*res);
   } else {
     LIEF_ERR("Can't parse Elf_Ehdr.e_version");
     return make_error_code(lief_errors::read_error);
   }
 
-  if (auto res = stream_->read_conv<Elf_Addr>()) {
+  if (auto res = stream_->read<Elf_Addr>()) {
     binary_->header_.entrypoint_ = *res;
   } else {
     LIEF_ERR("Can't parse Elf_Ehdr.e_entry");
     return make_error_code(lief_errors::read_error);
   }
 
-  if (auto res = stream_->read_conv<Elf_Off>()) {
+  if (auto res = stream_->read<Elf_Off>()) {
     binary_->header_.program_headers_offset_ = *res;
   } else {
     LIEF_ERR("Can't parse Elf_Ehdr.e_phoff");
     return make_error_code(lief_errors::read_error);
   }
 
-  if (auto res = stream_->read_conv<Elf_Off>()) {
+  if (auto res = stream_->read<Elf_Off>()) {
     binary_->header_.section_headers_offset_ = *res;
   } else {
     LIEF_ERR("Can't parse Elf_Ehdr.e_shoff");
     return make_error_code(lief_errors::read_error);
   }
 
-  if (auto res = stream_->read_conv<Elf_Word>()) {
+  if (auto res = stream_->read<Elf_Word>()) {
     binary_->header_.processor_flags_ = *res;
   } else {
     LIEF_ERR("Can't parse Elf_Ehdr.e_flags");
     return make_error_code(lief_errors::read_error);
   }
 
-  if (auto res = stream_->read_conv<Elf_Half>()) {
+  if (auto res = stream_->read<Elf_Half>()) {
     binary_->header_.header_size_ = *res;
   } else {
     LIEF_ERR("Can't parse Elf_Ehdr.e_ehsize");
     return make_error_code(lief_errors::read_error);
   }
 
-  if (auto res = stream_->read_conv<Elf_Half>()) {
+  if (auto res = stream_->read<Elf_Half>()) {
     binary_->header_.program_header_size_ = *res;
   } else {
     LIEF_ERR("Can't parse Elf_Ehdr.e_phentsize");
     return make_error_code(lief_errors::read_error);
   }
 
-  if (auto res = stream_->read_conv<Elf_Half>()) {
+  if (auto res = stream_->read<Elf_Half>()) {
     binary_->header_.numberof_segments_ = *res;
   } else {
-    if (auto res = stream_->read_conv<uint8_t>()) {
+    if (auto res = stream_->read<uint8_t>()) {
       binary_->header_.numberof_segments_ = *res;
     } else {
       LIEF_ERR("Can't parse Elf_Ehdr.e_phnum");
@@ -443,21 +513,21 @@ ok_error_t Parser::parse_header() {
     }
   }
 
-  if (auto res = stream_->read_conv<Elf_Half>()) {
+  if (auto res = stream_->read<Elf_Half>()) {
     binary_->header_.section_header_size_ = *res;
   } else {
     LIEF_ERR("Can't parse Elf_Ehdr.e_shentsize");
     return make_error_code(lief_errors::read_error);
   }
 
-  if (auto res = stream_->read_conv<Elf_Half>()) {
+  if (auto res = stream_->read<Elf_Half>()) {
     binary_->header_.numberof_sections_ = *res;
   } else {
     LIEF_ERR("Can't parse Elf_Ehdr.e_shnum");
     return make_error_code(lief_errors::read_error);
   }
 
-  if (auto res = stream_->read_conv<Elf_Half>()) {
+  if (auto res = stream_->read<Elf_Half>()) {
     binary_->header_.section_string_table_idx_ = *res;
   } else {
     LIEF_ERR("Can't parse Elf_Ehdr.e_shstrndx");
@@ -599,14 +669,14 @@ uint32_t Parser::max_relocation_index(uint64_t relocations_offset, uint64_t size
   static_assert(std::is_same<REL_T, typename ELF_T::Elf_Rel>::value ||
                 std::is_same<REL_T, typename ELF_T::Elf_Rela>::value, "REL_T must be Elf_Rel || Elf_Rela");
 
-  const uint8_t shift = std::is_same<ELF_T, details::ELF32>::value ? 8 : 32;
+  const uint8_t shift = ELF_T::r_info_shift;;
 
   const auto nb_entries = static_cast<uint32_t>(size / sizeof(REL_T));
 
   uint32_t idx = 0;
   stream_->setpos(relocations_offset);
   for (uint32_t i = 0; i < nb_entries; ++i) {
-    auto reloc_entry = stream_->read_conv<REL_T>();
+    auto reloc_entry = stream_->read<REL_T>();
     if (!reloc_entry) {
       break;
     }
@@ -614,8 +684,6 @@ uint32_t Parser::max_relocation_index(uint64_t relocations_offset, uint64_t size
   }
   return idx + 1;
 } // max_relocation_index
-
-
 
 template<typename ELF_T>
 result<uint32_t> Parser::nb_dynsym_section() const {
@@ -665,7 +733,7 @@ result<uint32_t> Parser::nb_dynsym_sysv_hash() const {
 
   // From the doc: 'so nchain should equal the number of symbol table entries.'
   stream_->setpos(sysv_hash_offset + sizeof(uint32_t));
-  auto nb_symbols = stream_->read_conv<uint32_t>();
+  auto nb_symbols = stream_->read<uint32_t>();
   if (nb_symbols) {
     return nb_symbols;
   }
@@ -675,88 +743,26 @@ result<uint32_t> Parser::nb_dynsym_sysv_hash() const {
 
 template<typename ELF_T>
 result<uint32_t> Parser::nb_dynsym_gnu_hash() const {
-  using uint__ = typename ELF_T::uint;
-  using Elf_Off  = typename ELF_T::Elf_Off;
-
   const DynamicEntry* dyn_hash = binary_->get(DynamicEntry::TAG::GNU_HASH);
   if (dyn_hash == nullptr) {
     LIEF_ERR("Can't find DT_GNU_HASH");
     return make_error_code(lief_errors::not_found);
   }
-  Elf_Off gnu_hash_offset = 0;
 
-  if (auto res = binary_->virtual_address_to_offset(dyn_hash->value())) {
-    gnu_hash_offset = *res;
-  } else {
-    return make_error_code(res.error());
-  }
+  const uint64_t addr = dyn_hash->value();
 
-  stream_->setpos(gnu_hash_offset);
-  const auto res_nbuckets = stream_->read_conv<uint32_t>();
-  if (!res_nbuckets) {
-    return 0;
-  }
-
-  const auto res_symndx = stream_->read_conv<uint32_t>();
-  if (!res_symndx) {
-    return 0;
-  }
-
-  const auto res_maskwords = stream_->read_conv<uint32_t>();
-  if (!res_maskwords) {
-    return 0;
-  }
-
-  const auto nbuckets  = *res_nbuckets;
-  const auto symndx    = *res_symndx;
-  const auto maskwords = *res_maskwords;
-
-  // skip shift2, unused as we don't need the bloom filter to count syms.
-  stream_->increment_pos(sizeof(uint32_t));
-
-  if (maskwords & (maskwords - 1)) {
-    LIEF_WARN("maskwords is not a power of 2");
-    return 0;
-  }
-
-  if (maskwords > Parser::NB_MAX_MASKWORD) {
-    return 0;
-  }
-
-  // skip bloom filter mask words
-  stream_->increment_pos(sizeof(uint__) * (maskwords));
-
-  uint32_t max_bucket = 0;
-  for (size_t i = 0; i < nbuckets; ++i) {
-    auto bucket = stream_->read_conv<uint32_t>();
-    if (!bucket) {
-      break;
+  if (Segment* seg = binary_->segment_from_virtual_address(addr)) {
+    std::unique_ptr<SpanStream> stream = seg->stream();
+    if (stream == nullptr) {
+      return make_error_code(lief_errors::read_error);
     }
-    if (*bucket > max_bucket) {
-      max_bucket = *bucket;
-    }
+    uint64_t rel_offset = addr - seg->virtual_address();
+    stream->setpos(rel_offset);
+    stream->set_endian_swap(stream_->should_swap());
+    return GnuHash::nb_symbols<ELF_T>(*stream);
   }
 
-  if (max_bucket == 0) {
-    return 0;
-  }
-
-  // Skip to the contents of the bucket with the largest symbol index
-  stream_->increment_pos(sizeof(uint32_t) * (max_bucket - symndx));
-
-  // Count values in the bucket
-  uint32_t hash_value = 0;
-  size_t nsyms = 0;
-  do {
-    if (!stream_->can_read<uint32_t>()) {
-      return 0;
-    }
-    hash_value = *stream_->read_conv<uint32_t>();
-
-    nsyms++;
-  } while ((hash_value & 1) == 0); // "It is set to 1 when a symbol is the last symbol in a given hash bucket"
-
-  return max_bucket + nsyms;
+  return make_error_code(lief_errors::not_found);
 }
 
 template<typename ELF_T>
@@ -775,7 +781,7 @@ ok_error_t Parser::parse_sections() {
   const ARCH arch = binary_->header().machine_type();
   for (size_t i = 0; i < numberof_sections; ++i) {
     LIEF_DEBUG("  Elf_Shdr#{:02d}.offset: 0x{:x} ", i, stream_->pos());
-    const auto shdr = stream_->read_conv<Elf_Shdr>();
+    const auto shdr = stream_->read<Elf_Shdr>();
     if (!shdr) {
       LIEF_ERR("  Can't parse section #{:02d}", i);
       break;
@@ -882,16 +888,17 @@ ok_error_t Parser::parse_segments() {
 
   stream_->setpos(segment_headers_offset);
 
-  const ARCH arch = binary_->header().machine_type();
+  const ARCH arch = hdr.machine_type();
+  const Header::OS_ABI os = hdr.identity_os_abi();
 
   for (size_t i = 0; i < nbof_segments; ++i) {
-    const auto elf_phdr = stream_->read_conv<Elf_Phdr>();
+    const auto elf_phdr = stream_->read<Elf_Phdr>();
     if (!elf_phdr) {
       LIEF_ERR("Can't parse segement #{:d}", i);
       break;
     }
 
-    auto segment = std::unique_ptr<Segment>(new Segment(*elf_phdr, arch));
+    auto segment = std::unique_ptr<Segment>(new Segment(*elf_phdr, arch, os));
     segment->datahandler_ = binary_->datahandler_.get();
 
     if (0 < segment->physical_size() && segment->physical_size() < Parser::MAX_SEGMENT_SIZE) {
@@ -912,37 +919,38 @@ ok_error_t Parser::parse_segments() {
                                     DataHandler::Node::SEGMENT);
       segment->handler_size_ = read_size;
 
-      if (segment->file_offset() > stream_->size() || (segment->file_offset() + read_size) > stream_->size()) {
-        LIEF_WARN("Segment #{} has a corrupted file offset (0x{:x}) ", i, segment->file_offset());
-        break;
-      }
-      const Elf_Off offset_to_content = segment->file_offset();
-      auto alloc = binary_->datahandler_->reserve(segment->file_offset(), read_size);
-      if (!alloc) {
-        LIEF_ERR("Can't allocate memory");
-        break;
-      }
-      /* The DataHandlerStream interface references ELF data that are
-       * located in the ELF::DataHandler. Therefore, we can skip reading
-       * the data since they are already present in the data handler.
-       * This optimization saves memory (which is also performed in parse_sections<>(...))
-       */
-      if (stream_->type() != BinaryStream::STREAM_TYPE::ELF_DATA_HANDLER) {
-        std::vector<uint8_t> seg_content;
-        if (stream_->peek_data(seg_content, offset_to_content, read_size)) {
-          segment->content(std::move(seg_content));
-        } else {
-          LIEF_ERR("Unable to get the content of segment #{:d}", i);
-        }
-      }
+      const bool corrupted_offset = segment->file_offset() > stream_->size() ||
+                                    (segment->file_offset() + read_size) > stream_->size();
 
-      if (segment->is_interpreter()) {
-        auto interpreter = stream_->peek_string_at(offset_to_content, read_size);
-        if (!interpreter) {
-          LIEF_ERR("Can't read the interpreter string");
-        } else {
-          binary_->interpreter_ = *interpreter;
-          binary_->sizing_info_->interpreter = read_size;
+      if (!corrupted_offset) {
+        const Elf_Off offset_to_content = segment->file_offset();
+        auto alloc = binary_->datahandler_->reserve(segment->file_offset(), read_size);
+        if (!alloc) {
+          LIEF_ERR("Can't allocate memory");
+          break;
+        }
+        /* The DataHandlerStream interface references ELF data that are
+         * located in the ELF::DataHandler. Therefore, we can skip reading
+         * the data since they are already present in the data handler.
+         * This optimization saves memory (which is also performed in parse_sections<>(...))
+         */
+        if (stream_->type() != BinaryStream::STREAM_TYPE::ELF_DATA_HANDLER) {
+          std::vector<uint8_t> seg_content;
+          if (stream_->peek_data(seg_content, offset_to_content, read_size)) {
+            segment->content(std::move(seg_content));
+          } else {
+            LIEF_ERR("Unable to get the content of segment #{:d}", i);
+          }
+        }
+
+        if (segment->is_interpreter()) {
+          auto interpreter = stream_->peek_string_at(offset_to_content, read_size);
+          if (!interpreter) {
+            LIEF_ERR("Can't read the interpreter string");
+          } else {
+            binary_->interpreter_ = *interpreter;
+            binary_->sizing_info_->interpreter = read_size;
+          }
         }
       }
     } else {
@@ -1068,7 +1076,7 @@ ok_error_t Parser::parse_packed_relocations(uint64_t offset, uint64_t size) {
       auto reloc = std::unique_ptr<Relocation>(new Relocation(R, Relocation::PURPOSE::DYNAMIC,
         Relocation::ENCODING::ANDROID_SLEB, arch));
       bind_symbol(*reloc);
-      binary_->relocations_.push_back(std::move(reloc));
+      insert_relocation(std::move(reloc));
     }
   }
   return ok();
@@ -1115,7 +1123,7 @@ ok_error_t Parser::parse_relative_relocations(uint64_t offset, uint64_t size) {
       auto reloc = std::make_unique<Relocation>(r_offset, type,
                                                 Relocation::ENCODING::RELR);
       reloc->purpose(Relocation::PURPOSE::DYNAMIC);
-      binary_->relocations_.push_back(std::move(reloc));
+      insert_relocation(std::move(reloc));
       base = rel + sizeof(Elf_Addr);
     } else {
       for (Elf_Addr offset = base; (rel >>= 1) != 0; offset += sizeof(Elf_Addr)) {
@@ -1124,7 +1132,7 @@ ok_error_t Parser::parse_relative_relocations(uint64_t offset, uint64_t size) {
           auto reloc = std::make_unique<Relocation>(r_offset, type,
                                                     Relocation::ENCODING::RELR);
           reloc->purpose(Relocation::PURPOSE::DYNAMIC);
-          binary_->relocations_.push_back(std::move(reloc));
+          insert_relocation(std::move(reloc));
         }
       }
       base += (8 * sizeof(Elf_Relr) - 1) * sizeof(Elf_Addr);
@@ -1157,7 +1165,7 @@ ok_error_t Parser::parse_dynamic_relocations(uint64_t relocations_offset, uint64
                                                      Relocation::ENCODING::RELA;
 
   for (uint32_t i = 0; i < nb_entries; ++i) {
-    const auto raw_reloc = stream_->read_conv<REL_T>();
+    const auto raw_reloc = stream_->read<REL_T>();
     if (!raw_reloc) {
       break;
     }
@@ -1165,39 +1173,45 @@ ok_error_t Parser::parse_dynamic_relocations(uint64_t relocations_offset, uint64
     auto reloc = std::unique_ptr<Relocation>(new Relocation(
         std::move(*raw_reloc), Relocation::PURPOSE::DYNAMIC, enc, arch));
     bind_symbol(*reloc);
-
-    binary_->relocations_.push_back(std::move(reloc));
+    insert_relocation(std::move(reloc));
   }
   return ok();
 } // build_dynamic_reclocations
 
 template<typename ELF_T>
-ok_error_t Parser::parse_symtab_symbols(uint64_t offset, uint32_t nb_symbols,
-                                        const Section& string_section) {
-  using Elf_Sym = typename ELF_T::Elf_Sym;
+ok_error_t Parser::parse_symtab_symbols(const Section& symtab_section,
+                                        const Section& string_section)
+{
   static constexpr size_t MAX_RESERVED_SYMBOLS = 10000;
+  using Elf_Sym = typename ELF_T::Elf_Sym;
   LIEF_DEBUG("== Parsing symtab symbols ==");
 
-  size_t nb_reserved = std::min<size_t>(nb_symbols, MAX_RESERVED_SYMBOLS);
+  LIEF::SpanStream stream(symtab_section.content());
+
+  const auto nb_symbols = static_cast<uint32_t>((symtab_section.size() / sizeof(typename ELF_T::Elf_Sym)));
+  const size_t nb_reserved = std::min<size_t>(nb_symbols, MAX_RESERVED_SYMBOLS);
   binary_->symtab_symbols_.reserve(nb_reserved);
 
-  stream_->setpos(offset);
   const ARCH arch = binary_->header().machine_type();
-  for (uint32_t i = 0; i < nb_symbols; ++i) {
-    const auto raw_sym = stream_->read_conv<Elf_Sym>();
+  size_t sym_idx = 0;
+  while (stream) {
+    const auto raw_sym = stream.read<Elf_Sym>();
     if (!raw_sym) {
-      break;
+      return make_error_code(raw_sym.error());
     }
+
     auto symbol = std::unique_ptr<Symbol>(new Symbol(std::move(*raw_sym), arch));
     const auto name_offset = string_section.file_offset() + raw_sym->st_name;
 
     if (auto symbol_name = stream_->peek_string_at(name_offset)) {
       symbol->name(std::move(*symbol_name));
     } else {
-      LIEF_ERR("Can't read the symbol's name for symbol #{}", i);
+      LIEF_ERR("Can't read the symbol's name for symbol #{}", sym_idx);
     }
+
     link_symbol_section(*symbol);
     binary_->symtab_symbols_.push_back(std::move(symbol));
+    ++sym_idx;
   }
   return ok();
 }
@@ -1235,7 +1249,7 @@ ok_error_t Parser::parse_dynamic_symbols(uint64_t offset) {
   stream_->setpos(dynamic_symbols_offset);
 
   for (size_t i = 0; i < nb_symbols; ++i) {
-    const auto symbol_header = stream_->read_conv<Elf_Sym>();
+    const auto symbol_header = stream_->read<Elf_Sym>();
     if (!symbol_header) {
       LIEF_DEBUG("Break on symbol #{:d}", i);
       break;
@@ -1263,29 +1277,26 @@ ok_error_t Parser::parse_dynamic_symbols(uint64_t offset) {
     binary_->sizing_info_->dynstr = dt_strsz->value();
   }
   return ok();
-} // build_dynamic_sybols
+}
 
 
 template<typename ELF_T>
-ok_error_t Parser::parse_dynamic_entries(uint64_t offset, uint64_t size) {
+ok_error_t Parser::parse_dynamic_entries(BinaryStream& stream) {
   using Elf_Dyn  = typename ELF_T::Elf_Dyn;
   using uint__   = typename ELF_T::uint;
   using Elf_Addr = typename ELF_T::Elf_Addr;
   using Elf_Off  = typename ELF_T::Elf_Off;
 
-  LIEF_DEBUG("== Parsing dynamic section ==");
+  LIEF_DEBUG("Parsing dynamic entries");
 
-  uint32_t nb_entries = size / sizeof(Elf_Dyn);
-  nb_entries = std::min<uint32_t>(nb_entries, Parser::NB_MAX_DYNAMIC_ENTRIES);
+  uint32_t max_nb_entries = stream.size() / sizeof(Elf_Dyn);
+  max_nb_entries = std::min<uint32_t>(max_nb_entries, Parser::NB_MAX_DYNAMIC_ENTRIES);
 
-  LIEF_DEBUG(".dynamic@0x{:x}:0x{:x} #", offset, size, nb_entries);
-
-  Elf_Off dynamic_string_offset = get_dynamic_string_table();
+  Elf_Off dynamic_string_offset = get_dynamic_string_table(&stream);
 
   bool end_of_dynamic = false;
-  stream_->setpos(offset);
-  for (size_t dynIdx = 0; dynIdx < nb_entries; ++dynIdx) {
-    const auto res_entry = stream_->read_conv<Elf_Dyn>();
+  while (stream) {
+    const auto res_entry = stream.read<Elf_Dyn>();
     if (!res_entry) {
       break;
     }
@@ -1378,7 +1389,7 @@ ok_error_t Parser::parse_dynamic_entries(uint64_t offset, uint64_t size) {
           break;
         }
 
-      case DynamicEntry::TAG::DT_NULL:
+      case DynamicEntry::TAG::DT_NULL_:
         {
           dynamic_entry = std::make_unique<DynamicEntry>(entry, arch);
           end_of_dynamic = true;
@@ -1412,7 +1423,7 @@ ok_error_t Parser::parse_dynamic_entries(uint64_t offset, uint64_t size) {
       if (auto offset = binary_->virtual_address_to_offset(dt_init_array->value())) {
         stream_->setpos(*offset);
         for (size_t i = 0; i < nb_functions; ++i) {
-          if (auto val = stream_->read_conv<Elf_Addr>()) {
+          if (auto val = stream_->read<Elf_Addr>()) {
             array.push_back(*val);
           } else {
             break;
@@ -1437,7 +1448,7 @@ ok_error_t Parser::parse_dynamic_entries(uint64_t offset, uint64_t size) {
       if (auto offset = binary_->virtual_address_to_offset(dt_fini_array->value())) {
         stream_->setpos(*offset);
         for (size_t i = 0; i < nb_functions; ++i) {
-          if (auto val = stream_->read_conv<Elf_Addr>()) {
+          if (auto val = stream_->read<Elf_Addr>()) {
             array.push_back(*val);
           } else {
             break;
@@ -1461,7 +1472,7 @@ ok_error_t Parser::parse_dynamic_entries(uint64_t offset, uint64_t size) {
       if (auto offset = binary_->virtual_address_to_offset(dt_preini_array->value())) {
         stream_->setpos(static_cast<Elf_Off>(*offset));
         for (size_t i = 0; i < nb_functions; ++i) {
-          if (auto val = stream_->read_conv<Elf_Addr>()) {
+          if (auto val = stream_->read<Elf_Addr>()) {
             array.push_back(*val);
           } else {
             break;
@@ -1499,7 +1510,7 @@ ok_error_t Parser::parse_pltgot_relocations(uint64_t offset, uint64_t size) {
                                                      Relocation::ENCODING::RELA;
   stream_->setpos(offset_relocations);
   for (uint32_t i = 0; i < nb_entries; ++i) {
-    const auto rel_hdr = stream_->read_conv<REL_T>();
+    const auto rel_hdr = stream_->read<REL_T>();
     if (!rel_hdr) {
       break;
     }
@@ -1507,7 +1518,7 @@ ok_error_t Parser::parse_pltgot_relocations(uint64_t offset, uint64_t size) {
     auto reloc = std::unique_ptr<Relocation>(new Relocation(
         std::move(*rel_hdr), Relocation::PURPOSE::PLTGOT, enc, arch));
     bind_symbol(*reloc);
-    binary_->relocations_.push_back(std::move(reloc));
+    insert_relocation(std::move(reloc));
   }
   return ok();
 }
@@ -1571,12 +1582,11 @@ ok_error_t Parser::parse_section_relocations(const Section& section) {
     symbol_table = binary_->sections_[sh_link].get();
   }
 
-  const uint64_t offset_relocations = section.file_offset();
-  const uint8_t shift = std::is_same<ELF_T, details::ELF32>::value ? 8 : 32;
+  constexpr uint8_t shift = ELF_T::r_info_shift;
 
   const ARCH arch = binary_->header_.machine_type();
 
-  const Relocation::ENCODING enc =
+  constexpr Relocation::ENCODING enc =
     std::is_same_v<REL_T, typename ELF_T::Elf_Rel> ? Relocation::ENCODING::REL :
                                                      Relocation::ENCODING::RELA;
 
@@ -1584,20 +1594,27 @@ ok_error_t Parser::parse_section_relocations(const Section& section) {
   nb_entries = std::min<uint32_t>(nb_entries, Parser::NB_MAX_RELOCATIONS);
 
   std::unordered_set<Relocation*, RelocationSetHash, RelocationSetEq> reloc_hash;
-  stream_->setpos(offset_relocations);
-  for (uint32_t i = 0; i < nb_entries; ++i) {
-    const auto rel_hdr = stream_->read_conv<REL_T>();
+
+  SpanStream reloc_stream(section.content());
+  const bool is_object_file =
+    binary_->header().file_type() == Header::FILE_TYPE::REL &&
+    binary_->segments_.empty();
+
+  size_t count = 0;
+  while (reloc_stream) {
+    auto rel_hdr = reloc_stream.read<REL_T>();
     if (!rel_hdr) {
+      LIEF_WARN("Can't parse relocation at offset: 0x{:04x} in {}",
+                reloc_stream.pos(), section.name());
       break;
     }
-
     auto reloc = std::unique_ptr<Relocation>(new Relocation(
-        *rel_hdr, Relocation::PURPOSE::NONE, enc, arch));
+      *rel_hdr, Relocation::PURPOSE::NONE, enc, arch));
 
     reloc->section_      = applies_to;
     reloc->symbol_table_ = symbol_table;
-    if (binary_->header().file_type() == Header::FILE_TYPE::REL &&
-        binary_->segments().size() == 0) {
+
+    if (is_object_file) {
       reloc->purpose(Relocation::PURPOSE::OBJECT);
     }
 
@@ -1617,9 +1634,11 @@ ok_error_t Parser::parse_section_relocations(const Section& section) {
     }
 
     if (reloc_hash.insert(reloc.get()).second) {
-      binary_->relocations_.push_back(std::move(reloc));
+      ++count;
+      insert_relocation(std::move(reloc));
     }
   }
+  LIEF_DEBUG("#{} relocations found in {}", count, section.name());
   return ok();
 }
 
@@ -1639,7 +1658,7 @@ ok_error_t Parser::parse_symbol_version_requirement(uint64_t offset, uint32_t nb
   uint32_t next_symbol_offset = 0;
 
   for (size_t sym_idx = 0; sym_idx < nb_entries; ++sym_idx) {
-    const auto header = stream_->peek_conv<Elf_Verneed>(svr_offset + next_symbol_offset);
+    const auto header = stream_->peek<Elf_Verneed>(svr_offset + next_symbol_offset);
     if (!header) {
       break;
     }
@@ -1660,7 +1679,7 @@ ok_error_t Parser::parse_symbol_version_requirement(uint64_t offset, uint32_t nb
         const uint64_t aux_hdr_off = svr_offset + next_symbol_offset +
                                      header->vn_aux + next_aux_offset;
 
-        const auto aux_header = stream_->peek_conv<Elf_Vernaux>(aux_hdr_off);
+        const auto aux_header = stream_->peek<Elf_Vernaux>(aux_hdr_off);
         if (!aux_header) {
           break;
         }
@@ -1720,7 +1739,7 @@ ok_error_t Parser::parse_symbol_version_definition(uint64_t offset, uint32_t nb_
   uint64_t def_size = 0;
 
   for (size_t i = 0; i < nb_entries; ++i) {
-    const auto svd_header = verdef_stream->peek_conv<Elf_Verdef>();
+    const auto svd_header = verdef_stream->peek<Elf_Verdef>();
     def_size = std::max(def_size, verdef_stream->pos() - offset + sizeof(Elf_Verdef));
     if (!svd_header) {
       break;
@@ -1731,7 +1750,7 @@ ok_error_t Parser::parse_symbol_version_definition(uint64_t offset, uint32_t nb_
     {
       ScopedStream aux_stream(*stream_, verdef_stream->pos() + svd_header->vd_aux);
       for (size_t j = 0; j < nb_aux_symbols; ++j) {
-        const auto svda_header = aux_stream->peek_conv<Elf_Verdaux>();
+        const auto svda_header = aux_stream->peek<Elf_Verdaux>();
         def_size = std::max(def_size, aux_stream->pos() - offset + sizeof(Elf_Verdaux));
         if (!svda_header) {
           break;
@@ -1777,117 +1796,6 @@ ok_error_t Parser::parse_symbol_version_definition(uint64_t offset, uint32_t nb_
   }
   return ok();
 }
-
-// See: https://github.com/lattera/glibc/blob/master/elf/dl-lookup.c#L860
-// and  https://github.com/lattera/glibc/blob/master/elf/dl-lookup.c#L226
-template<typename ELF_T>
-ok_error_t Parser::parse_symbol_gnu_hash(uint64_t offset) {
-  using uint__  = typename ELF_T::uint;
-
-  static constexpr uint32_t NB_MAX_WORDS   = 90000;
-  static constexpr uint32_t NB_MAX_BUCKETS = 90000;
-  static constexpr uint32_t MAX_NB_HASH    = 1000000;
-
-  LIEF_DEBUG("== Parse symbol GNU hash ==");
-  auto gnuhash = std::make_unique<GnuHash>();
-  gnuhash->c_ = sizeof(uint__) * 8;
-
-  stream_->setpos(offset);
-
-  uint32_t nbuckets  = 0;
-  uint32_t maskwords = 0;
-
-  if (auto res = stream_->read_conv<uint32_t>()) {
-    nbuckets = std::min(*res, NB_MAX_BUCKETS);
-  } else {
-    LIEF_ERR("Can't read the number of buckets");
-    return make_error_code(lief_errors::read_error);
-  }
-
-  if (auto res = stream_->read_conv<uint32_t>()) {
-    gnuhash->symbol_index_ = *res;
-  } else {
-    LIEF_ERR("Can't read the symndx");
-    return make_error_code(lief_errors::read_error);
-  }
-
-  if (auto res = stream_->read_conv<uint32_t>()) {
-    maskwords = std::min(*res, NB_MAX_MASKWORD);
-  } else {
-    LIEF_ERR("Can't read the maskwords");
-    return make_error_code(lief_errors::read_error);
-  }
-
-  if (auto res = stream_->read_conv<uint32_t>()) {
-    gnuhash->shift2_ = *res;
-  } else {
-    LIEF_ERR("Can't read the shift2");
-    return make_error_code(lief_errors::read_error);
-  }
-
-  if (maskwords & (maskwords - 1)) {
-    LIEF_WARN("maskwords is not a power of 2");
-  }
-
-  if (maskwords < NB_MAX_WORDS) {
-    gnuhash->bloom_filters_.reserve(maskwords);
-
-    for (size_t i = 0; i < maskwords; ++i) {
-      if (auto maskword = stream_->read_conv<uint__>()) {
-        gnuhash->bloom_filters_.push_back(*maskword);
-      } else {
-        LIEF_ERR("Can't read maskwords #{:d}", i);
-        break;
-      }
-    }
-  } else {
-    LIEF_ERR("GNU Hash, maskwords corrupted");
-  }
-
-  if (nbuckets > NB_MAX_BUCKETS) {
-    LIEF_ERR("Number of bucket corrupted! (Too big)");
-    return make_error_code(lief_errors::corrupted);
-  }
-
-  gnuhash->buckets_.reserve(nbuckets);
-
-  for (size_t i = 0; i < nbuckets; ++i) {
-    if (auto res = stream_->read_conv<uint32_t>()) {
-      gnuhash->buckets_.push_back(*res);
-    } else {
-      LIEF_ERR("Can't read bucket #{}", i);
-      break;
-    }
-  }
-
-  if (config_.parse_dyn_symbols) {
-    const auto dynsymcount = static_cast<uint32_t>(binary_->dynamic_symbols_.size());
-    if (dynsymcount >= gnuhash->symbol_index_) {
-      const uint32_t nb_hash = dynsymcount - gnuhash->symbol_index_;
-
-      if (nb_hash < MAX_NB_HASH) {
-        gnuhash->hash_values_.reserve(nb_hash);
-        for (size_t i = 0; i < nb_hash; ++i) {
-          if (auto res = stream_->read_conv<uint32_t>()) {
-            gnuhash->hash_values_.push_back(*res);
-          } else {
-            LIEF_ERR("Can't read hash #{}", i);
-            break;
-          }
-        }
-      } else {
-        LIEF_ERR("The number of hash entries seems too high ({:d})", nb_hash);
-      }
-    } else {
-      LIEF_ERR("GNU Hash, symndx corrupted");
-    }
-  }
-  binary_->gnu_hash_ = std::move(gnuhash);
-  binary_->sizing_info_->gnu_hash = stream_->pos() - offset;
-  return ok();
-}
-
-
 
 }
 }

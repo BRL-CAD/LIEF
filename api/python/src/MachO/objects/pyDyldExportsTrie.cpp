@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 #include <nanobind/stl/string.h>
 
 #include "pyIterator.hpp"
-#include "nanobind/extra/memoryview.hpp"
+#include "nanobind/extra/stl/lief_span.h"
 
 #include "LIEF/MachO/DyldExportsTrie.hpp"
 #include "LIEF/MachO/ExportInfo.hpp"
@@ -38,9 +38,7 @@ void create<DyldExportsTrie>(nb::module_& m) {
       In recent Mach-O binaries, this command replace the DyldInfo export trie buffer
       )delim"_doc);
 
-  try {
-    init_ref_iterator<DyldExportsTrie::it_export_info>(exports_trie, "it_export_info");
-  } catch (const std::runtime_error&) { }
+  init_ref_iterator<DyldExportsTrie::it_export_info>(exports_trie, "it_export_info");
 
   exports_trie
     .def_prop_rw("data_offset",
@@ -54,10 +52,8 @@ void create<DyldExportsTrie>(nb::module_& m) {
                  "Raw size of the trie"_doc)
 
     .def_prop_ro("content",
-        [] (const DyldExportsTrie& self) {
-          const span<const uint8_t> content = self.content();
-          return nb::memoryview::from_memory(content.data(), content.size());
-        }, "The raw export trie"_doc)
+        nb::overload_cast<>(&DyldExportsTrie::content, nb::const_),
+        "The raw export trie"_doc)
 
     .def_prop_ro("exports",
                  nb::overload_cast<>(&DyldExportsTrie::exports),

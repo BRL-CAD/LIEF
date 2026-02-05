@@ -7,14 +7,17 @@ import re
 import subprocess
 import stat
 import time
-from typing import Optional, Tuple
+import json
+from typing import Optional, Tuple, List
 from pathlib import Path
 from subprocess import Popen
 
 import importlib.util
 
 def check_objc_dump(metadata: lief.objc.Metadata, file: Path) -> bool:
-    assert metadata.to_decl() == file.read_text()
+    decl_opt = lief.objc.DeclOpt()
+    decl_opt.show_annotations = False
+    assert metadata.to_decl(decl_opt) == file.read_text()
     return True
 
 def import_from_file(module_name: str, file_path: Path):
@@ -58,6 +61,9 @@ def is_windows() -> bool:
 def is_x86_64() -> bool:
     machine = platform.machine().lower()
     return machine in ("x86_64", "amd64")
+
+def is_windows_x86_64():
+    return is_windows() and is_x86_64()
 
 def is_apple_m1() -> bool:
     return is_aarch64() and is_osx()
@@ -107,8 +113,38 @@ def is_github_ci() -> bool:
 def is_server_ci() -> bool:
     return os.getenv('CI_SERVER_HOST', '') == 'gitlab.server'
 
+def ci_runner_tags() -> list[str]:
+    value = os.getenv('CI_RUNNER_TAGS', None)
+    if value is None:
+        return []
+    return json.loads(value)
+
+def ci_runner_arch() -> str:
+    return os.getenv('CI_RUNNER_EXECUTABLE_ARCH', '')
+
 def has_private_samples() -> bool:
     return (Path(lief_samples_dir()) / "private").is_dir()
+
+def has_dyld_shared_cache_samples():
+    if (Path(lief_samples_dir()) / "dyld_shared_cache").is_dir():
+        return True
+
+    dsc_samples_dir = os.getenv("LIEF_DSC_SAMPLES_DIR", None)
+    if dsc_samples_dir is None:
+        return False
+
+    return Path(dsc_samples_dir).is_dir()
+
+def get_dsc_sample(suffix: str) -> Path:
+    dir1 = Path(lief_samples_dir()) / "dyld_shared_cache"
+    if dir1.is_dir():
+        return dir1 / suffix
+
+    dsc_samples_dir = os.environ["LIEF_DSC_SAMPLES_DIR"]
+    if dsc_samples_dir is None:
+        raise RuntimeError("Missing 'LIEF_DSC_SAMPLES_DIR'")
+
+    return Path(dsc_samples_dir).resolve().absolute() / suffix
 
 def _win_gui_exec_server(executable: Path, timeout: int = 60) -> Optional[Tuple[int, str]]:
     si = subprocess.STARTUPINFO() # type: ignore[attr-defined]
@@ -160,22 +196,26 @@ def _win_gui_exec(executable: Path, timeout: int = 60) -> Optional[Tuple[int, st
             except subprocess.TimeoutExpired:
                 return None
 
-def win_exec(executable: Path, timeout: int = 60, gui: bool = True) -> Optional[Tuple[int, str]]:
+def win_exec(executable: Path, timeout: int = 60,
+             gui: bool = True, universal_newlines: bool = True,
+             args: List[str] = ()) -> Optional[Tuple[int, str]]:
     if not is_windows():
         return None
+
+    executable.chmod(executable.stat().st_mode | stat.S_IEXEC)
 
     if gui:
         return _win_gui_exec(executable, timeout)
 
     popen_args = {
-        "universal_newlines": True,
+        "universal_newlines": universal_newlines,
         "shell": True,
         "stdout": subprocess.PIPE,
         "stderr": subprocess.STDOUT,
         "creationflags": 0x8000000  # win32con.CREATE_NO_WINDOW
     }
 
-    with Popen([executable.as_posix()], **popen_args) as proc: # type: ignore[call-overload]
+    with Popen([executable.as_posix(), *args], **popen_args) as proc: # type: ignore[call-overload]
         try:
             stdout, _ = proc.communicate(timeout)
             print("stdout:", stdout)

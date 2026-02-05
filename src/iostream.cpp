@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <iterator>
 #include "LIEF/iostream.hpp"
 
 namespace LIEF {
@@ -41,56 +40,24 @@ size_t vector_iostream::sleb128_size(int64_t value) {
 }
 
 vector_iostream& vector_iostream::put(uint8_t c) {
-  if (raw_.size() < (static_cast<size_t>(tellp()) + 1)) {
-    raw_.resize(static_cast<size_t>(tellp()) + 1);
+  if (raw_->size() < (static_cast<size_t>(tellp()) + 1)) {
+    raw_->resize(static_cast<size_t>(tellp()) + 1);
   }
-  raw_[tellp()] = c;
+  (*raw_)[tellp()] = c;
   current_pos_ += 1;
   return *this;
 }
 
 vector_iostream& vector_iostream::write(const uint8_t* s, std::streamsize n) {
   const auto pos = static_cast<size_t>(tellp());
-  if (raw_.size() < (pos + n)) {
-    raw_.resize(pos + n);
+  if (raw_->size() < (pos + n)) {
+    raw_->resize(pos + n);
   }
-
-  auto it = std::begin(raw_);
-  std::advance(it, pos);
-  std::copy(s, s + n, it);
-
+  std::copy(s, s + n, raw_->data() + pos);
   current_pos_ += n;
+
   return *this;
 }
-
-vector_iostream& vector_iostream::write(std::vector<uint8_t> s) {
-  const auto pos = static_cast<size_t>(tellp());
-  if (raw_.size() < (pos + s.size())) {
-    raw_.resize(pos + s.size());
-  }
-
-  auto it = std::begin(raw_);
-  std::advance(it, pos);
-  std::move(std::begin(s), std::end(s), it);
-
-  current_pos_ += s.size();
-  return *this;
-}
-
-vector_iostream& vector_iostream::write(const std::string& s) {
-  const auto pos = static_cast<size_t>(tellp());
-  if (raw_.size() < (pos + s.size() + 1)) {
-    raw_.resize(pos + s.size() + 1);
-  }
-
-  auto it = std::begin(raw_);
-  std::advance(it, pos);
-  std::copy(std::begin(s), std::end(s), it);
-
-  current_pos_ += s.size() + 1;
-  return *this;
-}
-
 
 vector_iostream& vector_iostream::write_uleb128(uint64_t value) {
   uint8_t byte;
@@ -141,12 +108,26 @@ vector_iostream& vector_iostream::seekp(vector_iostream::off_type p, std::ios_ba
   return *this;
 }
 
+vector_iostream& vector_iostream::write(const std::u16string& s, bool with_null_char) {
+  const size_t nullchar = with_null_char ? 1 : 0;
+  const auto pos = static_cast<size_t>(tellp());
+  if (raw_->size() < (pos + s.size() + nullchar)) {
+    raw_->resize(pos + (s.size() + nullchar) * sizeof(char16_t));
+  }
+
+  std::copy(reinterpret_cast<const char16_t*>(s.data()),
+            reinterpret_cast<const char16_t*>(s.data()) + s.size(),
+            reinterpret_cast<char16_t*>(raw_->data() + current_pos_));
+  current_pos_ += (s.size() + nullchar) * sizeof(char16_t);
+  return *this;
+}
+
 vector_iostream& vector_iostream::align(size_t alignment, uint8_t fill) {
-  if (raw_.size() % alignment == 0) {
+  if (raw_->size() % alignment == 0) {
     return *this;
   }
 
-  while (raw_.size() % alignment != 0) {
+  while (raw_->size() % alignment != 0) {
     write<uint8_t>(fill);
   }
 

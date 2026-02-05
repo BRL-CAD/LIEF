@@ -1,9 +1,11 @@
 target_sources(pyLIEF PRIVATE
+  pyAtomInfo.cpp
   pyBinary.cpp
   pyBindingInfo.cpp
   pyBuildVersion.cpp
   pyBuilder.cpp
   pyChainedBindingInfo.cpp
+  pyChainedPointerAnalysis.cpp
   pyCodeSignature.cpp
   pyCodeSignatureDir.cpp
   pyDataCodeEntry.cpp
@@ -21,10 +23,14 @@ target_sources(pyLIEF PRIVATE
   pyFatBinary.cpp
   pyFilesetCommand.cpp
   pyFunctionStarts.cpp
+  pyFunctionVariants.cpp
+  pyFunctionVariantFixups.cpp
   pyHeader.cpp
+  pyIndirectBindingInfo.cpp
   pyLinkerOptHint.cpp
   pyLoadCommand.cpp
   pyMainCommand.cpp
+  pyNoteCommand.cpp
   pyParser.cpp
   pyParserConfig.cpp
   pyRPathCommand.cpp
@@ -32,10 +38,13 @@ target_sources(pyLIEF PRIVATE
   pyRelocationDyld.cpp
   pyRelocationFixup.cpp
   pyRelocationObject.cpp
+  pyRoutine.cpp
   pySection.cpp
   pySegmentCommand.cpp
   pySegmentSplitInfo.cpp
   pySourceVersion.cpp
+  pyStub.cpp
+  pySubClient.cpp
   pySubFramework.cpp
   pySymbol.cpp
   pySymbolCommand.cpp

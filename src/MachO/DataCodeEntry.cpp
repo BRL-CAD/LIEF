@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ void DataCodeEntry::accept(Visitor& visitor) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const DataCodeEntry& entry) {
-  os << fmt::format("{}: offset=0x{:06x}, size=0x{:x}\n",
+  os << fmt::format("{}: offset=0x{:06x}, size=0x{:x}",
                      to_string(entry.type()), entry.offset(), entry.length());
   return os;
 }

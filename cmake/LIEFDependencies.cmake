@@ -7,8 +7,8 @@ set(__add_lief_dependencies ON)
 # ----
 if(LIEF_ENABLE_JSON)
   if(NOT LIEF_OPT_NLOHMANN_JSON_EXTERNAL)
-    set(LIBJSON_VERSION 3.11.2)
-    set(LIBJSON_SHA256 SHA256=62b1d12b8c7e4afcf96827d05426ca6d9184b9eefdfac512dd533726b98ad8f7)
+    set(LIBJSON_VERSION 3.12.0)
+    set(LIBJSON_SHA256 SHA256=6a2249e5d61c2a8351abfac218e08e9a43426dddb493950d30f3b8acfbbc648d)
     set(LIBJSON_URL "${THIRD_PARTY_DIRECTORY}/json-${LIBJSON_VERSION}.zip" CACHE STRING "URL to the JSON lib repo")
     ExternalProject_Add(lief_libjson
       URL               ${LIBJSON_URL}
@@ -32,8 +32,8 @@ endif()
 # mbed TLS
 # --------
 if(NOT LIEF_OPT_MBEDTLS_EXTERNAL)
-  set(MBED_TLS_VERSION 3.2.1)
-  set(MBED_TLS_SHA256 SHA256=efeac7fb687d19a7c7dc60f5e60265edd528244856cf3db2e2aecacece08b23f)
+  set(MBED_TLS_VERSION 3.6.4)
+  set(MBED_TLS_SHA256 SHA256=b0bf9e18ed94a74a203e5a7c9c4ecf24187da65d04242df243128697ec7d6f57)
   set(MBED_TLS_URL "${THIRD_PARTY_DIRECTORY}/mbedtls-${MBED_TLS_VERSION}.zip" CACHE STRING "URL to MbedTLS")
   set(MBED_TLS_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/mbed_tls")
 
@@ -41,23 +41,29 @@ if(NOT LIEF_OPT_MBEDTLS_EXTERNAL)
   set(MBEDTLS_SOURCE_DIR "${SOURCE_DIR}")
   set(MBEDTLS_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_DIR}/library")
 
-  set(mbedtls_src_crypto
+  set(mbedtls_src_files
     "${MBEDTLS_SOURCE_DIR}/library/aes.c"
+    "${MBEDTLS_SOURCE_DIR}/library/aesce.c"
     "${MBEDTLS_SOURCE_DIR}/library/aesni.c"
     "${MBEDTLS_SOURCE_DIR}/library/aria.c"
     "${MBEDTLS_SOURCE_DIR}/library/asn1parse.c"
     "${MBEDTLS_SOURCE_DIR}/library/asn1write.c"
     "${MBEDTLS_SOURCE_DIR}/library/base64.c"
     "${MBEDTLS_SOURCE_DIR}/library/bignum.c"
+    "${MBEDTLS_SOURCE_DIR}/library/bignum_core.c"
+    "${MBEDTLS_SOURCE_DIR}/library/bignum_mod.c"
+    "${MBEDTLS_SOURCE_DIR}/library/bignum_mod_raw.c"
+    "${MBEDTLS_SOURCE_DIR}/library/block_cipher.c"
     "${MBEDTLS_SOURCE_DIR}/library/camellia.c"
     "${MBEDTLS_SOURCE_DIR}/library/ccm.c"
     "${MBEDTLS_SOURCE_DIR}/library/chacha20.c"
     "${MBEDTLS_SOURCE_DIR}/library/chachapoly.c"
     "${MBEDTLS_SOURCE_DIR}/library/cipher.c"
     "${MBEDTLS_SOURCE_DIR}/library/cipher_wrap.c"
-    "${MBEDTLS_SOURCE_DIR}/library/constant_time.c"
     "${MBEDTLS_SOURCE_DIR}/library/cmac.c"
+    "${MBEDTLS_SOURCE_DIR}/library/constant_time.c"
     "${MBEDTLS_SOURCE_DIR}/library/ctr_drbg.c"
+    "${MBEDTLS_SOURCE_DIR}/library/debug.c"
     "${MBEDTLS_SOURCE_DIR}/library/des.c"
     "${MBEDTLS_SOURCE_DIR}/library/dhm.c"
     "${MBEDTLS_SOURCE_DIR}/library/ecdh.c"
@@ -65,25 +71,31 @@ if(NOT LIEF_OPT_MBEDTLS_EXTERNAL)
     "${MBEDTLS_SOURCE_DIR}/library/ecjpake.c"
     "${MBEDTLS_SOURCE_DIR}/library/ecp.c"
     "${MBEDTLS_SOURCE_DIR}/library/ecp_curves.c"
+    "${MBEDTLS_SOURCE_DIR}/library/ecp_curves_new.c"
     "${MBEDTLS_SOURCE_DIR}/library/entropy.c"
     "${MBEDTLS_SOURCE_DIR}/library/entropy_poll.c"
     "${MBEDTLS_SOURCE_DIR}/library/error.c"
     "${MBEDTLS_SOURCE_DIR}/library/gcm.c"
     "${MBEDTLS_SOURCE_DIR}/library/hkdf.c"
     "${MBEDTLS_SOURCE_DIR}/library/hmac_drbg.c"
+    "${MBEDTLS_SOURCE_DIR}/library/lmots.c"
+    "${MBEDTLS_SOURCE_DIR}/library/lms.c"
     "${MBEDTLS_SOURCE_DIR}/library/md.c"
     "${MBEDTLS_SOURCE_DIR}/library/md5.c"
     "${MBEDTLS_SOURCE_DIR}/library/memory_buffer_alloc.c"
     "${MBEDTLS_SOURCE_DIR}/library/mps_reader.c"
     "${MBEDTLS_SOURCE_DIR}/library/mps_trace.c"
+    "${MBEDTLS_SOURCE_DIR}/library/net_sockets.c"
     "${MBEDTLS_SOURCE_DIR}/library/nist_kw.c"
     "${MBEDTLS_SOURCE_DIR}/library/oid.c"
     "${MBEDTLS_SOURCE_DIR}/library/padlock.c"
     "${MBEDTLS_SOURCE_DIR}/library/pem.c"
     "${MBEDTLS_SOURCE_DIR}/library/pk.c"
+    "${MBEDTLS_SOURCE_DIR}/library/pk_ecc.c"
     "${MBEDTLS_SOURCE_DIR}/library/pk_wrap.c"
     "${MBEDTLS_SOURCE_DIR}/library/pkcs12.c"
     "${MBEDTLS_SOURCE_DIR}/library/pkcs5.c"
+    "${MBEDTLS_SOURCE_DIR}/library/pkcs7.c"
     "${MBEDTLS_SOURCE_DIR}/library/pkparse.c"
     "${MBEDTLS_SOURCE_DIR}/library/pkwrite.c"
     "${MBEDTLS_SOURCE_DIR}/library/platform.c"
@@ -93,56 +105,51 @@ if(NOT LIEF_OPT_MBEDTLS_EXTERNAL)
     "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_aead.c"
     "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_cipher.c"
     "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_client.c"
-    "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_driver_wrappers.c"
+    "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_driver_wrappers_no_static.c"
     "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_ecp.c"
+    "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_ffdh.c"
     "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_hash.c"
     "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_mac.c"
+    "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_pake.c"
     "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_rsa.c"
     "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_se.c"
     "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_slot_management.c"
     "${MBEDTLS_SOURCE_DIR}/library/psa_crypto_storage.c"
     "${MBEDTLS_SOURCE_DIR}/library/psa_its_file.c"
+    "${MBEDTLS_SOURCE_DIR}/library/psa_util.c"
     "${MBEDTLS_SOURCE_DIR}/library/ripemd160.c"
     "${MBEDTLS_SOURCE_DIR}/library/rsa.c"
     "${MBEDTLS_SOURCE_DIR}/library/rsa_alt_helpers.c"
     "${MBEDTLS_SOURCE_DIR}/library/sha1.c"
     "${MBEDTLS_SOURCE_DIR}/library/sha256.c"
+    "${MBEDTLS_SOURCE_DIR}/library/sha3.c"
     "${MBEDTLS_SOURCE_DIR}/library/sha512.c"
-    "${MBEDTLS_SOURCE_DIR}/library/ssl_debug_helpers_generated.c"
-    "${MBEDTLS_SOURCE_DIR}/library/threading.c"
-    "${MBEDTLS_SOURCE_DIR}/library/timing.c"
-    "${MBEDTLS_SOURCE_DIR}/library/version.c"
-    "${MBEDTLS_SOURCE_DIR}/library/version_features.c"
-  )
-
-  set(mbedtls_src_x509
-      #"${MBEDTLS_SOURCE_DIR}/library/certs.c"
-      #"${MBEDTLS_SOURCE_DIR}/library/pkcs11.c"
-      "${MBEDTLS_SOURCE_DIR}/library/x509.c"
-      "${MBEDTLS_SOURCE_DIR}/library/x509_create.c"
-      "${MBEDTLS_SOURCE_DIR}/library/x509_crl.c"
-      "${MBEDTLS_SOURCE_DIR}/library/x509_crt.c"
-      "${MBEDTLS_SOURCE_DIR}/library/x509_csr.c"
-      "${MBEDTLS_SOURCE_DIR}/library/x509write_crt.c"
-      "${MBEDTLS_SOURCE_DIR}/library/x509write_csr.c"
-  )
-
-  set(mbedtls_src_tls
-    "${MBEDTLS_SOURCE_DIR}/library/debug.c"
-    "${MBEDTLS_SOURCE_DIR}/library/net_sockets.c"
     "${MBEDTLS_SOURCE_DIR}/library/ssl_cache.c"
     "${MBEDTLS_SOURCE_DIR}/library/ssl_ciphersuites.c"
     "${MBEDTLS_SOURCE_DIR}/library/ssl_client.c"
     "${MBEDTLS_SOURCE_DIR}/library/ssl_cookie.c"
+    "${MBEDTLS_SOURCE_DIR}/library/ssl_debug_helpers_generated.c"
     "${MBEDTLS_SOURCE_DIR}/library/ssl_msg.c"
     "${MBEDTLS_SOURCE_DIR}/library/ssl_ticket.c"
     "${MBEDTLS_SOURCE_DIR}/library/ssl_tls.c"
     "${MBEDTLS_SOURCE_DIR}/library/ssl_tls12_client.c"
     "${MBEDTLS_SOURCE_DIR}/library/ssl_tls12_server.c"
-    "${MBEDTLS_SOURCE_DIR}/library/ssl_tls13_keys.c"
-    "${MBEDTLS_SOURCE_DIR}/library/ssl_tls13_server.c"
     "${MBEDTLS_SOURCE_DIR}/library/ssl_tls13_client.c"
     "${MBEDTLS_SOURCE_DIR}/library/ssl_tls13_generic.c"
+    "${MBEDTLS_SOURCE_DIR}/library/ssl_tls13_keys.c"
+    "${MBEDTLS_SOURCE_DIR}/library/ssl_tls13_server.c"
+    "${MBEDTLS_SOURCE_DIR}/library/threading.c"
+    "${MBEDTLS_SOURCE_DIR}/library/timing.c"
+    "${MBEDTLS_SOURCE_DIR}/library/version.c"
+    "${MBEDTLS_SOURCE_DIR}/library/version_features.c"
+    "${MBEDTLS_SOURCE_DIR}/library/x509.c"
+    "${MBEDTLS_SOURCE_DIR}/library/x509_create.c"
+    "${MBEDTLS_SOURCE_DIR}/library/x509_crl.c"
+    "${MBEDTLS_SOURCE_DIR}/library/x509_crt.c"
+    "${MBEDTLS_SOURCE_DIR}/library/x509_csr.c"
+    "${MBEDTLS_SOURCE_DIR}/library/x509write.c"
+    "${MBEDTLS_SOURCE_DIR}/library/x509write_crt.c"
+    "${MBEDTLS_SOURCE_DIR}/library/x509write_csr.c"
   )
 
   ExternalProject_Add(lief_mbed_tls
@@ -154,7 +161,7 @@ if(NOT LIEF_OPT_MBEDTLS_EXTERNAL)
     URL               ${MBED_TLS_URL}
     URL_HASH          ${MBED_TLS_SHA256}
     UPDATE_COMMAND    "" # repetitive update are a pain
-    BUILD_BYPRODUCTS  ${mbedtls_src_crypto} ${mbedtls_src_x509} ${mbedtls_src_tls})
+    BUILD_BYPRODUCTS  ${mbedtls_src_files})
 
 endif()
 
@@ -167,8 +174,8 @@ if(LIEF_EXTERNAL_SPDLOG)
   get_target_property(SPDLOG_INC_DIR spdlog::spdlog INTERFACE_INCLUDE_DIRECTORIES)
   target_include_directories(lief_spdlog SYSTEM INTERFACE ${SPDLOG_INC_DIR})
 else()
-  set(SPDLOG_VERSION 1.14.0)
-  set(SPDLOG_SHA256 SHA256=2cd8a65885e7937fdd046b181eed7e95d61bab7006bd0fb7b9c766185ed3e0ae)
+  set(SPDLOG_VERSION 1.17.0)
+  set(SPDLOG_SHA256 SHA256=b11912a82d149792fef33fabd0503b13d54aeac25c1464755461d4108ea71fc2)
   set(SPDLOG_URL "${THIRD_PARTY_DIRECTORY}/spdlog-${SPDLOG_VERSION}.zip" CACHE STRING "URL to the spdlog source")
   ExternalProject_Add(lief_spdlog_project
     URL               ${SPDLOG_URL}
@@ -193,8 +200,8 @@ if (LIEF_SUPPORT_CXX14 AND NOT LIEF_DISABLE_FROZEN)
   set(LIEF_FROZEN_ENABLED 1)
 
   if (NOT LIEF_OPT_FROZEN_EXTERNAL)
-    set(FROZEN_VERSION f6dbec6)
-    set(FROZEN_SHA256 SHA256=f961ec0f403d7720da12ec25a39790211d0bcecc342177838f3dd1fa6adb8ac3)
+    set(FROZEN_VERSION 61dce5a)
+    set(FROZEN_SHA256 SHA256=c94ba33d5369749e8d8ba12fb87d60de02ddac981051383a8d321968abb6a314)
     set(FROZEN_URL "${THIRD_PARTY_DIRECTORY}/frozen-${FROZEN_VERSION}.zip" CACHE STRING "URL to Frozen")
     ExternalProject_Add(lief_frozen
       URL               ${FROZEN_URL}
@@ -212,8 +219,8 @@ endif()
 # expected
 # ----------
 if(NOT LIEF_EXTERNAL_EXPECTED)
-  set(EXPECTED_VERSION 1.1.0)
-  set(EXPECTED_SHA256 SHA256=4b2a347cf5450e99f7624247f7d78f86f3adb5e6acd33ce307094e9507615b78)
+  set(EXPECTED_VERSION 1.3.1)
+  set(EXPECTED_SHA256 SHA256=68bbfd81a6d312c4518b5a1831f465fa03811355af9aa9c7403348545d1d2a56)
   set(EXPECTED_URL "${THIRD_PARTY_DIRECTORY}/expected-${EXPECTED_VERSION}.zip" CACHE STRING "URL to Expected")
   ExternalProject_Add(lief_expected
     URL               ${EXPECTED_URL}
@@ -230,8 +237,8 @@ endif()
 # utfcpp
 # ------
 if(NOT LIEF_OPT_UTFCPP_EXTERNAL)
-  set(UTFCPP_VERSION 4.0.5)
-  set(UTFCPP_SHA256 SHA256=91c9134a0d1c45be05ad394147cc8fda044f8313f23dc60d9ac5371175a8eff1)
+  set(UTFCPP_VERSION 4.0.9)
+  set(UTFCPP_SHA256 SHA256=73802895d0cf7b000cdf8e6ee5d69b963a829d4ea419562afd8f190adef87d5f)
   set(UTFCPP_URL "${THIRD_PARTY_DIRECTORY}/utfcpp-${UTFCPP_VERSION}.zip" CACHE STRING "URL to UTFCPP")
   ExternalProject_Add(lief_utfcpp
     URL               ${UTFCPP_URL}

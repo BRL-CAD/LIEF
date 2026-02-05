@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,14 @@ namespace PE {
 class Parser;
 class Builder;
 
-//! Interface for the (generic) Debug CodeView (``IMAGE_DEBUG_TYPE_CODEVIEW``)
+/// Interface for the (generic) Debug CodeView (``IMAGE_DEBUG_TYPE_CODEVIEW``)
 class LIEF_API CodeView : public Debug {
   friend class Parser;
   friend class Builder;
 
   public:
-  //! Code view signatures
-  //! @see: http://llvm.org/doxygen/CVDebugRecord_8h_source.html
+  /// Code view signatures
+  /// @see: http://llvm.org/doxygen/CVDebugRecord_8h_source.html
   enum class SIGNATURES {
     UNKNOWN = 0,
 
@@ -47,14 +47,20 @@ class LIEF_API CodeView : public Debug {
     sig_{sig}
   {}
 
-  CodeView(const details::pe_debug& debug, SIGNATURES sig);
+  CodeView(const details::pe_debug& debug, SIGNATURES sig, Section* sec) :
+    Debug(debug, sec),
+    sig_(sig)
+  {}
 
   CodeView(const CodeView& other) = default;
   CodeView& operator=(const CodeView& other) = default;
 
+  CodeView(CodeView&& other) = default;
+  CodeView& operator=(CodeView&& other) = default;
+
   ~CodeView() override = default;
 
-  //! The signature that defines the underlying type of the payload
+  /// The signature that defines the underlying type of the payload
   SIGNATURES signature() const {
     return sig_;
   }
@@ -67,8 +73,9 @@ class LIEF_API CodeView : public Debug {
     return debug->type() == Debug::TYPES::CODEVIEW;
   }
 
+  std::string to_string() const override;
+
   void accept(Visitor& visitor) const override;
-  LIEF_API friend std::ostream& operator<<(std::ostream& os, const CodeView& entry);
 
   protected:
   SIGNATURES sig_ = SIGNATURES::UNKNOWN;

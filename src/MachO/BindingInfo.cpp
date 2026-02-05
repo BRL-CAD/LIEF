@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,19 @@ BindingInfo::BindingInfo(const BindingInfo& other) :
   address_{other.address_}
 {}
 
+
+BindingInfo& BindingInfo::operator=(const BindingInfo& other) {
+  if (&other == this) {
+    return *this;
+  }
+  Object::operator=(other);
+  library_ordinal_ = other.library_ordinal_;
+  addend_ = other.addend_;
+  is_weak_import_ = other.is_weak_import_;
+  address_ = other.address_;
+  return *this;
+}
+
 void BindingInfo::swap(BindingInfo& other) noexcept {
   std::swap(segment_,         other.segment_);
   std::swap(symbol_,          other.symbol_);
@@ -48,15 +61,15 @@ void BindingInfo::accept(Visitor& visitor) const {
 
 std::ostream& operator<<(std::ostream& os, const BindingInfo& info) {
   os << fmt::format("address=0x{:08x}, addend=0x{:x}",
-                    info.address(), info.addend()) << '\n';
+                    info.address(), info.addend());
   if (const Symbol* sym = info.symbol()) {
-    os << fmt::format("  symbol={}", sym->name()) << '\n';
+    os << fmt::format("  symbol={}", sym->name());
   }
   if (const SegmentCommand* seg = info.segment()) {
-    os << fmt::format("  segment={}", seg->name()) << '\n';
+    os << fmt::format("  segment={}", seg->name());
   }
   if (const DylibCommand* lib = info.library()) {
-    os << fmt::format("  library={}", lib->name()) << '\n';
+    os << fmt::format("  library={}", lib->name());
   }
   return os;
 }

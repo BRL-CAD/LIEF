@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #define LIEF_C_ELF_UTILS_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "LIEF/visibility.h"
 #include "LIEF/types.h"
@@ -27,7 +28,7 @@ extern "C" {
 #endif
 
 /** @brief Check if the given file is an ELF one. */
-LIEF_API bool is_elf(const char* file);
+LIEF_API uint8_t is_elf(const char* file);
 
 #ifdef __cplusplus
 }

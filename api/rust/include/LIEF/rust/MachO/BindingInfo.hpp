@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 #include "LIEF/rust/MachO/Dylib.hpp"
 #include "LIEF/rust/MachO/Symbol.hpp"
 
-class MachO_BindingInfo : public Mirror<LIEF::MachO::BindingInfo>{
+class MachO_BindingInfo : public Mirror<LIEF::MachO::BindingInfo> {
   public:
   using lief_t = LIEF::MachO::BindingInfo;
   using Mirror::Mirror;

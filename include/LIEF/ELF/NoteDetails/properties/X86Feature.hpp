@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include <utility>
 
 #include "LIEF/ELF/NoteDetails/NoteGnuProperty.hpp"
+#include "LIEF/visibility.h"
 
 namespace LIEF {
 namespace ELF {
@@ -28,7 +29,7 @@ namespace ELF {
 /// - ``GNU_PROPERTY_X86_FEATURE_1_AND``
 /// - ``GNU_PROPERTY_X86_FEATURE_2_USED``
 /// - ``GNU_PROPERTY_X86_FEATURE_2_NEEDED``
-class X86Features : public NoteGnuProperty::Property {
+class LIEF_API X86Features : public NoteGnuProperty::Property {
   public:
 
   /// Flag according to the ``_AND``, ``_USED`` or ``_NEEDED`` suffixes

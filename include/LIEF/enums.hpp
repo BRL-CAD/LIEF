@@ -1,5 +1,5 @@
-/* Copyright 2021 - 2024 R. Thomas
- * Copyright 2021 - 2024 Quarkslab
+/* Copyright 2021 - 2026 R. Thomas
+ * Copyright 2021 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ template<>                           \
 struct EnableBitMaskOperators<X>     \
 {                                    \
   static const bool bit_mask_enabled = true;   \
-};
+}
 
 template<typename Enum>
 struct EnableBitMaskOperators

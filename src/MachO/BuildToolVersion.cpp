@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,13 @@ void BuildToolVersion::accept(Visitor& visitor) const {
 std::ostream& operator<<(std::ostream& os, const BuildToolVersion& tool) {
   BuildToolVersion::version_t version = tool.version();
 
-  os << fmt::format("{} ({}.{}.{})\n",
-        to_string(tool.tool()), version[0], version[1], version[2]);
+  std::string tool_str = to_string(tool.tool());
+  if (tool.tool() == BuildToolVersion::TOOLS::UNKNOWN) {
+    tool_str += fmt::format("({})", (uint32_t)tool.tool());
+  }
+
+  os << fmt::format("{} ({}.{}.{})",
+        tool_str, version[0], version[1], version[2]);
   return os;
 }
 
@@ -51,6 +56,14 @@ const char* to_string(BuildToolVersion::TOOLS tool) {
     ENTRY(CLANG),
     ENTRY(SWIFT),
     ENTRY(LD),
+    ENTRY(LLD),
+    ENTRY(METAL),
+    ENTRY(AIRLLD),
+    ENTRY(AIRNT),
+    ENTRY(AIRNT_PLUGIN),
+    ENTRY(AIRPACK),
+    ENTRY(GPUARCHIVER),
+    ENTRY(METAL_FRAMEWORK),
   };
   #undef ENTRY
 

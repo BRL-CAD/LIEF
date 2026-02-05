@@ -7,15 +7,21 @@ use crate::to_result;
 use std::marker::PhantomData;
 use crate::Error;
 use super::Type;
+use crate::dwarf::Function;
 
-/// Trait shared by [`Structure`], [`Class`] or [`Union`]
+/// Trait shared by [`Structure`], [`Class`], [`Union`] or [`Packed`]
 pub trait ClassLike {
     #[doc(hidden)]
     fn get_classlike(&self) -> &ffi::DWARF_types_ClassLike;
 
     /// Return this list of all the attributes defined in this class-like type
-    fn members(&self) -> Members {
+    fn members(&self) -> Members<'_> {
         Members::new(self.get_classlike().members())
+    }
+
+    /// Iterator over the functions defined by the class-like.
+    fn functions(&self) -> Functions<'_> {
+        Functions::new(self.get_classlike().functions())
     }
 }
 
@@ -49,11 +55,16 @@ impl Member<'_> {
     ///
     /// Usually, `offset() * 8 == bit_offset()`
     pub fn bit_offset(&self) -> Result<u64, Error> {
-        to_result!(ffi::DWARF_types_ClassLike_Member::offset, self);
+        to_result!(ffi::DWARF_types_ClassLike_Member::bit_offset, self);
+    }
+
+    /// If the current member is a bit-field, this function returns its size in bits
+    pub fn bit_size(&self) -> Result<u64, Error> {
+        to_result!(ffi::DWARF_types_ClassLike_Member::bit_size, self);
     }
 
     /// Type of the current member
-    pub fn get_type(&self) -> Option<Type> {
+    pub fn get_type(&self) -> Option<Type<'_>> {
         into_optional(self.ptr.get_type())
     }
 
@@ -129,6 +140,32 @@ impl ClassLike for Union<'_> {
     }
 }
 
+/// This structure represents a DWARF `packed` type (`DW_TAG_packed_type`)
+pub struct Packed<'a> {
+    ptr: cxx::UniquePtr<ffi::DWARF_types_Packed>,
+    _owner: PhantomData<&'a ()>,
+}
+
+impl FromFFI<ffi::DWARF_types_Packed> for Packed<'_> {
+    fn from_ffi(cmd: cxx::UniquePtr<ffi::DWARF_types_Packed>) -> Self {
+        Self {
+            ptr: cmd,
+            _owner: PhantomData,
+        }
+    }
+}
+
+impl DwarfType for Packed<'_> {
+    fn get_base(&self) -> &ffi::DWARF_Type {
+        self.ptr.as_ref().unwrap().as_ref().as_ref()
+    }
+}
+
+impl ClassLike for Packed<'_> {
+    fn get_classlike(&self) -> &ffi::DWARF_types_ClassLike {
+        self.ptr.as_ref().unwrap().as_ref()
+    }
+}
 
 /// This structure represents a `DW_TAG_class_type` DWARF type
 pub struct Class<'a> {
@@ -163,4 +200,13 @@ declare_fwd_iterator!(
     ffi::DWARF_types_ClassLike_Member,
     ffi::DWARF_types_ClassLike,
     ffi::DWARF_types_ClassLike_it_members
+);
+
+
+declare_fwd_iterator!(
+    Functions,
+    Function<'a>,
+    ffi::DWARF_Function,
+    ffi::DWARF_types_ClassLike,
+    ffi::DWARF_types_ClassLike_it_functions
 );

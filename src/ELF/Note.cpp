@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -371,7 +371,7 @@ result<Note::TYPE> Note::convert_type(Header::FILE_TYPE ftype, uint32_t type,
   }
 
   if (norm_name == NT_QNX) {
-    if (auto it = QNX_TYPES.find(type); it != CRASHPAD_TYPES.end()) {
+    if (auto it = QNX_TYPES.find(type); it != QNX_TYPES.end()) {
       return it->second;
     }
     return make_error_code(lief_errors::not_found);
@@ -391,7 +391,7 @@ Note::create(BinaryStream& stream, std::string section_name,
 {
   static constexpr uint32_t MAX_NOTE_DESCRIPTION = 1_MB;
   const size_t pos = stream.pos();
-  auto res_namesz = stream.read_conv<uint32_t>();
+  auto res_namesz = stream.read<uint32_t>();
   if (!res_namesz) {
     return nullptr;
   }
@@ -399,7 +399,7 @@ Note::create(BinaryStream& stream, std::string section_name,
   const auto namesz = *res_namesz;
   LIEF_DEBUG("[0x{:06x}] Name size: 0x{:x}", pos, namesz);
 
-  auto res_descz = stream.read_conv<uint32_t>();
+  auto res_descz = stream.read<uint32_t>();
   if (!res_descz) {
     return nullptr;
   }
@@ -407,7 +407,7 @@ Note::create(BinaryStream& stream, std::string section_name,
   uint32_t descsz = std::min(*res_descz, MAX_NOTE_DESCRIPTION);
   LIEF_DEBUG("Description size: 0x{:x}", descsz);
 
-  auto res_type = stream.read_conv<uint32_t>();
+  auto res_type = stream.read<uint32_t>();
   if (!res_type) {
     return nullptr;
   }
@@ -434,7 +434,7 @@ Note::create(BinaryStream& stream, std::string section_name,
     const size_t nb_chunks = (descsz - 1) / sizeof(uint32_t) + 1;
     description.reserve(nb_chunks);
     for (size_t i = 0; i < nb_chunks; ++i) {
-      if (const auto chunk = stream.read_conv<uint32_t>()) {
+      if (const auto chunk = stream.read<uint32_t>()) {
         description.push_back(*chunk);
       } else {
         break;
@@ -744,25 +744,25 @@ ok_error_t Note::write_string_at(size_t offset, const std::string& value) {
   return ok();
 }
 
-IMPL_READ_AT(bool);
-IMPL_READ_AT(uint8_t);
-IMPL_READ_AT(int8_t);
-IMPL_READ_AT(uint16_t);
-IMPL_READ_AT(int16_t);
-IMPL_READ_AT(uint32_t);
-IMPL_READ_AT(int32_t);
-IMPL_READ_AT(uint64_t);
-IMPL_READ_AT(int64_t);
+IMPL_READ_AT(bool)
+IMPL_READ_AT(uint8_t)
+IMPL_READ_AT(int8_t)
+IMPL_READ_AT(uint16_t)
+IMPL_READ_AT(int16_t)
+IMPL_READ_AT(uint32_t)
+IMPL_READ_AT(int32_t)
+IMPL_READ_AT(uint64_t)
+IMPL_READ_AT(int64_t)
 
-IMPL_WRITE_AT(bool);
-IMPL_WRITE_AT(uint8_t);
-IMPL_WRITE_AT(int8_t);
-IMPL_WRITE_AT(uint16_t);
-IMPL_WRITE_AT(int16_t);
-IMPL_WRITE_AT(uint32_t);
-IMPL_WRITE_AT(int32_t);
-IMPL_WRITE_AT(uint64_t);
-IMPL_WRITE_AT(int64_t);
+IMPL_WRITE_AT(bool)
+IMPL_WRITE_AT(uint8_t)
+IMPL_WRITE_AT(int8_t)
+IMPL_WRITE_AT(uint16_t)
+IMPL_WRITE_AT(int16_t)
+IMPL_WRITE_AT(uint32_t)
+IMPL_WRITE_AT(int32_t)
+IMPL_WRITE_AT(uint64_t)
+IMPL_WRITE_AT(int64_t)
 
 } // namespace ELF
 } // namespace LIEF

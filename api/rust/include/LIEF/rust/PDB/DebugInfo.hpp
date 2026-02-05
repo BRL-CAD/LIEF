@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2024 R. Thomas
+/* Copyright 2022 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +80,10 @@ class PDB_DebugInfo : public AbstracDebugInfo {
 
   auto find_type(std::string name) const { // NOLINT(performance-unnecessary-value-param)
     return details::try_unique<PDB_Type>(impl().find_type(name)); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
+  }
+
+  std::string to_string() const {
+    return impl().to_string();
   }
 
   static bool classof(const AbstracDebugInfo& reloc) {

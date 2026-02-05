@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2024 R. Thomas
- * Copyright 2017 - 2024 Quarkslab
+/* Copyright 2017 - 2026 R. Thomas
+ * Copyright 2017 - 2026 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,14 @@
  */
 #include <string>
 #include <sstream>
+
+#include "nanobind/utils.hpp"
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/unique_ptr.h>
-#include "nanobind/extra/memoryview.hpp"
+#include "nanobind/extra/stl/lief_span.h"
+#include "nanobind/extra/stl/pathlike.h"
+#include "nanobind/extra/random_access_iterator.hpp"
 
 #include "LIEF/MachO/Binary.hpp"
 #include "LIEF/MachO/BuildVersion.hpp"
@@ -38,9 +42,14 @@
 #include "LIEF/MachO/EncryptionInfo.hpp"
 #include "LIEF/MachO/ExportInfo.hpp"
 #include "LIEF/MachO/FunctionStarts.hpp"
+#include "LIEF/MachO/FunctionVariants.hpp"
+#include "LIEF/MachO/FunctionVariantFixups.hpp"
 #include "LIEF/MachO/LinkEdit.hpp"
 #include "LIEF/MachO/LinkerOptHint.hpp"
+#include "LIEF/MachO/AtomInfo.hpp"
 #include "LIEF/MachO/MainCommand.hpp"
+#include "LIEF/MachO/NoteCommand.hpp"
+#include "LIEF/MachO/Routine.hpp"
 #include "LIEF/MachO/RPathCommand.hpp"
 #include "LIEF/MachO/Relocation.hpp"
 #include "LIEF/MachO/RelocationFixup.hpp"
@@ -49,6 +58,7 @@
 #include "LIEF/MachO/SegmentSplitInfo.hpp"
 #include "LIEF/MachO/SourceVersion.hpp"
 #include "LIEF/MachO/SubFramework.hpp"
+#include "LIEF/MachO/SubClient.hpp"
 #include "LIEF/MachO/Symbol.hpp"
 #include "LIEF/MachO/SymbolCommand.hpp"
 #include "LIEF/MachO/ThreadCommand.hpp"
@@ -63,7 +73,6 @@
 #include "pyIterator.hpp"
 
 namespace LIEF::MachO::py {
-
 template<>
 void create<Binary>(nb::module_& m) {
   using namespace LIEF::py;
@@ -82,6 +91,8 @@ void create<Binary>(nb::module_& m) {
   init_ref_iterator<Binary::it_libraries>(bin, "it_libraries");
   init_ref_iterator<Binary::it_relocations>(bin, "it_relocations");
   init_ref_iterator<Binary::it_rpaths>(bin, "it_rpaths");
+  init_ref_iterator<Binary::it_sub_clients>(bin, "it_sub_clients");
+  init_ref_iterator<Binary::it_notes>(bin, "it_notes");
 
   nb::class_<Binary::range_t>(bin, "range_t")
     .def_rw("start", &Binary::range_t::start)
@@ -267,6 +278,15 @@ void create<Binary>(nb::module_& m) {
         "Return the binary's " RST_CLASS_REF(lief.MachO.VersionMin) " if any, or None"_doc,
         nb::rv_policy::reference_internal)
 
+    .def_prop_ro("has_routine_command",
+        &Binary::has_routine_command,
+        "``True`` if the binary has a " RST_CLASS_REF(lief.MachO.Routine) " command."_doc)
+
+    .def_prop_ro("routine_command",
+        nb::overload_cast<>(&Binary::routine_command),
+        "Return the binary's " RST_CLASS_REF(lief.MachO.Routine) " if any, or None"_doc,
+        nb::rv_policy::reference_internal)
+
     .def_prop_ro("has_thread_command",
         &Binary::has_thread_command,
         "``True`` if the binary has a " RST_CLASS_REF(lief.MachO.ThreadCommand) " command."_doc)
@@ -345,6 +365,15 @@ void create<Binary>(nb::module_& m) {
         "Return the binary's " RST_CLASS_REF(lief.MachO.SegmentSplitInfo) " if any, or None"_doc,
         nb::rv_policy::reference_internal)
 
+    .def_prop_ro("subclients",
+        nb::overload_cast<>(&Binary::subclients),
+        "Return an iterator over the binary's " RST_CLASS_REF(lief.MachO.SubClient) ""_doc,
+        nb::keep_alive<0, 1>())
+
+    .def_prop_ro("has_subclients",
+        &Binary::has_subclients,
+        "``True`` if the binary has a " RST_CLASS_REF(lief.MachO.SubClient) " command"_doc)
+
     .def_prop_ro("has_sub_framework",
         &Binary::has_sub_framework,
         "``True`` if the binary has a " RST_CLASS_REF(lief.MachO.SubFramework) " command"_doc)
@@ -375,6 +404,18 @@ void create<Binary>(nb::module_& m) {
     .def_prop_ro("has_build_version",
         &Binary::has_build_version,
         "``True`` if the binary has a " RST_CLASS_REF(lief.MachO.BuildVersion) " command"_doc)
+
+    .def_prop_ro("platform",
+        &Binary::platform,
+        "Return the platform for which this Mach-O has been compiled"_doc)
+
+    .def_prop_ro("is_ios",
+        &Binary::is_ios,
+        "True if this binary targets iOS"_doc)
+
+    .def_prop_ro("is_macos",
+        &Binary::is_macos,
+        "True if this binary targets macOS"_doc)
 
     .def_prop_ro("build_version",
         nb::overload_cast<>(&Binary::build_version),
@@ -408,7 +449,6 @@ void create<Binary>(nb::module_& m) {
         "Return the binary's " RST_CLASS_REF(lief.MachO.TwoLevelHints) " if any, or None"_doc,
         nb::rv_policy::reference_internal)
 
-
     .def_prop_ro("has_linker_opt_hint",
         &Binary::has_linker_opt_hint,
         "``True`` if the binary embeds the Linker optimization hint command (" RST_CLASS_REF(lief.MachO.LinkerOptHint) ")"_doc)
@@ -416,6 +456,33 @@ void create<Binary>(nb::module_& m) {
     .def_prop_ro("linker_opt_hint",
         nb::overload_cast<>(&Binary::linker_opt_hint),
         "Return the binary's " RST_CLASS_REF(lief.MachO.LinkerOptHint) " if any, or None"_doc,
+        nb::rv_policy::reference_internal)
+
+    .def_prop_ro("has_atom_info",
+        &Binary::has_atom_info,
+        "``True`` if the binary embeds the ``LC_ATOM_INFO`` command (" RST_CLASS_REF(lief.MachO.AtomInfo) ")"_doc)
+
+    .def_prop_ro("atom_info",
+        nb::overload_cast<>(&Binary::atom_info),
+        "Return the binary's " RST_CLASS_REF(lief.MachO.AtomInfo) " if any, or None"_doc,
+        nb::rv_policy::reference_internal)
+
+    .def_prop_ro("has_function_variants",
+        &Binary::has_function_variants,
+        "``True`` if the binary has a ``LC_FUNCTION_VARIANTS`` command"_doc)
+
+    .def_prop_ro("function_variants",
+        nb::overload_cast<>(&Binary::function_variants),
+        "Return ``LC_FUNCTION_VARIANTS`` command"_doc,
+        nb::rv_policy::reference_internal)
+
+    .def_prop_ro("has_function_variant_fixups",
+        &Binary::has_function_variants,
+        "``True`` if the binary has a ``LC_FUNCTION_VARIANT_FIXUPS`` command"_doc)
+
+    .def_prop_ro("function_variant_fixups",
+        nb::overload_cast<>(&Binary::function_variants),
+        "Return ``LC_FUNCTION_VARIANT_FIXUPS`` command"_doc,
         nb::rv_policy::reference_internal)
 
     .def("virtual_address_to_offset",
@@ -465,10 +532,33 @@ void create<Binary>(nb::module_& m) {
         "address"_a)
 
     .def("write",
-        nb::overload_cast<const std::string&>(&Binary::write),
-        "Rebuild the binary and write and write its content if the file given in parameter"_doc,
+        [] (Binary& self, nb::PathLike path) { return self.write(path); },
+        "Rebuild the binary and write its content in the file given in the first parameter"_doc,
         "output"_a,
         nb::rv_policy::reference_internal)
+
+    .def("write",
+        [] (Binary& self, nb::PathLike path, const Builder::config_t& config) {
+          return self.write(path, config);
+        },
+        R"doc(
+        Rebuild the binary and write its content in the file given in the first parameter.
+        The ``config`` parameter can be used to tweak the building process.
+        )doc"_doc,
+        "output"_a, "config"_a,
+        nb::rv_policy::reference_internal)
+
+    .def("write_to_bytes", [] (Binary& bin, const Builder::config_t& config) -> nb::bytes {
+          std::ostringstream out;
+          bin.write(out, config);
+          return nb::to_bytes(out.str());
+        }, "config"_a)
+
+    .def("write_to_bytes", [] (Binary& bin) -> nb::bytes {
+          std::ostringstream out;
+          bin.write(out);
+          return nb::to_bytes(out.str());
+        })
 
     .def("add",
         nb::overload_cast<const DylibCommand&>(&Binary::add),
@@ -579,6 +669,19 @@ void create<Binary>(nb::module_& m) {
         "section"_a,
         nb::rv_policy::reference_internal)
 
+    .def("find_library", nb::overload_cast<const std::string&>(&Binary::find_library),
+      R"doc(
+      Try to find the library with the given library name.
+
+      This function tries to match the fullpath of the :class:`~.DylibCommand` or the
+      library name suffix.
+      )doc"_doc, "name"_a, nb::rv_policy::reference_internal)
+
+    .def("extend_section",
+        nb::overload_cast<Section&, size_t>(&Binary::extend_section),
+        "Extend the **content** of the given " RST_CLASS_REF(lief.MachO.Section) " by ``size``"_doc,
+        "section"_a, "size"_a)
+
     .def("add_library",
         nb::overload_cast<const std::string&>(&Binary::add_library),
         "Add a new library dependency"_doc,
@@ -644,9 +747,33 @@ void create<Binary>(nb::module_& m) {
         "address"_a, "name"_a,
         nb::rv_policy::reference_internal)
 
-    .def_prop_ro("page_size",
-        &Binary::page_size,
-        "Return the binary's page size"_doc)
+    .def_prop_ro("bindings",
+        [] (const Binary& self) {
+          auto bindings = self.bindings();
+          return nb::make_iterator<nb::rv_policy::reference_internal>(
+            nb::type<Binary>(), "bindings_it", bindings
+          );
+        }, nb::keep_alive<0, 1>(),
+        R"doc(
+        Return an iterator over the binding info which can come from either
+        :class:`~.DyldInfo` or :class:`~.DyldChainedFixups` commands.
+        )doc"_doc
+    )
+
+    .def_prop_ro("symbol_stubs",
+        [] (const Binary& self) {
+          auto stubs = self.symbol_stubs();
+          return nb::make_random_access_iterator(nb::type<Binary>(), "stub_iterator", stubs);
+        }, nb::keep_alive<0, 1>(),
+        R"doc(
+        Return an iterator over the symbol stubs.
+
+        These stubs are involved when calling an **imported** function and are
+        similar to the ELF's plt/got mechanism.
+
+        There are located in sections like: ``__stubs,__auth_stubs,__symbol_stub,__picsymbolstub4``
+        )doc"_doc
+    )
 
     .def_prop_ro("has_nx_heap", &Binary::has_nx_heap,
                  R"doc(
@@ -676,6 +803,14 @@ void create<Binary>(nb::module_& m) {
       )doc"_doc
     )
 
+    .def_prop_ro("notes",
+        nb::overload_cast<>(&Binary::notes),
+        "Iterator over the different ``LC_NOTE`` commands"_doc,
+        nb::keep_alive<0, 1>())
+
+    .def_prop_ro("has_notes", &Binary::has_notes,
+      "True if the binary contains ``LC_NOTE`` command(s)")
+
     .def("__getitem__",
         nb::overload_cast<LoadCommand::TYPE>(&Binary::operator[]),
         nb::rv_policy::reference_internal)
@@ -684,10 +819,9 @@ void create<Binary>(nb::module_& m) {
         nb::overload_cast<LoadCommand::TYPE>(&Binary::has, nb::const_))
 
     .def_prop_ro("overlay",
-        [] (const Binary& self) {
-          const span<const uint8_t> overlay = self.overlay();
-          return nb::memoryview::from_memory(overlay.data(), overlay.size());
-        })
+        nb::overload_cast<>(&Binary::overlay, nb::const_))
+
+    .def_prop_ro("available_command_space", &Binary::available_command_space)
 
     LIEF_DEFAULT_STR(Binary);
 }

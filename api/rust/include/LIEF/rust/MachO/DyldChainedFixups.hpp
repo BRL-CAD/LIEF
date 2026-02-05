@@ -1,4 +1,4 @@
-/* Copyright 2024 R. Thomas
+/* Copyright 2024 - 2026 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 #include "LIEF/MachO/DyldChainedFixups.hpp"
 #include "LIEF/rust/MachO/LoadCommand.hpp"
 #include "LIEF/rust/MachO/ChainedBindingInfo.hpp"
+
+#include "LIEF/rust/Span.hpp"
 
 class MachO_DyldChainedFixups : public MachO_Command {
   public:
@@ -43,6 +45,8 @@ class MachO_DyldChainedFixups : public MachO_Command {
   auto imports_format() const { return to_int(impl().imports_format()); }
 
   auto bindings() const { return std::make_unique<it_bindings>(impl()); }
+
+  auto payload() const { return make_span(impl().payload()); }
 
   static bool classof(const MachO_Command& cmd) {
     return lief_t::classof(&cmd.get());

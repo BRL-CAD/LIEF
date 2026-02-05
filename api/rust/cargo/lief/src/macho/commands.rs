@@ -14,18 +14,24 @@ pub mod dylinker;
 pub mod dynamic_symbol_command;
 pub mod encryption_info;
 pub mod functionstarts;
+pub mod function_variants;
+pub mod function_variant_fixups;
+pub mod atom_info;
 pub mod linker_opt_hint;
 pub mod main_cmd;
 pub mod rpath;
+pub mod routine;
 pub mod segment;
 pub mod segment_split_info;
 pub mod source_version;
 pub mod sub_framework;
+pub mod sub_client;
 pub mod symbol_command;
 pub mod thread_command;
 pub mod two_level_hints;
 pub mod uuid;
 pub mod version_min;
+pub mod note;
 pub mod unknown;
 
 #[doc(inline)]
@@ -55,11 +61,19 @@ pub use encryption_info::EncryptionInfo;
 #[doc(inline)]
 pub use functionstarts::FunctionStarts;
 #[doc(inline)]
+pub use function_variants::FunctionVariants;
+#[doc(inline)]
+pub use function_variant_fixups::FunctionVariantFixups;
+#[doc(inline)]
+pub use atom_info::AtomInfo;
+#[doc(inline)]
 pub use linker_opt_hint::LinkerOptHint;
 #[doc(inline)]
 pub use main_cmd::Main;
 #[doc(inline)]
 pub use rpath::RPath;
+#[doc(inline)]
+pub use routine::Routine;
 #[doc(inline)]
 pub use segment::Segment;
 #[doc(inline)]
@@ -68,6 +82,8 @@ pub use segment_split_info::SegmentSplitInfo;
 pub use source_version::SourceVersion;
 #[doc(inline)]
 pub use sub_framework::SubFramework;
+#[doc(inline)]
+pub use sub_client::SubClient;
 #[doc(inline)]
 pub use symbol_command::SymbolCommand;
 #[doc(inline)]
@@ -78,6 +94,8 @@ pub use two_level_hints::TwoLevelHints;
 pub use uuid::UUID;
 #[doc(inline)]
 pub use version_min::VersionMin;
+#[doc(inline)]
+pub use note::Note;
 #[doc(inline)]
 pub use unknown::Unknown;
 
@@ -140,6 +158,10 @@ pub enum LoadCommandTypes {
     VersionMinMacOSX,
     VersionMinTvOS,
     VersionMinWatchOS,
+    AtomInfo,
+    FunctionVariants,
+    FunctionVariantsFixups,
+    TargetTriple,
 
     LiefUnknown,
     Unknown(u64),
@@ -199,6 +221,10 @@ impl LoadCommandTypes {
     const LC_VERSION_MIN_MACOSX: u64 = 0x00000024;
     const LC_VERSION_MIN_TVOS: u64 = 0x0000002F;
     const LC_VERSION_MIN_WATCHOS: u64 = 0x00000030;
+    const LC_ATOM_INFO: u64 = 0x00000036;
+    const LC_FUNCTION_VARIANTS: u64 = 0x00000037;
+    const LC_FUNCTION_VARIANT_FIXUPS: u64 = 0x00000038;
+    const LC_TARGET_TRIPLE: u64 = 0x00000039;
 
     const LIEF_UNKNOWN: u64 = 0xffee0001;
 
@@ -260,6 +286,10 @@ impl LoadCommandTypes {
             LoadCommandTypes::LC_VERSION_MIN_MACOSX => LoadCommandTypes::VersionMinMacOSX,
             LoadCommandTypes::LC_VERSION_MIN_TVOS => LoadCommandTypes::VersionMinTvOS,
             LoadCommandTypes::LC_VERSION_MIN_WATCHOS => LoadCommandTypes::VersionMinWatchOS,
+            LoadCommandTypes::LC_ATOM_INFO => LoadCommandTypes::AtomInfo,
+            LoadCommandTypes::LC_FUNCTION_VARIANTS => LoadCommandTypes::FunctionVariants,
+            LoadCommandTypes::LC_FUNCTION_VARIANT_FIXUPS => LoadCommandTypes::FunctionVariantsFixups,
+            LoadCommandTypes::LC_TARGET_TRIPLE => LoadCommandTypes::TargetTriple,
             LoadCommandTypes::LIEF_UNKNOWN => LoadCommandTypes::LiefUnknown,
             _ => LoadCommandTypes::Unknown(value),
         }
@@ -287,15 +317,21 @@ pub enum Commands<'a> {
     LinkerOptHint(LinkerOptHint<'a>),
     Main(Main<'a>),
     RPath(RPath<'a>),
+    Routine(Routine<'a>),
     Segment(Segment<'a>),
     SegmentSplitInfo(SegmentSplitInfo<'a>),
     SourceVersion(SourceVersion<'a>),
     SubFramework(SubFramework<'a>),
+    SubClient(SubClient<'a>),
     SymbolCommand(SymbolCommand<'a>),
     ThreadCommand(ThreadCommand<'a>),
     TwoLevelHints(TwoLevelHints<'a>),
     UUID(UUID<'a>),
     VersionMin(VersionMin<'a>),
+    AtomInfo(AtomInfo<'a>),
+    Note(Note<'a>),
+    FunctionVariants(FunctionVariants<'a>),
+    FunctionVariantFixups(FunctionVariantFixups<'a>),
     Unknown(Unknown<'a>),
 }
 
@@ -374,6 +410,13 @@ impl<'a> Commands<'a> {
                     std::mem::transmute::<From, To>(ffi_entry)
                 };
                 Commands::RPath(RPath::from_ffi(raw))
+            } else if ffi::MachO_Routine::classof(cmd_ref) {
+                let raw = {
+                    type From = cxx::UniquePtr<ffi::MachO_Command>;
+                    type To = cxx::UniquePtr<ffi::MachO_Routine>;
+                    std::mem::transmute::<From, To>(ffi_entry)
+                };
+                Commands::Routine(Routine::from_ffi(raw))
             } else if ffi::MachO_SymbolCommand::classof(cmd_ref) {
                 let raw = {
                     type From = cxx::UniquePtr<ffi::MachO_Command>;
@@ -430,6 +473,13 @@ impl<'a> Commands<'a> {
                     std::mem::transmute::<From, To>(ffi_entry)
                 };
                 Commands::SubFramework(SubFramework::from_ffi(raw))
+            } else if ffi::MachO_SubClient::classof(cmd_ref) {
+                let raw = {
+                    type From = cxx::UniquePtr<ffi::MachO_Command>;
+                    type To = cxx::UniquePtr<ffi::MachO_SubClient>;
+                    std::mem::transmute::<From, To>(ffi_entry)
+                };
+                Commands::SubClient(SubClient::from_ffi(raw))
             } else if ffi::MachO_DyldEnvironment::classof(cmd_ref) {
                 let raw = {
                     type From = cxx::UniquePtr<ffi::MachO_Command>;
@@ -486,6 +536,34 @@ impl<'a> Commands<'a> {
                     std::mem::transmute::<From, To>(ffi_entry)
                 };
                 Commands::Unknown(Unknown::from_ffi(raw))
+            } else if ffi::MachO_AtomInfo::classof(cmd_ref) {
+                let raw = {
+                    type From = cxx::UniquePtr<ffi::MachO_Command>;
+                    type To = cxx::UniquePtr<ffi::MachO_AtomInfo>;
+                    std::mem::transmute::<From, To>(ffi_entry)
+                };
+                Commands::AtomInfo(AtomInfo::from_ffi(raw))
+            } else if ffi::MachO_NoteCommand::classof(cmd_ref) {
+                let raw = {
+                    type From = cxx::UniquePtr<ffi::MachO_Command>;
+                    type To = cxx::UniquePtr<ffi::MachO_NoteCommand>;
+                    std::mem::transmute::<From, To>(ffi_entry)
+                };
+                Commands::Note(Note::from_ffi(raw))
+            } else if ffi::MachO_FunctionVariants::classof(cmd_ref) {
+                let raw = {
+                    type From = cxx::UniquePtr<ffi::MachO_Command>;
+                    type To = cxx::UniquePtr<ffi::MachO_FunctionVariants>;
+                    std::mem::transmute::<From, To>(ffi_entry)
+                };
+                Commands::FunctionVariants(FunctionVariants::from_ffi(raw))
+            } else if ffi::MachO_FunctionVariantFixups::classof(cmd_ref) {
+                let raw = {
+                    type From = cxx::UniquePtr<ffi::MachO_Command>;
+                    type To = cxx::UniquePtr<ffi::MachO_FunctionVariantFixups>;
+                    std::mem::transmute::<From, To>(ffi_entry)
+                };
+                Commands::FunctionVariantFixups(FunctionVariantFixups::from_ffi(raw))
             } else {
                 Commands::Generic(Generic::from_ffi(ffi_entry))
             }
@@ -518,7 +596,7 @@ pub trait Command {
     #[doc(hidden)]
     fn get_base(&self) -> &ffi::MachO_Command;
 
-    /// Size of the command (should be greather than ``sizeof(load_command)``)
+    /// Size of the command (should be greater than ``sizeof(load_command)``)
     fn size(&self) -> u32 {
         self.get_base().size()
     }
@@ -590,6 +668,9 @@ impl Command for Commands<'_> {
             Commands::Main(cmd) => {
                 cmd.get_base()
             }
+            Commands::Routine(cmd) => {
+                cmd.get_base()
+            }
             Commands::RPath(cmd) => {
                 cmd.get_base()
             }
@@ -605,6 +686,9 @@ impl Command for Commands<'_> {
             Commands::SubFramework(cmd) => {
                 cmd.get_base()
             }
+            Commands::SubClient(cmd) => {
+                cmd.get_base()
+            }
             Commands::SymbolCommand(cmd) => {
                 cmd.get_base()
             }
@@ -618,6 +702,18 @@ impl Command for Commands<'_> {
                 cmd.get_base()
             }
             Commands::VersionMin(cmd) => {
+                cmd.get_base()
+            }
+            Commands::AtomInfo(cmd) => {
+                cmd.get_base()
+            }
+            Commands::Note(cmd) => {
+                cmd.get_base()
+            }
+            Commands::FunctionVariants(cmd) => {
+                cmd.get_base()
+            }
+            Commands::FunctionVariantFixups(cmd) => {
                 cmd.get_base()
             }
             Commands::Unknown(cmd) => {
