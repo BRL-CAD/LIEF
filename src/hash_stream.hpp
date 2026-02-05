@@ -23,8 +23,6 @@
 
 #include "LIEF/span.hpp"
 
-#include "LIEF/span.hpp"
-
 namespace LIEF {
 class hashstream {
   public:
