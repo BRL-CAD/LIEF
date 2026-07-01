@@ -97,19 +97,19 @@ impl ExportInfo<'_> {
     }
 
     /// Symbol associated with this export
-    pub fn symbol(&self) -> Option<Symbol<'_>> {
+    pub fn symbol(&self) -> Option<Symbol> {
         into_optional(self.ptr.symbol())
     }
 
     /// If the export is a re-export ([`Flags::REEXPORT`]) this function returns
     /// the symbol being re-exported
-    pub fn alias(&self) -> Option<Symbol<'_>> {
+    pub fn alias(&self) -> Option<Symbol> {
         into_optional(self.ptr.alias())
     }
 
     /// If the export is a re-export ([`Flags::REEXPORT`]) this function returns
     /// the library from which the symbol is re-exported
-    pub fn alias_library(&self) -> Option<Dylib<'_>> {
+    pub fn alias_library(&self) -> Option<Dylib> {
         into_optional(self.ptr.alias_library())
     }
 }

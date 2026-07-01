@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,8 +175,9 @@ class LIEF_API Section : public LIEF::Section {
   /// Whether there is a large number of relocations whose number need
   /// to be stored in the virtual address attribute
   bool has_extended_relocations() const {
+    static constexpr auto MAX_RELOC = /*uint16_t::max*/65535;
     return has_characteristic(CHARACTERISTICS::LNK_NRELOC_OVFL) &&
-           numberof_relocations() == std::numeric_limits<uint16_t>::max();
+           numberof_relocations() == MAX_RELOC;
   }
 
   void content(const std::vector<uint8_t>& data) override {
@@ -217,18 +218,6 @@ class LIEF_API Section : public LIEF::Section {
     characteristics_ = characteristics;
   }
 
-  /// Return the COFF string associated with the section's name (or a nullptr)
-  ///
-  /// This coff string is usually present for long section names whose length
-  /// does not fit in the 8 bytes allocated by the COFF format.
-  String* coff_string() {
-    return coff_string_;
-  }
-
-  const String* coff_string() const {
-    return coff_string_;
-  }
-
   std::string to_string() const;
 
   LIEF_API friend std::ostream& operator<<(std::ostream& os, const Section& sec) {
@@ -251,8 +240,6 @@ class LIEF_API Section : public LIEF::Section {
 
   relocations_t relocations_;
   symbols_t symbols_;
-
-  String* coff_string_ = nullptr;
 };
 
 inline const char* to_string(Section::CHARACTERISTICS e) {

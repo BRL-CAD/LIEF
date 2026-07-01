@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,4 @@ public class Variable extends lief.Base {
     public native Variable setExternal();
 
     public native Variable setType(Type ty);
-
-    public native Variable addDescription(String desc);
 };

@@ -63,7 +63,7 @@ impl RuntimeFunction<'_> {
     }
 
     /// Detailed unwind information
-    pub fn unwind_info(&self) -> Option<UnwindInfo<'_>> {
+    pub fn unwind_info(&self) -> Option<UnwindInfo> {
         into_optional(self.ptr.unwind_info())
     }
 }
@@ -333,7 +333,7 @@ impl UnwindInfo<'_> {
     }
 
     /// Iterator over the unwind code which outputs [`Opcodes`]
-    pub fn opcodes(&self) -> OpcodesIterator<'_> {
+    pub fn opcodes(&self) -> OpcodesIterator {
         OpcodesIterator::new(self.ptr.opcodes())
     }
 
@@ -347,7 +347,7 @@ impl UnwindInfo<'_> {
 
     /// If [`UnwindFlags::CHAIN_INFO`] is set, this attributes references the
     /// chained runtime function.
-    pub fn chained(&self) -> Option<RuntimeFunction<'_>> {
+    pub fn chained(&self) -> Option<RuntimeFunction> {
         into_optional(self.ptr.chained())
     }
 }

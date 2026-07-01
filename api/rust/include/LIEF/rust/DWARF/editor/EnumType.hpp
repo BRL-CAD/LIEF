@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,10 +36,6 @@ class DWARF_editor_EnumType : public DWARF_editor_Type {
     return details::try_unique<DWARF_editor_EnumType_Value>(
       impl().add_value(name, value)
     );
-  }
-
-  auto set_underlying_type(const DWARF_editor_Type& ty) {
-    impl().set_underlying_type(ty.get());
   }
 
   static bool classof(const DWARF_editor_Type& type) {

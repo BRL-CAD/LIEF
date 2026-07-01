@@ -23,7 +23,7 @@ impl FromFFI<ffi::PDB_types_Modifier> for Modifier<'_> {
 
 impl Modifier<'_> {
     /// Underlying type targeted by this modifier
-    pub fn underlying_type(&self) -> Option<Type<'_>> {
+    pub fn underlying_type(&self) -> Option<Type> {
         into_optional(self.ptr.underlying_type())
     }
 }

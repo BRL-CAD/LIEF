@@ -1,4 +1,4 @@
-/* Copyright 2021 - 2026 R. Thomas
+/* Copyright 2021 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -958,11 +958,13 @@ class LIEF_LOCAL ExeLayout : public Layout {
       binary_->remove(*string_names_section, /* clear */ true);
       Section sec_str_section(sec_name, Section::TYPE::STRTAB);
       sec_str_section.content(std::vector<uint8_t>(raw_shstrtab_.size()));
-      binary_->add(sec_str_section, /*loaded=*/false,
-                   /*pos=*/Binary::SEC_INSERT_POS::POST_SECTION);
-
-      // Default behavior: push_back => index = binary_->sections_.size() - 1
-      hdr.section_name_table_idx(binary_->sections_.size() - 1);
+      Section* sec = binary_->add(sec_str_section, /*loaded=*/false,
+                                  /*pos=*/Binary::SEC_INSERT_POS::POST_SECTION);
+      if (sec != nullptr) {
+        if (auto idx = binary_->get_section_idx(*sec)) {
+          hdr.section_name_table_idx(*idx);
+        }
+      }
     }
 
     for (std::unique_ptr<Relocation>& reloc : binary_->relocations_) {
@@ -1275,7 +1277,10 @@ class LIEF_LOCAL ExeLayout : public Layout {
     if (relocate_relr_) {
       DynamicEntry* dt_relr = binary_->get(DynamicEntry::TAG::RELR);
       if (dt_relr == nullptr) {
-        LIEF_ERR("Can't find DT_RELR");
+        dt_relr = binary_->get(DynamicEntry::TAG::ANDROID_RELR);
+      }
+      if (dt_relr == nullptr) {
+        LIEF_ERR("Can't find DT_RELR/DT_ANDROID_RELR");
         return make_error_code(lief_errors::file_format_error);
       }
 

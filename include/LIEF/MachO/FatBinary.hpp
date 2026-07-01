@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,13 +34,14 @@ class Binary;
 /// Class which represent a Mach-O (fat) binary
 /// This object is also used for representing Mach-O binaries that are **NOT FAT**
 class LIEF_API FatBinary {
+
   friend class LIEF::Parser;
   friend class Parser;
   friend class Builder;
 
   public:
 
-  /// Internal container used to store Binary objects within a Fat Mach-O
+  /// Internal containter used to store Binary objects within a Fat Mach-O
   using binaries_t = std::vector<std::unique_ptr<Binary>>;
 
   /// Iterator that outputs Binary&
@@ -79,11 +80,7 @@ class LIEF_API FatBinary {
     return it_const_binaries(binaries_).end();
   }
 
-  void release_all_binaries() {
-    for (auto& bin : binaries_) {
-      bin.release(); // NOLINT(bugprone-unused-return-value)
-    }
-  }
+  void release_all_binaries();
 
   /// Get a pointer to the last MachO::Binary object presents in this Fat Binary.
   /// It returns a nullptr if no binary are present.
@@ -91,31 +88,14 @@ class LIEF_API FatBinary {
 
   /// Get a pointer to the MachO::Binary specified by the ``index``.
   /// It returns a nullptr if the binary does not exist at the given index.
-  Binary* at(size_t index) {
-    return const_cast<Binary*>(static_cast<const FatBinary*>(this)->at(index));
-  }
+  Binary*       at(size_t index);
+  const Binary* at(size_t index) const;
 
-  const Binary* at(size_t index) const {
-    if (index >= size()) {
-      return nullptr;
-    }
-    return binaries_[index].get();
-  }
+  Binary*       back();
+  const Binary* back() const;
 
-  Binary* back() {
-    return const_cast<Binary*>(static_cast<const FatBinary*>(this)->back());
-  }
-  const Binary* back() const {
-    return binaries_.empty() ? nullptr : binaries_.back().get();
-  }
-
-  Binary* front() {
-    return const_cast<Binary*>(static_cast<const FatBinary*>(this)->front());
-  }
-
-  const Binary* front() const {
-    return binaries_.empty() ? nullptr : binaries_.front().get();
-  }
+  Binary*       front();
+  const Binary* front() const;
 
   Binary* operator[](size_t index) {
     return at(index);
@@ -140,21 +120,6 @@ class LIEF_API FatBinary {
 
   /// Reconstruct the Fat binary object and return his content as bytes
   std::vector<uint8_t> raw();
-
-  Binary* get(Header::CPU_TYPE cpu) {
-    return const_cast<Binary*>(static_cast<const FatBinary*>(this)->get(cpu));
-  }
-
-  /// Gets a pointer to the MachO::Binary that matches the given architecture
-  const Binary* get(Header::CPU_TYPE cpu) const;
-
-  Binary* operator[](Header::CPU_TYPE cpu) {
-    return get(cpu);
-  }
-
-  const Binary* operator[](Header::CPU_TYPE cpu) const {
-    return get(cpu);
-  }
 
   LIEF_API friend std::ostream& operator<<(std::ostream& os, const FatBinary& fatbinary);
 

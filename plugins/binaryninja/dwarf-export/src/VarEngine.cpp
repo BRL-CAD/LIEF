@@ -1,4 +1,4 @@
-/* Copyright 2025 - 2026 R. Thomas
+/* Copyright 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ dw::Variable* VarEngine::add_variable(const bn::DataVariable& var) {
     return it->second.get();
   }
 
-
   std::string name = fmt::format("data_{:04x}", var.address);
   bool is_external = false;
   if (bn::Ref<bn::Symbol> sym = bv_.GetSymbolByAddress(var.address)) {
@@ -55,13 +54,7 @@ dw::Variable* VarEngine::add_variable(const bn::DataVariable& var) {
   std::unique_ptr<dw::Variable> dw_var = unit_.create_variable(name);
 
   dw_var->set_addr(var.address);
-  dw_var->set_type(types_.add_type(api_compat::get_type(var.type)));
-
-
-  std::string comment = bv_.GetCommentForAddress(var.address);
-  if (!comment.empty()) {
-    dw_var->add_description(comment);
-  }
+  dw_var->set_type(types_.add_type(var.type->GetTypeName(), api_compat::get_type(var.type)));
 
   if (is_external) {
     dw_var->set_external();

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -246,7 +246,7 @@ class LIEF_API Binary : public LIEF::Binary {
 
   /// Compute the binary's virtual size.
   /// It should match OptionalHeader::sizeof_image
-  uint64_t virtual_size() const override;
+  uint64_t virtual_size() const;
 
   /// Compute the size of all the headers
   uint32_t sizeof_headers() const;

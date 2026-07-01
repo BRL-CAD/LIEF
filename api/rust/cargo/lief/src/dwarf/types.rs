@@ -486,7 +486,7 @@ pub trait DwarfType {
     }
 
     /// The scope in which this function is defined
-    fn scope(&self) -> Option<Scope<'_>> {
+    fn scope(&self) -> Option<Scope> {
         into_optional(self.get_base().scope())
     }
 }

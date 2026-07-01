@@ -1,4 +1,4 @@
-/* Copyright 2025 - 2026 R. Thomas
+/* Copyright 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 #include "log.hpp"
-#include "binaryninja/analysis/Analyzer.hpp"
+#include "Analyzer.hpp"
 
-#include "binaryninja/analysis/PE/Analyzer.hpp"
-#include "binaryninja/analysis/ELF/Analyzer.hpp"
-#include "binaryninja/analysis/MachO/Analyzer.hpp"
-#include "binaryninja/analysis/COFF/Analyzer.hpp"
-#include "binaryninja/analysis/DSC/Analyzer.hpp"
+#include "PE/Analyzer.hpp"
+#include "ELF/Analyzer.hpp"
+#include "MachO/Analyzer.hpp"
+#include "COFF/Analyzer.hpp"
+#include "DSC/Analyzer.hpp"
 
 #include "binaryninja/lief_utils.hpp"
 

@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,29 +17,6 @@
 #include "LIEF/rust/Mirror.hpp"
 #include "LIEF/rust/DWARF/Type.hpp"
 
-class DWARF_Parameter_Location : public Mirror<LIEF::dwarf::Parameter::Location> {
-  public:
-  using Mirror::Mirror;
-  using lief_t = LIEF::dwarf::Parameter::Location;
-
-  auto get_type() const { return to_int(get().type); }
-};
-
-class DWARF_Parameter_RegisterLocation : public Mirror<LIEF::dwarf::Parameter::RegisterLoc> {
-  public:
-  using Mirror::Mirror;
-  using lief_t = LIEF::dwarf::Parameter::RegisterLoc;
-
-  auto id() const { return impl().id; }
-
-  static bool classof(const DWARF_Parameter_Location& loc) {
-    return lief_t::classof(&loc.get());
-  }
-
-  private:
-  const lief_t& impl() const { return as<lief_t>(this); }
-};
-
 class DWARF_Parameter : public Mirror<LIEF::dwarf::Parameter> {
   public:
   using Mirror::Mirror;
@@ -49,10 +26,6 @@ class DWARF_Parameter : public Mirror<LIEF::dwarf::Parameter> {
 
   auto get_type() const {
     return details::try_unique<DWARF_Type>(get().type()); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
-  }
-
-  auto location() const {
-    return details::try_unique<DWARF_Parameter_Location>(get().location());
   }
 };
 

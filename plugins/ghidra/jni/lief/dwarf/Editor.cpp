@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@
 
 #include "jni/log.hpp"
 #include "jni/jni_utils.hpp"
-#include "jni/java/lang/Enum.hpp"
 
 namespace lief_jni::dwarf {
 
@@ -50,28 +49,12 @@ jobject Editor::jni_for_binary(JNIEnv* env, jclass clazz, jobject bin) {
   );
 }
 
-jobject Editor::jni_create(JNIEnv* env, jclass clazz, jobject fmt, jobject arch) {
-  java::lang::Enum<Editor::Format> jfmt = fmt;
-  java::lang::Enum<Editor::Arch> jarch = arch;
-  return Editor::create(
-    LIEF::dwarf::Editor::create(
-      jfmt.as<LIEF::dwarf::Editor::FORMAT>(),
-      jarch.as<LIEF::dwarf::Editor::ARCH>()
-    )
-  );
-}
-
 int Editor::register_natives(JNIEnv* env) {
-  static const std::array NATIVE_METHODS {
+  static constexpr std::array NATIVE_METHODS {
     make(
       "forBinary",
       "(Llief/generic/Binary;)Llief/dwarf/Editor;",
       &jni_for_binary
-    ),
-    make(
-      "create",
-      "(Llief/dwarf/Editor$Format;Llief/dwarf/Editor$Arch;)Llief/dwarf/Editor;",
-      &jni_create
     ),
     make(
       "createCompilationUnit",

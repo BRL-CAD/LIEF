@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ class UUIDCommand;
 class VersionMin;
 
 /// Class which represents a MachO binary
-class LIEF_API Binary : public LIEF::Binary {
+class LIEF_API Binary : public LIEF::Binary  {
 
   friend class Parser;
   friend class BinaryParser;
@@ -448,7 +448,7 @@ class LIEF_API Binary : public LIEF::Binary {
   uint64_t imagebase() const override;
 
   /// Size of the binary in memory when mapped by the loader (`dyld`)
-  uint64_t virtual_size() const override {
+  uint64_t virtual_size() const {
     return align(va_ranges().size(), (uint64_t)page_size());
   }
 

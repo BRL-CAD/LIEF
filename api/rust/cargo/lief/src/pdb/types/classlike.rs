@@ -30,13 +30,13 @@ pub trait ClassLike {
 
     /// Iterator over the different [`crate::pdb::types::Attribute`] defined in this
     /// class-like type
-    fn attributes(&self) -> Attributes<'_> {
+    fn attributes(&self) -> Attributes {
         Attributes::new(self.get_classlike().attributes())
     }
 
     /// Iterator over the different [`crate::pdb::types::Method`] implemented in this
     /// class-like type
-    fn methods(&self) -> Methods<'_> {
+    fn methods(&self) -> Methods {
         Methods::new(self.get_classlike().methods())
     }
 }

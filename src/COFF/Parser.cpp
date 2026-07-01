@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,16 +134,6 @@ ok_error_t Parser::parse_sections() {
       assert(it->symbol != nullptr);
       it->symbol->section_ = sec.get();
       sec->symbols_.push_back(it->symbol);
-    }
-
-    if (const std::string& name = sec->name();
-        name.size() > 1 && name[0] == '/')
-    {
-      char* endptr = nullptr;
-      uint32_t offset = std::strtol(name.c_str() + 1, &endptr, /*base=*/10);
-      if (String* coff_str = bin_->find_string(offset)) {
-        sec->coff_string_ = coff_str;
-      }
     }
 
     bin_->sections_.push_back(std::move(sec));

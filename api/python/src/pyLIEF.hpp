@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,10 +56,5 @@ namespace nb = nanobind;
 extern nb::module_* lief_mod;
 
 using namespace nb::literals;
-
-namespace LIEF::py {
-template<class T>
-void create(nb::module_&);
-}
 
 #endif

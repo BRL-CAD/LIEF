@@ -175,15 +175,3 @@ def test_addr():
 
     insts = list(main.instructions)
     assert len(insts) == 79
-
-
-def test_issue_1259():
-    elf = lief.ELF.parse(get_sample("DWARF/issue-1259"))
-
-    dbg_info: lief.dwarf.DebugInfo = elf.debug_info
-    assert isinstance(dbg_info, lief.dwarf.DebugInfo)
-
-    ty = dbg_info.find_variable("my_bitfield").type
-    assert [m.bit_offset for m in ty.members] == [7, 4, 0]
-
-    assert [m.bit_size for m in ty.members] == [1, 2, 4]

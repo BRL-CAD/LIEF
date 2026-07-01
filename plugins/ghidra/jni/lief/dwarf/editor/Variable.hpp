@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,12 +59,6 @@ class Variable : public JNI<
     from_jni(thiz)->impl().set_type(
       Type::from_jni(type)->impl()
     );
-    return thiz;
-  }
-
-  static jobject jni_add_description(JNIEnv* env, jobject thiz, jstring desc) {
-    jni::LocalString jdesc = desc;
-    from_jni(thiz)->impl().add_description(std::string(jdesc.Pin().ToString()));
     return thiz;
   }
 };

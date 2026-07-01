@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ ok_error_t Binary::patch_relocation(Relocation& relocation, uint64_t from, uint6
   }
 
   auto* ptr_value = reinterpret_cast<T*>(segment_content.data() + relative_offset);
-  if (*ptr_value >= from && is_valid_addr(*ptr_value)) {
+  if (*ptr_value >= from) {
     *ptr_value += shift;
   }
   return ok();

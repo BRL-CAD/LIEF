@@ -90,12 +90,12 @@ impl TLS<'_> {
     }
 
     /// The section where the TLS structure is located
-    pub fn section(&self) -> Option<Section<'_>> {
+    pub fn section(&self) -> Option<Section> {
         into_optional(self.ptr.section())
     }
 
     /// The data directory describing the TLS
-    pub fn directory(&self) -> Option<DataDirectory<'_>> {
+    pub fn directory(&self) -> Option<DataDirectory> {
         into_optional(self.ptr.data_directory())
     }
 

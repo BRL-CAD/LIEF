@@ -29,17 +29,17 @@ pub trait AsGeneric {
     fn as_generic(&self) -> &ffi::MachO_BindingInfo;
 
     /// Library associated with the binding (if any)
-    fn library(&self) -> Option<Dylib<'_>> {
+    fn library(&self) -> Option<Dylib> {
         into_optional(self.as_generic().library())
     }
 
     /// Symbol associated with the binding (if any)
-    fn symbol(&self) -> Option<Symbol<'_>> {
+    fn symbol(&self) -> Option<Symbol> {
         into_optional(self.as_generic().symbol())
     }
 
     /// Segment associated with the binding (if any)
-    fn segment(&self) -> Option<Segment<'_>> {
+    fn segment(&self) -> Option<Segment> {
         into_optional(self.as_generic().segment())
     }
 

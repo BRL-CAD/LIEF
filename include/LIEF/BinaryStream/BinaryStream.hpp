@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,12 +176,8 @@ class LIEF_API BinaryStream {
     return pos_;
   }
 
-  bool is_valid() const {
-    return pos_ < size();
-  }
-
   operator bool() const {
-    return is_valid();
+    return pos_ < size();
   }
 
   template<class T>

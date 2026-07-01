@@ -93,7 +93,7 @@ pub trait AsDynamicRelocation {
 
     /// Return fixups information, where the interpretation may depend on the
     /// [`AsDynamicRelocation::symbol`]
-    fn fixups(&self) -> Option<DynamicFixup<'_>> {
+    fn fixups(&self) -> Option<DynamicFixup> {
         into_optional(self.as_generic().fixups())
     }
 }

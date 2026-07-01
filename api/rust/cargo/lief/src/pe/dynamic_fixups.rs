@@ -159,7 +159,7 @@ impl std::fmt::Display for Generic<'_> {
 
 impl Generic<'_> {
     /// Iterator over the (regular) relocations
-    pub fn relocations(&self) -> GenericRelocations<'_> {
+    pub fn relocations(&self) -> GenericRelocations {
         GenericRelocations::new(self.ptr.relocations())
     }
 }
@@ -202,7 +202,7 @@ impl std::fmt::Display for Arm64X<'_> {
 
 impl Arm64X<'_> {
     /// Iterator over the relocations
-    pub fn relocations(&self) -> Arm64XRelocEntries<'_> {
+    pub fn relocations(&self) -> Arm64XRelocEntries {
         Arm64XRelocEntries::new(self.ptr.relocations())
     }
 }
@@ -313,22 +313,22 @@ impl std::fmt::Display for FunctionOverride<'_> {
 
 impl FunctionOverride<'_> {
     /// Iterator over the overriding info
-    pub fn func_overriding_info(&self) -> ItFuncOverrideInfo<'_> {
+    pub fn func_overriding_info(&self) -> ItFuncOverrideInfo {
         ItFuncOverrideInfo::new(self.ptr.func_overriding_info())
     }
 
     /// Find the `IMAGE_BDD_INFO` associated with the given info
-    pub fn bdd_info(&self) -> ItImageBddInfo<'_> {
+    pub fn bdd_info(&self) -> ItImageBddInfo {
         ItImageBddInfo::new(self.ptr.bdd_info())
     }
 
     /// Find the `IMAGE_BDD_INFO` at the given offset
-    pub fn bdd_info_at(&self, offset: u32) -> Option<ImageBddInfo<'_>> {
+    pub fn bdd_info_at(&self, offset: u32) -> Option<ImageBddInfo> {
         into_optional(self.ptr.bdd_info_at(offset))
     }
 
     /// Find the `IMAGE_BDD_INFO` associated with the given info
-    pub fn bdd_info_for(&self, info: &FunctionOverrideInfo) -> Option<ImageBddInfo<'_>> {
+    pub fn bdd_info_for(&self, info: &FunctionOverrideInfo) -> Option<ImageBddInfo> {
         into_optional(self.ptr.bdd_info_for(info.ptr.as_ref().unwrap()))
     }
 }
@@ -396,7 +396,7 @@ impl ImageBddInfo<'_> {
     }
 
     /// If [`ImageBddInfo::version`] is not 1
-    pub fn relocations(&self) -> ImageBddDynRelocations<'_> {
+    pub fn relocations(&self) -> ImageBddDynRelocations {
         ImageBddDynRelocations::new(self.ptr.relocations())
     }
 }
@@ -440,7 +440,7 @@ impl FunctionOverrideInfo<'_> {
         Vec::from(self.ptr.functions_rva().as_slice())
     }
 
-    pub fn relocations(&self) -> FuncOverrideRelocations<'_> {
+    pub fn relocations(&self) -> FuncOverrideRelocations {
         FuncOverrideRelocations::new(self.ptr.relocations())
     }
 }
@@ -482,7 +482,7 @@ impl std::fmt::Display for ARM64Kernel<'_> {
 
 impl ARM64Kernel<'_> {
     /// Iterator over the different relocations
-    pub fn relocations(&self) -> ARM64KernelEntries<'_> {
+    pub fn relocations(&self) -> ARM64KernelEntries {
         ARM64KernelEntries::new(self.ptr.relocations())
     }
 }
@@ -563,7 +563,7 @@ impl std::fmt::Display for ControlTransfer<'_> {
 
 impl ControlTransfer<'_> {
     /// Iterator over the relocations
-    pub fn relocations(&self) -> ControlTransferEntries<'_> {
+    pub fn relocations(&self) -> ControlTransferEntries {
         ControlTransferEntries::new(self.ptr.relocations())
     }
 }

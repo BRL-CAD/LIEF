@@ -46,7 +46,7 @@ impl FunctionVariants<'_> {
 
     /// Iterator over the different [`RuntimeTable`] entries located in the content
     /// of this `__LINKEDIT` command
-    pub fn runtime_table(&self) -> RuntimeTables<'_> {
+    pub fn runtime_table(&self) -> RuntimeTables {
         RuntimeTables::new(self.ptr.runtime_table())
     }
 }
@@ -108,7 +108,7 @@ impl RuntimeTable<'_> {
     }
 
     /// Iterator over the different [`RuntimeTableEntry`] entries
-    pub fn entries(&self) -> RuntimeTableEntries<'_> {
+    pub fn entries(&self) -> RuntimeTableEntries {
         RuntimeTableEntries::new(self.ptr.entries())
     }
 }

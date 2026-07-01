@@ -41,7 +41,7 @@ impl<'a> RichHeader<'a> {
     }
 
     /// Return an iterator over the [`RichEntry`] within the header
-    pub fn entries(&self) -> Entries<'_> {
+    pub fn entries(&self) -> Entries {
         Entries::new(self.ptr.entries())
     }
 }

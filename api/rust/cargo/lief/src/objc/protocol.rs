@@ -28,17 +28,17 @@ impl Protocol<'_> {
     }
 
     /// Iterator over the methods that could be overridden
-    pub fn optional_methods(&self) -> OptionalMethods<'_> {
+    pub fn optional_methods(&self) -> OptionalMethods {
         OptionalMethods::new(self.ptr.optional_methods())
     }
 
     /// Iterator over the methods of this protocol that must be implemented
-    pub fn required_methods(&self) -> RequiredMethods<'_> {
+    pub fn required_methods(&self) -> RequiredMethods {
         RequiredMethods::new(self.ptr.required_methods())
     }
 
     /// Iterator over the properties defined in this protocol
-    pub fn properties(&self) -> Properties<'_> {
+    pub fn properties(&self) -> Properties {
         Properties::new(self.ptr.properties())
     }
 

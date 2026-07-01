@@ -32,7 +32,7 @@ impl Class<'_> {
     }
 
     /// Parent class in case of inheritance
-    pub fn super_class(&self) -> Option<Class<'_>> {
+    pub fn super_class(&self) -> Option<Class> {
         into_optional(self.ptr.super_class())
     }
 
@@ -41,22 +41,22 @@ impl Class<'_> {
     }
 
     /// Iterator over the different [`Method`] defined by this class
-    pub fn methods(&self) -> Methods<'_> {
+    pub fn methods(&self) -> Methods {
         Methods::new(self.ptr.methods())
     }
 
     /// Iterator over the different [`Protocol`] implemented by this class
-    pub fn protocols(&self) -> Protocols<'_> {
+    pub fn protocols(&self) -> Protocols {
         Protocols::new(self.ptr.protocols())
     }
 
     /// Iterator over the [`Property`] of this class
-    pub fn properties(&self) -> Properties<'_> {
+    pub fn properties(&self) -> Properties {
         Properties::new(self.ptr.properties())
     }
 
     /// Iterator over the different instance variables ([`IVar`]) defined in this class
-    pub fn ivars(&self) -> IVars<'_> {
+    pub fn ivars(&self) -> IVars {
         IVars::new(self.ptr.ivars())
     }
 

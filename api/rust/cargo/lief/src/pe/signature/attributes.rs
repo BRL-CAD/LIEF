@@ -249,7 +249,7 @@ impl<'a> FromFFI<ffi::PE_MsSpcNestedSignature> for MsSpcNestedSignature<'a> {
 
 impl MsSpcNestedSignature<'_> {
     /// Underlying Signature object
-    pub fn signature(&self) -> Signature<'_> {
+    pub fn signature(&self) -> Signature {
         Signature::from_ffi(self.ptr.sig())
     }
 }
@@ -371,7 +371,7 @@ impl<'a> FromFFI<ffi::PE_PKCS9CounterSignature> for PKCS9CounterSignature<'a> {
 
 impl PKCS9CounterSignature<'_> {
     /// SignerInfo as described in the RFC #2985
-    pub fn signer(&self) -> SignerInfo<'_> {
+    pub fn signer(&self) -> SignerInfo {
         SignerInfo::from_ffi(self.ptr.signer())
     }
 }

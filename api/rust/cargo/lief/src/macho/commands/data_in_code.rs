@@ -31,7 +31,7 @@ impl DataInCode<'_> {
     }
 
     /// Iterator over the [`DataCodeEntry`]
-    pub fn entries(&self) -> Entries<'_> {
+    pub fn entries(&self) -> Entries {
         Entries::new(self.ptr.entries())
     }
 }

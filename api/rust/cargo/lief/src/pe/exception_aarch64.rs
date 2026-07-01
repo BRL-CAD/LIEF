@@ -203,7 +203,7 @@ impl Unpacked<'_> {
     }
 
     /// Iterator over the epilog scopes
-    pub fn epilog_scopes(&self) -> EpilogScopes<'_> {
+    pub fn epilog_scopes(&self) -> EpilogScopes {
         EpilogScopes::new(self.ptr.epilog_scopes())
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2025 - 2026 R. Thomas
+/* Copyright 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,17 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "binaryninja/analysis/ELF/Analyzer.hpp"
+#include "Analyzer.hpp"
 #include "log.hpp"
-#include "binaryninja/analysis/ELF/TypeBuilder.hpp"
+#include "TypeBuilder.hpp"
 
 #include <binaryninja/binaryninjaapi.h>
 #include <binaryninja/binaryninjacore.h>
 
-#include "binaryninja/analysis/ELF/analyzers/AndroidPackedRelocations.hpp"
-#include "binaryninja/analysis/ELF/analyzers/Relocations.hpp"
-#include "binaryninja/analysis/ELF/analyzers/RelativeRelocations.hpp"
-#include "binaryninja/analysis/ELF/analyzers/AndroidJNI.hpp"
+#include "analyzers/AndroidPackedRelocations.hpp"
+#include "analyzers/Relocations.hpp"
+#include "analyzers/RelativeRelocations.hpp"
 
 using namespace LIEF;
 
@@ -34,19 +33,21 @@ Analyzer::Analyzer(std::unique_ptr<LIEF::ELF::Binary> impl, BinaryNinja::BinaryV
   using namespace analyzers;
 
   if (Relocations::can_run(*bv_, *elf_)) {
-    analyzers_.push_back(instantiate<Relocations>());
+    analyzers_.push_back(std::make_unique<Relocations>(
+      *bv_, *elf_, static_cast<elf::TypeBuilder&>(*type_builder_)
+    ));
   }
 
   if (AndroidPackedRelocations::can_run(*bv_, *elf_)) {
-    analyzers_.push_back(instantiate<AndroidPackedRelocations>());
+    analyzers_.push_back(std::make_unique<AndroidPackedRelocations>(
+      *bv_, *elf_, static_cast<elf::TypeBuilder&>(*type_builder_)
+    ));
   }
 
   if (RelativeRelocations::can_run(*bv_, *elf_)) {
-    analyzers_.push_back(instantiate<RelativeRelocations>());
-  }
-
-  if (AndroidJNI::can_run(*bv_, *elf_)) {
-    analyzers_.push_back(instantiate<AndroidJNI>());
+    analyzers_.push_back(std::make_unique<RelativeRelocations>(
+      *bv_, *elf_, static_cast<elf::TypeBuilder&>(*type_builder_)
+    ));
   }
 }
 

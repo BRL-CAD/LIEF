@@ -1,10 +1,7 @@
 use super::binary::Binary;
 use lief_ffi as ffi;
 
-use crate::{
-    common::{into_optional, FromFFI},
-    macho::header::CpuType,
-};
+use crate::common::FromFFI;
 use std::path::Path;
 
 /// This structure represents a FAT Mach-O
@@ -46,13 +43,8 @@ impl FatBinary {
         Some(FatBinary::from_ffi(ffi))
     }
 
-    /// Gets the [`Binary`] that matches the given architecture
-    pub fn with_cpu(&self, cpu: CpuType) -> Option<Binary> {
-        into_optional(self.ptr.binary_from_arch(cpu.into()))
-    }
-
     /// Iterator over the [`crate::macho::Binary`]
-    pub fn iter(&self) -> FatBinaryIterator<'_> {
+    pub fn iter(&self) -> FatBinaryIterator {
         FatBinaryIterator {
             index: 0,
             fat: self,

@@ -1,7 +1,6 @@
 use lief_ffi as ffi;
 
 use super::variable::Variables;
-use super::lexical_block::LexicalBlock;
 use super::{Scope, Type, Parameters};
 use crate::common::{into_optional, into_ranges, FromFFI};
 use crate::declare_fwd_iterator;
@@ -50,7 +49,7 @@ impl Function<'_> {
     /// Return an iterator of variables (`DW_TAG_variable`) defined within the
     /// scope of this function. This includes regular stack-based variables as
     /// well as static ones.
-    pub fn variables(&self) -> Variables<'_> {
+    pub fn variables(&self) -> Variables {
         Variables::new(self.ptr.variables())
     }
 
@@ -81,12 +80,12 @@ impl Function<'_> {
     }
 
     /// Return the [`Type`] associated with the **return type** of this function.
-    pub fn return_type(&self) -> Option<Type<'_>> {
+    pub fn return_type(&self) -> Option<Type> {
         into_optional(self.ptr.get_type())
     }
 
     /// Return an iterator over the [`Parameters`] of this function
-    pub fn parameters(&self) -> ParametersIt<'_> {
+    pub fn parameters(&self) -> ParametersIt {
         ParametersIt::new(self.ptr.parameters())
     }
 
@@ -102,29 +101,19 @@ impl Function<'_> {
     ///
     /// [`Function::thrown_types`] returns one element associated with the [`Type`]:
     /// `StatisticsError`.
-    pub fn thrown_types(&self) -> ThrownTypes<'_> {
+    pub fn thrown_types(&self) -> ThrownTypes {
         ThrownTypes::new(self.ptr.thrown_types())
     }
 
     /// The scope in which this function is defined
-    pub fn scope(&self) -> Option<Scope<'_>> {
+    pub fn scope(&self) -> Option<Scope> {
         into_optional(self.ptr.scope())
     }
 
     /// Disassemble the current function by returning an iterator over
     /// the [`assembly::Instructions`]
-    pub fn instructions(&self) -> Instructions<'_> {
+    pub fn instructions(&self) -> Instructions {
         Instructions::new(self.ptr.instructions())
-    }
-
-    /// Description (`DW_AT_description`) of this function or an empty string
-    pub fn description(&self) -> String {
-        self.ptr.description().to_string()
-    }
-
-    /// Iterator over the [`crate::dwarf::LexicalBlock`] owned by this function
-    pub fn lexical_blocks(&self) -> LexicalBlocks<'_> {
-        LexicalBlocks::new(self.ptr.lexical_blocks())
     }
 }
 
@@ -159,13 +148,4 @@ declare_fwd_iterator!(
     ffi::asm_Instruction,
     ffi::DWARF_Function,
     ffi::DWARF_Function_it_instructions
-);
-
-
-declare_fwd_iterator!(
-    LexicalBlocks,
-    LexicalBlock<'a>,
-    ffi::DWARF_LexicalBlock,
-    ffi::DWARF_Function,
-    ffi::DWARF_Function_it_lexical_blocks
 );

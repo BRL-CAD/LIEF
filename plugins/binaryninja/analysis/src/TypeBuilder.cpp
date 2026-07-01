@@ -1,4 +1,4 @@
-/* Copyright 2025 - 2026 R. Thomas
+/* Copyright 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "binaryninja/analysis/TypeBuilder.hpp"
+#include "TypeBuilder.hpp"
 #include "log.hpp"
 
 using namespace BinaryNinja;
@@ -73,28 +73,5 @@ Ref<Type> TypeBuilder::create_struct(
 }
 
 
-Ref<Type> TypeBuilder::create_typedef(const std::string& name, const std::string& target) {
-  Ref<Type> target_ty = bv_.GetTypeByName(target);
-  if (target_ty == nullptr) {
-    BN_ERR("Can't find type named {}", target);
-    return nullptr;
-  }
-
-  QualifiedName type_qn(name);
-  std::string type_id = Type::GenerateAutoTypeId(default_type_src(), type_qn);
-
-  if (auto type = bv_.GetTypeByName(type_qn)) {
-    return type;
-  }
-
-  QualifiedName alias = bv_.DefineType(
-      type_id, type_qn,
-      BinaryNinja::TypeBuilder::NamedType(
-        target, target_ty
-      ).Finalize());
-
-  assert(bv_.GetTypeByName(type_qn) != nullptr);
-  return bv_.GetTypeByName(type_qn);
-}
 
 }

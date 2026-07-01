@@ -156,48 +156,6 @@
     :py:class:`lief.dwarf.editor.Type`
     :cpp:class:`LIEF::dwarf::editor::Type`
 
-.. |lief-dwarf-variable| lief-api:: lief.dwarf.Variable
-
-    :rust:struct:`lief::dwarf::Variable`
-    :py:class:`lief.dwarf.Variable`
-    :cpp:class:`LIEF::dwarf::Variable`
-
-
-.. |lief-dwarf-lexical-block| lief-api:: lief.dwarf.LexicalBlock
-
-    :rust:struct:`lief::dwarf::LexicalBlock`
-    :py:class:`lief.dwarf.LexicalBlock`
-    :cpp:class:`LIEF::dwarf::LexicalBlock`
-
-.. |lief-dwarf-function-description| lief-api:: lief.dwarf.Function.description()
-
-    :rust:method:`lief::dwarf::Function::description [struct]`
-    :cpp:func:`LIEF::dwarf::Function::description`
-    :py:attr:`lief.dwarf.Function.description`
-
-.. |lief-dwarf-variable-description| lief-api:: lief.dwarf.Variable.description()
-
-    :rust:method:`lief::dwarf::Variable::description [struct]`
-    :cpp:func:`LIEF::dwarf::Variable::description`
-    :py:attr:`lief.dwarf.Variable.description`
-
-.. |lief-dwarf-lexical-block-description| lief-api:: lief.dwarf.LexicalBlock.description()
-
-    :rust:method:`lief::dwarf::LexicalBlock::description [struct]`
-    :cpp:func:`LIEF::dwarf::LexicalBlock::description`
-    :py:attr:`lief.dwarf.LexicalBlock.description`
-
-.. |lief-dwarf-editor-Function-lexical-block| lief-api:: lief.dwarf.editor.Function.LexicalBlock
-
-    :rust:struct:`lief::dwarf::editor::function::LexicalBlock`
-    :py:class:`lief.dwarf.editor.Function.LexicalBlock`
-    :cpp:class:`LIEF::dwarf::editor::Function::LexicalBlock`
-
-.. |lief-dwarf-types-Enum-entries| lief-api:: lief.dwarf.types.Enum.entries()
-
-    :rust:method:`lief::dwarf::types::Enum::entries [struct]`
-    :cpp:func:`LIEF::dwarf::types::Enum::entries`
-    :py:attr:`lief.dwarf.types.Enum.entries`
 
 .. PDB =========================================================================
 
@@ -872,6 +830,12 @@
     :py:meth:`lief.MachO.Binary.write`
     :cpp:func:`LIEF::MachO::Binary::write`
 
+.. |lief-macho-binary-virtual_address_to_offset| lief-api:: lief.MachO.Binary.virtual_address_to_offset()
+
+    :rust:method:`lief::macho::Binary::virtual_address_to_offset [struct]`
+    :py:meth:`lief.MachO.Binary.virtual_address_to_offset`
+    :cpp:func:`LIEF::MachO::Binary::virtual_address_to_offset`
+
 .. |lief-macho-binary-write_to_bytes| lief-api:: lief.MachO.Binary.write_to_bytes()
 
     :py:meth:`lief.MachO.Binary.write_to_bytes`
@@ -1088,11 +1052,6 @@
     :py:func:`lief.COFF.parse`
     :cpp:func:`LIEF::COFF::Parser::parse`
 
-.. |lief-coff-section-coff_string| lief-api:: lief.COFF.Section.coff_string
-
-    :rust:method:`lief::coff::Section::coff_string [struct]`
-    :py:attr:`lief.COFF.Section.coff_string`
-    :cpp:func:`LIEF::COFF::Section::coff_string`
 
 .. |lief-coff-Binary| lief-api:: lief.COFF.Binary
 

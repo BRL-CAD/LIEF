@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,13 +53,6 @@ class LIEF_API Function {
     Parameter(std::unique_ptr<details::FunctionParameter> impl);
 
     ~Parameter();
-
-    /// Assign this parameter to a specific named register.
-    Parameter& assign_register(const std::string& name);
-
-    /// Assign this parameter to the given DWARF register id (e.g. `DW_OP_reg0`).
-    Parameter& assign_register(uint64_t reg);
-
     private:
     std::unique_ptr<details::FunctionParameter> impl_;
   };
@@ -70,21 +63,7 @@ class LIEF_API Function {
     LexicalBlock() = delete;
     LexicalBlock(std::unique_ptr<details::FunctionLexicalBlock> impl);
 
-    /// Create a sub-block with the given low/high addresses.
-    std::unique_ptr<LexicalBlock> add_block(uint64_t start, uint64_t end);
-
-    /// Create a sub-block with the given range of addresses.
-    std::unique_ptr<LexicalBlock> add_block(const std::vector<range_t>& range);
-
-    /// Create a `DW_AT_description` entry with the description
-    /// provided in parameter.
-    LexicalBlock& add_description(const std::string& description);
-
-    /// Create a `DW_AT_name` entry to associate a name to this entry
-    LexicalBlock& add_name(const std::string& name);
-
     ~LexicalBlock();
-
     private:
     std::unique_ptr<details::FunctionLexicalBlock> impl_;
   };
@@ -137,10 +116,6 @@ class LIEF_API Function {
 
   /// Add a label at the given address
   std::unique_ptr<Label> add_label(uint64_t addr, const std::string& label);
-
-  /// Create a `DW_AT_description` entry with the description
-  /// provided in parameter.
-  Function& add_description(const std::string& description);
 
   ~Function();
 

@@ -8,7 +8,6 @@ target_sources(pyLIEF PRIVATE
   pyScope.cpp
   pyType.cpp
   pyVariable.cpp
-  pyLexicalBlock.cpp
 )
 
 add_subdirectory(types)

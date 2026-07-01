@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ jobject Function::jni_set_ranges(JNIEnv* env, jobject thiz, jobject ranges) {
 
 
 int Function::Parameter::register_natives(JNIEnv* env) {
-  static const std::array NATIVE_METHODS {
+  static constexpr std::array NATIVE_METHODS {
     make_destroy(
       &jni_destroy
     ),
@@ -57,45 +57,8 @@ int Function::Parameter::register_natives(JNIEnv* env) {
   return JNI_OK;
 }
 
-jobject Function::LexicalBlock::jni_add_block_from_range(
-    JNIEnv* env, jobject thiz, jobject ranges)
-{
-  java::util::List<Function::Range> list = ranges;
-  std::vector<LIEF::dwarf::editor::Function::range_t> native_ranges;
-
-  list.iterate([&] (jni::LocalObject<Function::Range::kClass> e) {
-    native_ranges.push_back(
-      LIEF::dwarf::editor::Function::range_t {
-        (uint64_t)e.Access<"start">().Get(), (uint64_t)e.Access<"end">().Get(),
-      }
-    );
-  });
-
-  return LexicalBlock::create(from_jni(thiz)->impl().add_block(native_ranges));
-}
-
 int Function::LexicalBlock::register_natives(JNIEnv* env) {
-  static const std::array NATIVE_METHODS {
-    make(
-      "addDescription",
-      "(Ljava/lang/String;)Llief/dwarf/editor/Function$LexicalBlock;",
-      &jni_add_description
-    ),
-    make(
-      "addName",
-      "(Ljava/lang/String;)Llief/dwarf/editor/Function$LexicalBlock;",
-      &jni_add_name
-    ),
-    make(
-      "addBlock",
-      "(JJ)Llief/dwarf/editor/Function$LexicalBlock;",
-      &jni_add_block
-    ),
-    make(
-      "addBlock",
-      "(Ljava/util/List;)Llief/dwarf/editor/Function$LexicalBlock;",
-      &jni_add_block_from_range
-    ),
+  static constexpr std::array NATIVE_METHODS {
     make_destroy(
       &jni_destroy
     ),
@@ -112,7 +75,7 @@ int Function::LexicalBlock::register_natives(JNIEnv* env) {
 }
 
 int Function::Label::register_natives(JNIEnv* env) {
-  static const std::array NATIVE_METHODS {
+  static constexpr std::array NATIVE_METHODS {
     make_destroy(
       &jni_destroy
     ),
@@ -130,7 +93,7 @@ int Function::Label::register_natives(JNIEnv* env) {
 
 
 int Function::register_natives(JNIEnv* env) {
-  static const std::array NATIVE_METHODS {
+  static constexpr std::array NATIVE_METHODS {
     make(
       "setAddress",
       "(J)Llief/dwarf/editor/Function;",
@@ -180,11 +143,6 @@ int Function::register_natives(JNIEnv* env) {
       "addLabel",
       "(JLjava/lang/String;)Llief/dwarf/editor/Function$Label;",
       &jni_add_label
-    ),
-    make(
-      "addDescription",
-      "(Ljava/lang/String;)Llief/dwarf/editor/Function;",
-      &jni_add_description
     ),
     make_destroy(
       &jni_destroy

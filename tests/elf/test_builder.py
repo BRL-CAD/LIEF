@@ -14,8 +14,8 @@ from textwrap import dedent
 from subprocess import Popen
 from utils import (
     is_linux, glibc_version, get_sample,
-    has_private_samples, is_server_ci, ci_runner_arch, is_windows,
-    is_x86_64, is_github_ci
+    has_private_samples, is_server_ci, ci_runner_arch,
+    is_x86_64
 )
 
 # pyright: reportOptionalMemberAccess=false
@@ -300,7 +300,7 @@ def test_smart_insert_1(tmp_path: Path):
     new_elf = lief.ELF.parse(output)
 
     sec = new_elf.get_section(".lief_test")
-    assert new_elf.get_section_idx(sec) == 27
+    assert new_elf.get_section_idx(sec) == 28
 
     if is_linux():
         llvm_strip = shutil.which("llvm-strip")
@@ -344,7 +344,7 @@ def test_smart_insert_2(tmp_path: Path):
     new_elf = lief.ELF.parse(output)
 
     sec = new_elf.get_section(".lief_section_to_strip")
-    assert new_elf.get_section_idx(sec) == 25
+    assert new_elf.get_section_idx(sec) == 26
 
     if is_linux():
         llvm_strip = shutil.which("llvm-strip")
@@ -407,7 +407,7 @@ def test_ld_relocations(tmp_path: Path):
     new = lief.ELF.parse(output)
     assert new.header.program_header_offset == 52
 
-    if is_linux() and is_x86_64() and not is_github_ci():
+    if is_linux() and is_x86_64():
         with Popen([output.as_posix(), "--version"], universal_newlines=True,
                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as proc:
             stdout = proc.stdout.read()
@@ -431,10 +431,6 @@ def test_s390x(tmp_path: Path):
 
     elf.write(output.as_posix(), config)
     new = lief.ELF.parse(output)
-
-    if is_github_ci() and is_windows():
-        pytest.skip("Not supported")
-        return
 
     r = new.get_relocation("_dl_exception_create")
     assert r.address == 0x1c6008

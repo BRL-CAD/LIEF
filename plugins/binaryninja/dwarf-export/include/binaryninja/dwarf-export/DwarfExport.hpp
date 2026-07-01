@@ -1,4 +1,4 @@
-/* Copyright 2025 - 2026 R. Thomas
+/* Copyright 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ class DwarfExport {
   private:
   BinaryNinja::BinaryView* bv_ = nullptr;
   std::unique_ptr<LIEF::dwarf::editor::CompilationUnit> unit_;
+  std::unique_ptr<LIEF::Binary> bin_;
   std::unique_ptr<LIEF::dwarf::Editor> editor_;
 };
 }

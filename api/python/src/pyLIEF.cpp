@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,9 +41,6 @@
 #include "ObjC/init.hpp"
 #include "DyldSharedCache/init.hpp"
 #include "asm/init.hpp"
-#include "BinaryStream/init.hpp"
-
-#include "pyWriteStream.hpp"
 
 #if defined(LIEF_ELF_SUPPORT)
   #include "ELF/init.hpp"
@@ -313,9 +310,6 @@ void init(nb::module_& m) {
   LIEF::py::init_logger(m);
   LIEF::py::init_hash(m);
   LIEF::py::init_json(m);
-
-  LIEF::py::init_binarystream(m);
-  LIEF::py::init_writerstream(m);
 
   LIEF::assembly::py::init(m);
 

@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,6 @@ package lief.dwarf;
 import lief.dwarf.editor.CompilationUnit;
 
 public class Editor extends lief.Base {
-    public enum Format {
-        ELF,
-        MACHO,
-        PE,
-    }
-
-    public enum Arch {
-        X64,
-        X86,
-        AARCH64,
-        ARM,
-    }
-
     @Override
     protected native void destroy();
 
@@ -38,8 +25,6 @@ public class Editor extends lief.Base {
     }
 
     public native static Editor forBinary(lief.generic.Binary binary);
-
-    public native static Editor create(Format fmt, Arch arch);
 
     public native CompilationUnit createCompilationUnit();
 

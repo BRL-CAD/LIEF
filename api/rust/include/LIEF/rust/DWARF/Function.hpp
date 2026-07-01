@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 #pragma once
 #include "LIEF/DWARF/Function.hpp"
 #include "LIEF/rust/DWARF/Variable.hpp"
-#include "LIEF/rust/DWARF/LexicalBlock.hpp"
 #include "LIEF/rust/DWARF/Scope.hpp"
 #include "LIEF/rust/DWARF/Type.hpp"
 #include "LIEF/rust/DWARF/Parameter.hpp"
@@ -71,15 +70,6 @@ class DWARF_Function : private Mirror<LIEF::dwarf::Function> {
     auto next() { return ForwardIterator::next(); }
   };
 
-  class it_lexical_blocks :
-      public ForwardIterator<DWARF_LexicalBlock, LIEF::dwarf::LexicalBlock::Iterator>
-  {
-    public:
-    it_lexical_blocks(const DWARF_Function::lief_t& src)
-      : ForwardIterator(src.lexical_blocks()) { }
-    auto next() { return ForwardIterator::next(); }
-  };
-
   auto name() const { return get().name(); }
   auto linkage_name() const { return get().linkage_name(); }
 
@@ -120,13 +110,5 @@ class DWARF_Function : private Mirror<LIEF::dwarf::Function> {
 
   auto instructions() const {
     return std::make_unique<it_instructions>(get());
-  }
-
-  auto description() const {
-    return get().description();
-  }
-
-  auto lexical_blocks() const {
-    return std::make_unique<it_lexical_blocks>(get());
   }
 };

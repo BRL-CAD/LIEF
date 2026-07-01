@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 namespace lief_jni::dwarf::editor {
 
 int Variable::register_natives(JNIEnv* env) {
-  static const std::array NATIVE_METHODS {
+  static constexpr std::array NATIVE_METHODS {
     make(
       "setAddr",
       "(J)Llief/dwarf/editor/Variable;",
@@ -41,11 +41,6 @@ int Variable::register_natives(JNIEnv* env) {
       "setType",
       "(Llief/dwarf/editor/Type;)Llief/dwarf/editor/Variable;",
       &jni_set_type
-    ),
-    make(
-      "addDescription",
-      "(Ljava/lang/String;)Llief/dwarf/editor/Variable;",
-      &jni_add_description
     ),
     make_destroy(
       (void*)&jni_destroy

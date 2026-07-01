@@ -1,4 +1,4 @@
-/* Copyright 2024 - 2026 R. Thomas
+/* Copyright 2024 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 #include "LIEF/COFF/Section.hpp"
 #include "LIEF/rust/Abstract/Section.hpp"
 #include "LIEF/rust/COFF/Relocation.hpp"
-#include "LIEF/rust/COFF/String.hpp"
 
 #include "LIEF/rust/Iterator.hpp"
 
@@ -81,10 +80,6 @@ class COFF_Section : public AbstractSection {
 
   auto comdat_info() const {
     return details::try_unique<COFF_Section_ComdataInfo>(impl().comdat_info());
-  }
-
-  auto coff_string() const {
-    return details::try_unique<COFF_String>(impl().coff_string());
   }
 
   auto to_string() const {

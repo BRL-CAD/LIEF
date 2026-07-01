@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,6 @@ class LIEF_API Subroutine : public Type {
   using Type::Type;
 
   using parameters_t = std::vector<std::unique_ptr<Parameter>>;
-
-  /// Return the dwarf::Type associated with the **return type** of this
-  /// function
-  std::unique_ptr<Type> return_type() const;
 
   /// Parameters of this subroutine
   parameters_t parameters() const;

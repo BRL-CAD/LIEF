@@ -597,9 +597,6 @@ pub enum Subsystem {
     /// A BCD application.
     WINDOWS_BOOT_APPLICATION,
 
-    /// Security Metadata Containers
-    XBOX_CODE_CATALOG,
-
     /// An unknown subsystem.
     UNKNOWN(u64),
 }
@@ -620,7 +617,6 @@ impl From<u64> for Subsystem {
             0x0000000d => Subsystem::EFI_ROM,
             0x0000000e => Subsystem::XBOX,
             0x00000010 => Subsystem::WINDOWS_BOOT_APPLICATION,
-            0x00000011 => Subsystem::XBOX_CODE_CATALOG,
             _ => Subsystem::UNKNOWN(value),
 
         }
@@ -642,7 +638,6 @@ impl From<Subsystem> for u64 {
             Subsystem::EFI_ROM => 0x0000000d,
             Subsystem::XBOX => 0x0000000e,
             Subsystem::WINDOWS_BOOT_APPLICATION => 0x00000010,
-            Subsystem::XBOX_CODE_CATALOG => 0x00000011,
             Subsystem::UNKNOWN(_) => 0,
 
         }

@@ -135,9 +135,6 @@ class Variable:
     def is_constexpr(self) -> bool: ...
 
     @property
-    def is_stack_based(self) -> bool: ...
-
-    @property
     def debug_location(self) -> lief.debug_location_t: ...
 
     @property
@@ -145,9 +142,6 @@ class Variable:
 
     @property
     def scope(self) -> Optional[Scope]: ...
-
-    @property
-    def description(self) -> str: ...
 
 class Function:
     @property
@@ -192,34 +186,12 @@ class Function:
     @property
     def instructions(self) -> Iterator[Optional[lief.assembly.Instruction]]: ...
 
-    @property
-    def lexical_blocks(self) -> Iterator[Optional[LexicalBlock]]: ...
-
-    @property
-    def description(self) -> str: ...
-
 class Parameter:
-    class Location:
-        class Type(enum.Enum):
-            UNKNOWN = 0
-
-            REGISTER = 1
-
-        @property
-        def type(self) -> Parameter.Location.Type: ...
-
-    class RegisterLoc(Parameter.Location):
-        @property
-        def id(self) -> int: ...
-
     @property
     def name(self) -> str: ...
 
     @property
     def type(self) -> Optional[Type]: ...
-
-    @property
-    def location(self) -> Optional[Parameter.Location]: ...
 
 class CompilationUnit:
     class Language:
@@ -326,53 +298,9 @@ class DebugInfo(lief.DebugInfo):
     def compilation_units(self) -> Iterator[Optional[CompilationUnit]]: ...
 
 class Editor:
-    class ARCH(enum.Enum):
-        X64 = 0
-
-        X86 = 1
-
-        AARCH64 = 2
-
-        ARM = 3
-
-    class FORMAT(enum.Enum):
-        ELF = 0
-
-        PE = 2
-
-        MACHO = 1
-
     @staticmethod
     def from_binary(bin: lief.Binary) -> Optional[Editor]: ...
-
-    @staticmethod
-    def create(fmt: Editor.FORMAT, arch: Editor.ARCH) -> Optional[Editor]: ...
 
     def create_compilation_unit(self) -> Optional[editor.CompilationUnit]: ...
 
     def write(self, output: Union[str | os.PathLike]) -> None: ...
-
-class LexicalBlock:
-    @property
-    def name(self) -> str: ...
-
-    @property
-    def description(self) -> str: ...
-
-    @property
-    def sub_blocks(self) -> Iterator[Optional[LexicalBlock]]: ...
-
-    @property
-    def addr(self) -> int | None: ...
-
-    @property
-    def size(self) -> int: ...
-
-    @property
-    def low_pc(self) -> int | None: ...
-
-    @property
-    def high_pc(self) -> int | None: ...
-
-    @property
-    def ranges(self) -> list[lief.range_t]: ...

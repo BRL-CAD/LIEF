@@ -173,11 +173,6 @@ def test_unwind():
 
 def test_build_version():
     binary = lief.MachO.parse(get_sample('MachO/FAT_MachO_arm-arm64-binary-helloworld.bin'))
-    assert binary is not None
-    assert binary[lief.MachO.Header.CPU_TYPE.ARM64] is not None
-    assert binary.get(lief.MachO.Header.CPU_TYPE.ARM) is not None
-    assert binary[lief.MachO.Header.CPU_TYPE.X86_64] is None
-
     target = binary[1]
 
     assert target.has_build_version
@@ -367,3 +362,15 @@ def test_resolve_function():
 
     macho = lief.MachO.parse(get_sample("MachO/RNCryptor.bin")).at(0)
     assert macho.get_function_address("_RNCryptorVersionString") == 0x00012988
+
+def test_virtual_address_to_offset_bss():
+    # c.f. https://github.com/lief-project/LIEF/issues/1299
+    macho = lief.MachO.parse(get_sample("MachO/do_add.bin")).at(0)
+
+    data_segment = macho.get_segment("__DATA")
+    assert data_segment.virtual_address == 0x100008000
+    # Contains only `__bss` section (S_ZEROFILL); thus no backing storage
+    assert data_segment.file_size == 0
+
+    offset = macho.virtual_address_to_offset(data_segment.virtual_address)
+    assert offset is lief.lief_errors.conversion_error

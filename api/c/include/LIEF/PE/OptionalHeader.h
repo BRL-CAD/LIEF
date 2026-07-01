@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,8 +52,7 @@ enum LIEF_PE_SUBSYSTEM {
   LIEF_PE_SUBSYSTEM_EFI_RUNTIME_DRIVER       = 12, /**< An EFI driver with run-time services. */
   LIEF_PE_SUBSYSTEM_EFI_ROM                  = 13, /**< An EFI ROM image. */
   LIEF_PE_SUBSYSTEM_XBOX                     = 14, /**< XBOX. */
-  LIEF_PE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION = 16, /**< A BCD application. */
-  LIEF_PE_SUBSYSTEM_XBOX_CODE_CATALOG        = 17,
+  LIEF_PE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION = 16  /**< A BCD application. */
 };
 
 struct Pe_OptionalHeader_t {

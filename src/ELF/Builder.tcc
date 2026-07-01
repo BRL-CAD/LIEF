@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  * Copyright 2017 - 2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -875,12 +875,8 @@ ok_error_t Builder::build_symtab_symbols() {
   content.reserve(layout->static_sym_size<ELF_T>());
 
   // On recent compilers, the symtab string table is merged with the section name table
-  const std::unordered_map<std::string, size_t>* str_map = nullptr;
-  if (layout->is_strtab_shared_shstrtab()) {
-    str_map = &layout->shstr_map();
-  } else {
-    str_map = &layout->strtab_map();
-  }
+  const std::unordered_map<std::string, size_t>* str_map =
+    layout->is_strtab_shared_shstrtab() ? &layout->shstr_map() : &layout->strtab_map();
 
   for (const std::unique_ptr<Symbol>& symbol : binary_->symtab_symbols_) {
     const std::string& name = symbol->name();
@@ -1248,6 +1244,7 @@ ok_error_t Builder::build_dynamic_symbols() {
 
   // Build symbols
   vector_iostream symbol_table_raw(should_swap());
+  symbol_table_raw.reserve(binary_->dynamic_symbols_.size() * sizeof(Elf_Sym));
   for (const std::unique_ptr<Symbol>& symbol : binary_->dynamic_symbols_) {
     const std::string& name = symbol->name();
     const auto& offset_it = dynstr_map.find(name);

@@ -140,11 +140,6 @@ pub trait Binary {
         self.as_generic().imagebase()
     }
 
-    /// Size of the binary when mapped in memory
-    fn virtual_size(&self) -> u64 {
-        self.as_generic().virtual_size()
-    }
-
     /// Whether the current binary is **an executable** and **position independent**
     fn is_pie(&self) -> bool {
         self.as_generic().is_pie()
@@ -174,7 +169,7 @@ pub trait Binary {
     /// <div class="warning">
     /// This function requires LIEF's extended version otherwise it always return `None`
     /// </div>
-    fn debug_info(&self) -> Option<crate::DebugInfo<'_>> {
+    fn debug_info(&self) -> Option<crate::DebugInfo> {
         into_optional(self.as_generic().debug_info())
     }
 
@@ -189,7 +184,7 @@ pub trait Binary {
     /// ```
     ///
     /// See also [`crate::assembly::Instruction`] and [`crate::assembly::Instructions`]
-    fn disassemble(&self, address: u64, size: u64) -> InstructionsIt<'_> {
+    fn disassemble(&self, address: u64, size: u64) -> InstructionsIt {
         InstructionsIt::new(self.as_generic().disassemble(address, size))
     }
 
@@ -203,7 +198,7 @@ pub trait Binary {
     /// ```
     ///
     /// See also [`crate::assembly::Instruction`] and [`crate::assembly::Instructions`]
-    fn disassemble_symbol(&self, name: &str) -> InstructionsIt<'_> {
+    fn disassemble_symbol(&self, name: &str) -> InstructionsIt {
         InstructionsIt::new(self.as_generic().disassemble_function(name.to_string()))
     }
 
@@ -217,14 +212,14 @@ pub trait Binary {
     /// ```
     ///
     /// See also [`crate::assembly::Instruction`] and [`crate::assembly::Instructions`]
-    fn disassemble_address(&self, address: u64) -> InstructionsIt<'_> {
+    fn disassemble_address(&self, address: u64) -> InstructionsIt {
         InstructionsIt::new(self.as_generic().disassemble_address(address))
     }
 
     /// Disassemble code provided by the given slice at the specified `address` parameter.
     ///
     /// See also [`crate::assembly::Instruction`] and [`crate::assembly::Instructions`]
-    fn disassemble_slice(&self, slice: &[u8], address: u64) -> InstructionsIt<'_> {
+    fn disassemble_slice(&self, slice: &[u8], address: u64) -> InstructionsIt {
         unsafe {
             InstructionsIt::new(self.as_generic().disassemble_buffer(
                     slice.as_ptr(), slice.len().try_into().unwrap(),
@@ -277,7 +272,7 @@ pub trait Binary {
     /// This function does not verify that the debug file matches the binary's unique
     /// identifier (e.g., build ID, GUID).
     /// </div>
-    fn load_debug_info(&mut self, path: &std::path::Path) -> Option<crate::DebugInfo<'_>> {
+    fn load_debug_info(&mut self, path: &std::path::Path) -> Option<crate::DebugInfo> {
         into_optional(self.as_pin_mut_generic().load_debug_info(path.to_str().unwrap()))
     }
 }

@@ -51,7 +51,7 @@ impl VolatileMetadata<'_> {
         self.ptr.info_ranges_size()
     }
 
-    pub fn info_ranges(&self) -> Ranges<'_> {
+    pub fn info_ranges(&self) -> Ranges {
         Ranges::new(self.ptr.info_ranges())
     }
 

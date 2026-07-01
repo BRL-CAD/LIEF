@@ -73,17 +73,17 @@ pub trait RelocationBase {
     }
 
     /// Symbol associated with the relocation (if any)
-    fn symbol(&self) -> Option<Symbol<'_>> {
+    fn symbol(&self) -> Option<Symbol> {
         into_optional(self.get_base().symbol())
     }
 
     /// Section associated with the section (if any)
-    fn section(&self) -> Option<Section<'_>> {
+    fn section(&self) -> Option<Section> {
         into_optional(self.get_base().section())
     }
 
     /// Segment command associated with the relocation (if any)
-    fn segment(&self) -> Option<Segment<'_>> {
+    fn segment(&self) -> Option<Segment> {
         into_optional(self.get_base().segment())
     }
 }

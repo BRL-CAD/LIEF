@@ -286,19 +286,11 @@ def test_DW_TAG_enumeration_type():
     enum: lief.dwarf.types.Enum = dbg_info.find_type("Enum")
 
     assert isinstance(enum, lief.dwarf.types.Enum)
-    assert enum.find_entry(4).name == "epsilon"
 
     loc = enum.location
 
     assert normalize_path(loc.file) == "/home/cm3/settest/src/Main.m3"
     assert loc.line == 11
-
-    entries = enum.entries
-
-    assert len(entries) == 8
-
-    assert entries[0].name == "alpha"
-    assert entries[0].value == 0
 
 def test_DW_TAG_string_type_cobol():
     elf = lief.ELF.parse(get_sample("private/DWARF/cobol_hello.o"))

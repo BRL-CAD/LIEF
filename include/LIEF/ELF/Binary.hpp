@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -524,7 +524,7 @@ class LIEF_API Binary : public LIEF::Binary {
   uint64_t imagebase() const override;
 
   /// Return the size of the mapped binary
-  uint64_t virtual_size() const override;
+  uint64_t virtual_size() const;
 
   /// Check if the binary uses a loader (also named linker or interpreter)
   /// @see interpreter

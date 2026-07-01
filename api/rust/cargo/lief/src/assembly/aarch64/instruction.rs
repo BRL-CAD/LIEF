@@ -34,7 +34,7 @@ impl Instruction {
     }
 
     /// Return an iterator over the [`aarch64::Operands`] operands
-    pub fn operands(&self) -> Operands<'_> {
+    pub fn operands(&self) -> Operands {
         Operands::new(self.ptr.operands())
     }
 }

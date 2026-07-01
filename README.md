@@ -20,8 +20,7 @@ modify and abstract ELF, PE and MachO formats.
   * **Parsing**: LIEF can parse [ELF](https://lief.re/doc/latest/formats/elf/index.html), [PE](https://lief.re/doc/latest/formats/pe/index.html), [MachO](https://lief.re/doc/latest/formats/macho/index.html), [COFF](https://lief.re/doc/latest/formats/coff/index.html), OAT, DEX, VDEX, ART and provides an user-friendly API to access to internals.
   * **Modify**: LIEF can use to modify some parts of these formats (adding a section, changing a symbol's name, ...)
   * **Abstract**: Three formats have common features like sections, symbols, entry point... LIEF factors them.
-  * **API**: LIEF can be used in [C++](https://lief.re/doc/latest/doxygen/), Python, [Rust](https://lief-rs.s3.fr-par.scw.cloud/doc/latest/lief/index.html), C and
-    [Node.js](https://github.com/Piebald-AI/node-lief) (unofficial, AI-generated)
+  * **API**: LIEF can be used in [C++](https://lief.re/doc/latest/doxygen/), Python, [Rust](https://lief-rs.s3.fr-par.scw.cloud/doc/latest/lief/index.html) and C
 
 **Extended features**:
 
@@ -35,15 +34,6 @@ modify and abstract ELF, PE and MachO formats.
 
   * [**Ghidra**](https://lief.re/doc/latest/plugins/ghidra/index.html)
   * [**BinaryNinja**](https://lief.re/doc/latest/plugins/binaryninja/index.html)
-
-# Sponsors
-
-<br />
-<p align="center">
-<a href="https://quansight.com/" target="_blank">
-<img width="300px" src="https://lief.re/quansight_logo.jpg"/><br />
-</a>
-</p>
 
 # Content
 
@@ -89,7 +79,7 @@ version = "0.0.1"
 edition = "2021"
 
 [dependencies]
-lief = "0.17.3"
+lief = "0.17.6"
 ```
 
 ## Python
@@ -112,7 +102,7 @@ pip install [--user] --force-reinstall --index-url https://lief.s3-website.fr-pa
 - **Nightly**:
   * SDK: https://lief.s3-website.fr-par.scw.cloud/latest/sdk
   * Python Wheels: https://lief.s3-website.fr-par.scw.cloud/latest/lief
-- **v0.17.3**: https://github.com/lief-project/LIEF/releases/tag/0.17.3
+- **v0.17.6**: https://github.com/lief-project/LIEF/releases/tag/0.17.6
 
 Here are guides to install or integrate LIEF:
 
@@ -230,7 +220,7 @@ Romain Thomas ([@rh0main](https://www.romainthomas.fr/)) - Formerly at [Quarksla
 
 ### License
 
-LIEF is provided under the [Apache 2.0 license](https://github.com/lief-project/LIEF/blob/0.17.3/LICENSE).
+LIEF is provided under the [Apache 2.0 license](https://github.com/lief-project/LIEF/blob/0.17.6/LICENSE).
 
 ### Bibtex
 

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,12 @@
 #include <vector>
 #include <array>
 
-#include "LIEF/visibility.h"
 #include "LIEF/span.hpp"
 #include "LIEF/optional.hpp"
 #include "LIEF/endianness_support.hpp"
 
 namespace LIEF {
-class LIEF_API vector_iostream {
+class vector_iostream {
   public:
   static size_t uleb128_size(uint64_t value);
   static size_t sleb128_size(int64_t value);

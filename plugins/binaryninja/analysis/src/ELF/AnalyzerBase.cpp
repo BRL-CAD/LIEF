@@ -1,4 +1,4 @@
-/* Copyright 2025 - 2026 R. Thomas
+/* Copyright 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 #include <cctype>
 
 #include "log.hpp"
-#include "binaryninja/analysis/ELF/AnalyzerBase.hpp"
+#include "ELF/AnalyzerBase.hpp"
 #include "LIEF/ELF.hpp"
 #include "LIEF/BinaryStream/SpanStream.hpp"
 

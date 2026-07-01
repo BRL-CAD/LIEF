@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1842,7 +1842,9 @@ std::vector<uint8_t> Binary::raw() {
 
 result<uint64_t> Binary::virtual_address_to_offset(uint64_t virtual_address) const {
   const SegmentCommand* segment = segment_from_virtual_address(virtual_address);
-  if (segment == nullptr) {
+  // file_size() is 0 if segment is not file-backed, e.g. a `__DATA` segment that only has
+  // a ZEROFILL section.  In such case, there is no file offset available.
+  if (segment == nullptr || segment->file_size() == 0) {
     return make_error_code(lief_errors::conversion_error);
   }
   const uint64_t base_address = segment->virtual_address() - segment->file_offset();

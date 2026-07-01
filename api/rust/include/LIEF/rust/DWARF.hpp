@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 #include "LIEF/rust/DWARF/Scope.hpp"
 #include "LIEF/rust/DWARF/Type.hpp"
 #include "LIEF/rust/DWARF/Parameter.hpp"
-#include "LIEF/rust/DWARF/LexicalBlock.hpp"
 
 #include "LIEF/rust/DWARF/types/ClassLike.hpp"
 #include "LIEF/rust/DWARF/types/Pointer.hpp"

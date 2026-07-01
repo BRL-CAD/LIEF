@@ -1,4 +1,4 @@
-/* Copyright 2025 - 2026 R. Thomas
+/* Copyright 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  */
 #include <sstream>
 #include <fstream>
-#include <filesystem>
-
 #include "binaryninja/lief_utils.hpp"
 #include "binaryninja/log_core.hpp"
 
@@ -35,8 +33,6 @@
 namespace binaryninja {
 
 namespace bn = BinaryNinja;
-
-namespace fs = std::filesystem;
 
 FileFormat get_file_format(BinaryNinja::BinaryView& bv) {
   std::string original_file = bv.GetFile()->GetOriginalFilename();
@@ -152,28 +148,6 @@ void linear_export(BinaryNinja::BinaryView& bv, const std::string& file) {
   if (ofs) {
     ofs << to_string(bv);
   }
-}
-
-std::optional<std::string> find_typelib(const std::string& name) {
-  std::vector<std::string> candidates;
-  for (const auto& path : {bn::GetUserDirectory(), bn::GetInstallDirectory()}) {
-    if (fs::path install_dir = path; fs::is_directory(install_dir)) {
-      if (auto candidate = install_dir / name; fs::exists(candidate)) {
-        return fs::absolute(candidate).string();
-      } else {
-        candidates.push_back(candidate.string());
-      }
-
-      if (auto candidate = install_dir / "typelib" / name; fs::exists(candidate)) {
-        return fs::absolute(candidate).string();
-      } else {
-        candidates.push_back(candidate.string());
-      }
-    }
-  }
-  BN_WARN("Could not find {} in the following locations:\n{}", name,
-          fmt::join(candidates, "\n-"));
-  return std::nullopt;
 }
 
 }

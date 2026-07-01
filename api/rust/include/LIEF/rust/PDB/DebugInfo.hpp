@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ class PDB_DebugInfo : public AbstracDebugInfo {
   PDB_DebugInfo(std::unique_ptr<lief_t> bin) : AbstracDebugInfo(std::move(bin)) {}
 
   static auto from_file(std::string file) { // NOLINT(performance-unnecessary-value-param)
-    return std::make_unique<PDB_DebugInfo>(LIEF::pdb::DebugInfo::from_file(file));
+    return details::try_unique<PDB_DebugInfo>(LIEF::pdb::DebugInfo::from_file(file));
   }
 
   auto age() const { return impl().age(); }

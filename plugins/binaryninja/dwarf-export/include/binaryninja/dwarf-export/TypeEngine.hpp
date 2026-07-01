@@ -1,4 +1,4 @@
-/* Copyright 2025 - 2026 R. Thomas
+/* Copyright 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,6 @@
 namespace dwarf_plugin {
 class TypeEngine {
   public:
-  // We using BinaryNinja::Type::GetString(...) as key for the map since
-  // it provides a better unicity for the types already added.
-  // (Previously BinaryNinja::Type::GetObject())
-  using type_map_t = std::unordered_map<
-    std::string, std::unique_ptr<LIEF::dwarf::editor::Type>>;
-
-  using anon_types_t = std::vector<
-    std::unique_ptr<LIEF::dwarf::editor::Type>>;
-
   TypeEngine() = delete;
   TypeEngine(LIEF::dwarf::editor::CompilationUnit& CU,
              BinaryNinja::BinaryView& bv) :
@@ -42,20 +33,16 @@ class TypeEngine {
     return engine;
   }
 
-  LIEF::dwarf::editor::Type& add_type(const BinaryNinja::Type& type);
+  LIEF::dwarf::editor::Type& add_type(
+    const BinaryNinja::QualifiedName& name, const BinaryNinja::Type& type);
 
   private:
   void init();
 
-  void add_member(
-    const BinaryNinja::StructureMember& member,
-    LIEF::dwarf::editor::StructType& S);
-
   size_t id_ = 0;
   size_t array_id_ = 0;
   size_t func_id_ = 0;
-  type_map_t mapping_;
-  anon_types_t anon_types_;
+  std::unordered_map<const BNType*, std::unique_ptr<LIEF::dwarf::editor::Type>> mapping_;
   LIEF::dwarf::editor::CompilationUnit& unit_;
   BinaryNinja::BinaryView& bv_;
 };

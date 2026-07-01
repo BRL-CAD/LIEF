@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,5 @@ class DWARF_Editor : public Mirror<LIEF::dwarf::Editor> {
     return details::try_unique<DWARF_Editor>(lief_t::from_binary(bin.get()));
   }
 
-  static auto create(uint32_t fmt, uint32_t arch) {
-    return details::try_unique<DWARF_Editor>(lief_t::create((lief_t::FORMAT)fmt, (lief_t::ARCH)arch));
-  }
+
 };

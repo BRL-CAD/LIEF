@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 namespace lief_jni::pe {
 
 int CHPEMetadataARM64::register_natives(JNIEnv* env) {
-  static const std::array NATIVE_METHODS {
+  static constexpr std::array NATIVE_METHODS {
     make("getCodeMap", "()I", jni_get_code_map),
     make("getCodeMapCount", "()I", jni_get_code_map_count),
     make("getCodeRangesToEntrypoints", "()I", jni_get_code_ranges_to_entrypoints),

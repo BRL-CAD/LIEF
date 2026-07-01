@@ -28,7 +28,7 @@ impl DwarfType for Thrown<'_> {
 
 impl Thrown<'_> {
     /// The underlying type being thrown
-    pub fn underlying_type(&self) -> Option<Type<'_>> {
+    pub fn underlying_type(&self) -> Option<Type> {
         into_optional(self.ptr.underlying_type())
     }
 }

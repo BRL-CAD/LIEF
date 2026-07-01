@@ -1,7 +1,6 @@
 use lief_ffi as ffi;
 
-
-use crate::common::{FromFFI, into_optional};
+use crate::common::FromFFI;
 
 use crate::dwarf::editor::types::EditorType;
 use crate::dwarf::editor::Variable;
@@ -27,22 +26,9 @@ pub struct Range {
 
 
 /// This structure represents a parameter of the current function (`DW_TAG_formal_parameter`)
+#[allow(dead_code)]
 pub struct Parameter {
     ptr: cxx::UniquePtr<ffi::DWARF_editor_Function_Parameter>,
-}
-
-impl Parameter {
-    /// Assign this parameter to a specific named register.
-    pub fn assign_register_by_name(&mut self, name: &str) -> &mut Self {
-        self.ptr.pin_mut().assign_register_by_name(name);
-        self
-    }
-
-    /// Assign this parameter to the given DWARF register id (e.g. `DW_OP_reg0`).
-    pub fn assign_register_by_id(&mut self, id: u64) -> &mut Self {
-        self.ptr.pin_mut().assign_register_by_id(id);
-        self
-    }
 }
 
 impl FromFFI<ffi::DWARF_editor_Function_Parameter> for Parameter {
@@ -54,6 +40,7 @@ impl FromFFI<ffi::DWARF_editor_Function_Parameter> for Parameter {
 }
 
 /// This structure mirrors the `DW_TAG_lexical_block` DWARF tag
+#[allow(dead_code)]
 pub struct LexicalBlock {
     ptr: cxx::UniquePtr<ffi::DWARF_editor_Function_LexicalBlock>,
 }
@@ -63,39 +50,6 @@ impl FromFFI<ffi::DWARF_editor_Function_LexicalBlock> for LexicalBlock {
         Self {
             ptr,
         }
-    }
-}
-
-impl LexicalBlock {
-    /// Create a `DW_AT_name` entry to associate a name to this entry
-    pub fn add_name(&mut self, name: &str) -> &mut Self {
-        self.ptr.pin_mut().add_name(name);
-        self
-    }
-
-    /// Create a `DW_AT_description` entry with the description
-    /// provided in parameter.
-    pub fn add_description(&mut self, description: &str) -> &mut Self {
-        self.ptr.pin_mut().add_description(description);
-        self
-    }
-
-    /// Create a sub-block with the given low/high addresses.
-    pub fn add_block(&mut self, start: u64, end: u64) -> Option<LexicalBlock> {
-        into_optional(self.ptr.pin_mut().add_block(start, end))
-    }
-
-    /// Create a sub-block with the given range of addresses.
-    pub fn add_block_from_range(&mut self, ranges: &[Range]) -> Option<LexicalBlock> {
-        let mut ffi_ranges = cxx::CxxVector::new();
-        for range in ranges {
-            let ffi_range = ffi::DWARF_editor_Function_Range {
-                start: range.start,
-                end: range.end,
-            };
-            ffi_ranges.as_mut().unwrap().push(ffi_range);
-        }
-        into_optional(self.ptr.pin_mut().add_block_from_range(&ffi_ranges))
     }
 }
 
@@ -177,12 +131,5 @@ impl Function {
     /// Add a label at the given address
     pub fn add_label(&mut self, addr: u64, name: &str) -> Label {
         Label::from_ffi(self.ptr.pin_mut().add_label(addr, name))
-    }
-
-    /// Create a `DW_AT_description` entry with the description
-    /// provided in parameter.
-    pub fn add_description(&mut self, description: &str) -> &mut Self {
-        self.ptr.pin_mut().add_description(description);
-        self
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 namespace lief_jni::dwarf::editor {
 
 int FunctionType::Parameter::register_natives(JNIEnv* env) {
-  static const std::array NATIVE_METHODS {
+  static constexpr std::array NATIVE_METHODS {
     make_destroy(
       (void*)&jni_destroy
     ),
@@ -38,7 +38,7 @@ int FunctionType::Parameter::register_natives(JNIEnv* env) {
 }
 
 int FunctionType::register_natives(JNIEnv* env) {
-  static const std::array NATIVE_METHODS {
+  static constexpr std::array NATIVE_METHODS {
     make(
       "setReturnType",
       "(Llief/dwarf/editor/Type;)Llief/dwarf/editor/FunctionType;",

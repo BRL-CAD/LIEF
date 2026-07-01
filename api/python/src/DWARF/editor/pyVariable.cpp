@@ -3,8 +3,6 @@
 
 #include "DWARF/pyDwarf.hpp"
 
-#include <nanobind/stl/string.h>
-
 namespace LIEF::dwarf::py {
 template<>
 void create<dw::editor::Variable>(nb::module_& m) {
@@ -41,12 +39,6 @@ void create<dw::editor::Variable>(nb::module_& m) {
       R"doc(
       Set the type of the current variable
       )doc"_doc, "type"_a, nb::rv_policy::reference_internal)
-
-    .def("add_description", &dw::editor::Variable::add_description,
-      R"doc(
-      Create a ``DW_AT_description`` entry with the description
-      provided in parameter.
-      )doc"_doc, "description"_a, nb::rv_policy::reference_internal)
   ;
 }
 

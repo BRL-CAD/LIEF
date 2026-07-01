@@ -67,17 +67,17 @@ impl<'a> SignerInfo<'a> {
     }
 
     /// [`X509`] certificate used by this signer.
-    pub fn cert(&self) -> Option<X509<'_>> {
+    pub fn cert(&self) -> Option<X509> {
         into_optional(self.ptr.cert())
     }
 
     /// Iterator over the **authenticated** [`Attribute`]
-    pub fn authenticated_attributes(&self) -> AuthenticatedAttributes<'_> {
+    pub fn authenticated_attributes(&self) -> AuthenticatedAttributes {
         AuthenticatedAttributes::new(self.ptr.authenticated_attributes())
     }
 
     /// Iterator over the **unauthenticated** [`Attribute`]
-    pub fn unauthenticated_attributes(&self) -> UnAuthenticatedAttributes<'_> {
+    pub fn unauthenticated_attributes(&self) -> UnAuthenticatedAttributes {
         UnAuthenticatedAttributes::new(self.ptr.unauthenticated_attributes())
     }
 

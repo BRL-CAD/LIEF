@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,7 +172,7 @@ class LIEF_API Parser : public LIEF::Parser {
   /// The section containing symbols name is found with the `link` attribute.
   template<typename ELF_T>
   LIEF_LOCAL ok_error_t
-    parse_symtab_symbols(const Section& symtab_section,
+    parse_symtab_symbols(uint64_t offset, uint32_t nb_symbols,
                          const Section& string_section);
 
   /// Parse Dynamic relocations

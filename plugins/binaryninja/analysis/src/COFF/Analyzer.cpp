@@ -1,4 +1,4 @@
-/* Copyright 2025 - 2026 R. Thomas
+/* Copyright 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "binaryninja/analysis/COFF/Analyzer.hpp"
+#include "Analyzer.hpp"
 #include "log.hpp"
-#include "binaryninja/analysis/COFF/TypeBuilder.hpp"
+#include "TypeBuilder.hpp"
 
 #include <binaryninja/binaryninjaapi.h>
 #include <binaryninja/binaryninjacore.h>

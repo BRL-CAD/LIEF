@@ -3,51 +3,62 @@
 :fa:`solid fa-code-compare` Changelog
 =====================================
 
-1.0.0 - Not Released Yet
+0.17.6 - March 18th, 2026
+-------------------------
+
+:ELF:
+
+  * Fix alignment for ``PHDR/SHDR`` and improve ``TLS/RELR`` handling (:issue:`1315`)
+  * Skip ``NOBITS`` sections in layout calculations and improve index retrieval
+    (related to :issue:`1315`)
+
+:PE:
+
+  * Fix IAT parsing issue by :github_user:`itamarga` in PR :pr:`1314`)
+
+
+0.17.5 - March 8th, 2026
 ------------------------
 
-:BinaryNinja:
+:ELF:
 
-  * Add :ref:`Android JNI Analyzer <plugins-binaryninja-analyzers-android-jni>`
+  * Add missing segments in X86_64 coredump parser (:issue:`1278`)
+  * Add TLSDESC_PLT and TLSDESC_GOT to ELF dynamic tags (:issue:`1311`)
+  * Fix dynamic entry shifting for Android relocations (:issue:`1309`)
 
-:DWARF:
+:MachO:
 
-  * Add support to access bit size of bit-fields declaration (:issue:`1265`)
-  * Add support to access Enum entries: |lief-dwarf-types-Enum-entries|
-  * Add support to read or assign a register to a function's parameter
-  * Add support to read or assign a description (``DW_AT_description``) to
-    a |lief-dwarf-function|, |lief-dwarf-variable|, |lief-dwarf-lexical-block|:
+  * Fix ``DyldInfo::show_bindings`` integer overflow (:issue:`1313`)
 
-    - |lief-dwarf-function-description|
-    - |lief-dwarf-variable-description|
-    - |lief-dwarf-lexical-block-description|
+0.17.4 - February 21th, 2026
+----------------------------
 
-  * Enabled the creation of nested |lief-dwarf-editor-Function-lexical-block|
+:PE:
+
+  * Fixed the address type in the TLS builder by :github_user:`Immortalety` in PR: :pr:`1296`
+
+:MachO:
+
+  * Fixed |lief-macho-binary-virtual_address_to_offset| to properly handle non-file-backed segments
+    (such as ``__DATA`` segments containing only ``ZEROFILL`` sections like `__bss`)
+    by :github_user:`jalopezg-git` in PR: :pr:`1301` fixing :issue:`1299`.
+
+  * Fixed ``patch_relocation()`` to correctly process tagged pointers.
+    By :github_user:`jalopezg-git` in PR: :pr:`1302` fixing :issue:`1300`
 
 :COFF:
 
-  * Add |lief-coff-section-coff_string| for accessing the full section name when
-    this name does not fit in 8 bytes.
+  * Resolved a compilation conflict with the Windows ``minwindef.h`` macro ``#define max``
 
-:Mach-O:
+:CMake:
 
-  * Introduced an API to select a specific Mach-O binary by architecture from a FAT binary (:pr:`1283`)
-
-:Dependencies:
-
-  * Update nanobind to version ``v2.11.x``
-  * Update tl-expected to version ``1.3.1``
-  * Update utfcpp to version ``4.0.9``
-  * Update frozen to commit ``61dce5a``
-  * Update spdlog to version ``1.17.0``
-
-:Extended:
-
-  * Use LLVM ``22.x``
+  * Fixed compiler flag issues on Windows when compiling with ``clang-cl``. By
+    :github_user:`sigewinnefish` in PR: :pr:`1306`
 
 :Python:
 
-  * Python 3.8 is no longer supported
+  * Bumped various Python backend build dependencies in ``api/python/build-requirements.txt``
+    to support Python ``3.14`` when compiling from sources (:issue:`1304`)
 
 0.17.3 - January 24th, 2026
 ---------------------------
@@ -81,6 +92,7 @@
 :Mach-O:
 
   * Fix strong performance issue when parsing certain Mach-O (by :github_user:`trevor-e` fixing :issue:`1262`)
+
 
 0.17.1 - October 25th, 2025
 ---------------------------
@@ -347,27 +359,6 @@
 :Utilities:
 
   * Add |lief-dump|
-
-0.16.7 - October 5th, 2025
---------------------------
-
-:Python:
-
-  * Add wheels for Python 3.14
-
-:Mach-O:
-
-  * Fix ``has_nx`` (:pr:`1218`)
-  * Fix :issue:`1228`
-
-:ELF:
-
-  * Fix :issue:`1241`
-
-:Other:
-
-  * :pr:`1220`
-
 
 0.16.6 - May 29th, 2025
 -----------------------

@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 #define LIEF_DWARF_EDITOR_H
 #include <memory>
 #include <string>
-#include <cstdint>
 
 #include "LIEF/visibility.h"
 
@@ -38,24 +37,8 @@ class LIEF_API Editor {
   Editor() = delete;
   Editor(std::unique_ptr<details::Editor> impl);
 
-  enum class FORMAT : uint32_t {
-    ELF,
-    MACHO,
-    PE,
-  };
-
-  enum class ARCH : uint32_t {
-    X64,
-    X86,
-    AARCH64,
-    ARM,
-  };
-
   /// Instantiate an editor for the given binary object
   static std::unique_ptr<Editor> from_binary(LIEF::Binary& bin);
-
-  /// Instantiate an editor for the given format and arch
-  static std::unique_ptr<Editor> create(FORMAT fmt, ARCH arch);
 
   /// Create a new compilation unit
   std::unique_ptr<editor::CompilationUnit> create_compilation_unit();

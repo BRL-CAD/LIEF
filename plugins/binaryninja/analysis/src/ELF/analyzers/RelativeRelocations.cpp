@@ -1,4 +1,4 @@
-/* Copyright 2025 - 2026 R. Thomas
+/* Copyright 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 #include "binaryninja/lief_utils.hpp"
 #include "LIEF/ELF/Binary.hpp"
 #include "LIEF/ELF/Relocation.hpp"
-#include "binaryninja/analysis/ELF/analyzers/RelativeRelocations.hpp"
+#include "ELF/analyzers/RelativeRelocations.hpp"
 
 #include <binaryninja/binaryninjacore.h>
 #include <binaryninja/binaryninjaapi.h>

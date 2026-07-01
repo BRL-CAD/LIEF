@@ -10,5 +10,4 @@
   android-packed-relocations/index
   relative-relocations/index
   relocations/index
-  android-jni/index
 

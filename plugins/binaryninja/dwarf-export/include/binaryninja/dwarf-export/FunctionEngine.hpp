@@ -1,4 +1,4 @@
-/* Copyright 2025 - 2026 R. Thomas
+/* Copyright 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,6 @@ class FunctionEngine {
   }
 
   LIEF::dwarf::editor::Function* add_function(BinaryNinja::Function& func);
-
-  std::string get_hlil_for_addr(BinaryNinja::Function& F, uint64_t addr);
 
   ~FunctionEngine() = default;
 

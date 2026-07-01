@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,20 +31,6 @@ class Editor : public JNI<Editor, std::unique_ptr<LIEF::dwarf::Editor>> {
     jni::Field { "impl", jlong{}, }
   };
 
-  class Format {
-    public:
-    static constexpr jni::Class kClass {
-      "lief/dwarf/Editor$Format",
-    };
-  };
-
-  class Arch {
-    public:
-    static constexpr jni::Class kClass {
-      "lief/dwarf/Editor$Arch",
-    };
-  };
-
   static int register_natives(JNIEnv* env);
 
   static void jni_destroy(JNIEnv* env, jobject thiz) {
@@ -52,7 +38,6 @@ class Editor : public JNI<Editor, std::unique_ptr<LIEF::dwarf::Editor>> {
   }
 
   static jobject jni_for_binary(JNIEnv* env, jclass clazz, jobject binary);
-  static jobject jni_create(JNIEnv* env, jclass clazz, jobject fmt, jobject arch);
   static jobject jni_create_compilation_unit(JNIEnv* env, jobject thiz);
 
   static void jni_write(JNIEnv* env, jobject thiz, jstring path) {

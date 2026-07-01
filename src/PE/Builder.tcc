@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -356,7 +356,7 @@ ok_error_t Builder::build_tls() {
       tls->addressof_callbacks(0);
     } else {
       binary_->patch_address(tls_callbacks_start, tls_data_.callbacks,
-                             Binary::VA_TYPES::VA);
+                             Binary::VA_TYPES::RVA);
     }
   }
 

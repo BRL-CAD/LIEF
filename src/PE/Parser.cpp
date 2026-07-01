@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1240,9 +1240,6 @@ std::unique_ptr<Binary> Parser::parse(std::unique_ptr<BinaryStream> stream,
 }
 
 bool Parser::is_valid_import_name(const std::string& name) {
-
-  // According to https://stackoverflow.com/a/23340781
-  static constexpr unsigned MAX_IMPORT_NAME_SIZE = 0x1000;
 
   if (name.empty() || name.size() > MAX_IMPORT_NAME_SIZE) {
     return false;

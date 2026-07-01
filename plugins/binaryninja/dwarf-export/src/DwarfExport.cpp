@@ -1,4 +1,4 @@
-/* Copyright 2025 - 2026 R. Thomas
+/* Copyright 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,14 +45,7 @@ namespace bn = BinaryNinja;
 
 namespace dw = LIEF::dwarf::editor;
 
-using FORMAT = LIEF::dwarf::Editor::FORMAT;
-using ARCH = LIEF::dwarf::Editor::ARCH;
-
 namespace dwarf_plugin {
-
-inline bool startwith(const std::string& s, const char* prefix) {
-  return s.rfind(prefix, 0) == 0;
-}
 
 DwarfExport::~DwarfExport() = default;
 
@@ -60,53 +53,14 @@ DwarfExport::DwarfExport(BinaryNinja::BinaryView& bv) :
   bv_{&bv}
 {}
 
-std::pair<FORMAT, ARCH> get_fmt_arch(const bn::BinaryView& bv) {
-  FORMAT fmt = FORMAT::ELF;
-  ARCH arch = ARCH::X64;
-
-  if (bn::Ref<bn::Platform> platform = bv.GetDefaultPlatform()) {
-    const std::string& name = platform->GetName();
-    if (startwith(name, "linux-") || startwith(name, "freebsd-")) {
-      fmt = FORMAT::ELF;
-    }
-    else if (startwith(name, "mac-")) {
-      fmt = FORMAT::MACHO;
-    }
-    else if (startwith(name, "windows-") || startwith(name, "efi-")) {
-      fmt = FORMAT::PE;
-    }
-    else {
-      BN_WARN("Platform '{}' is not supported", name);
-    }
-  }
-
-
-  if (bn::Ref<bn::Architecture> target_arch = bv.GetDefaultArchitecture()) {
-    const std::string& name = target_arch->GetName();
-    if (name == "aarch64") {
-      arch = ARCH::AARCH64;
-    }
-    else if (name == "x86") {
-      arch = ARCH::X86;
-    }
-    else if (name == "x86_64") {
-      arch = ARCH::X64;
-    }
-    else if (name == "armv7") {
-      arch = ARCH::ARM;
-    }
-    else {
-      BN_WARN("Architecture '{}' is not supported", name);
-    }
-  }
-
-  return {fmt, arch};
-}
-
 dw::CompilationUnit* DwarfExport::create() {
-  const auto& [fmt, arch] = get_fmt_arch(*bv_);
+  bin_ = binaryninja::get_bin(*bv_);
+  if (bin_ == nullptr) {
+    BN_WARN("Can't parse {} with LIEF", bv_->GetFile()->GetOriginalFilename());
+    return nullptr;
+  }
 
-  editor_ = LIEF::dwarf::Editor::create(fmt, arch);
+  editor_ = LIEF::dwarf::Editor::from_binary(*bin_);
   if (editor_ == nullptr) {
     return nullptr;
   }

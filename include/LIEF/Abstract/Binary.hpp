@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -409,11 +409,6 @@ class LIEF_API Binary : public Object {
   /// \note This function does not verify that the debug file matches the binary's unique
   ///       identifier (e.g., build ID, GUID).
   DebugInfo* load_debug_info(const std::string& path);
-
-  /// Size of the binary when mapped in memory
-  virtual uint64_t virtual_size() const {
-    return 0;
-  }
 
   protected:
   FORMATS format_ = FORMATS::UNKNOWN;

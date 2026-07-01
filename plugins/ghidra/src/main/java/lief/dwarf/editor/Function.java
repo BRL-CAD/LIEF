@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,14 +31,6 @@ public class Function extends lief.Base {
     public static class LexicalBlock extends lief.Base {
         @Override
         protected native void destroy();
-
-        public native LexicalBlock addBlock(long start, long end);
-
-        public native LexicalBlock addBlock(List<Range> ranges);
-
-        public native LexicalBlock addDescription(String desc);
-
-        public native LexicalBlock addName(String name);
 
         private LexicalBlock(long impl) {
             super(impl);
@@ -78,6 +70,4 @@ public class Function extends lief.Base {
     public native LexicalBlock addLexicalBlock(long start, long end);
 
     public native Label addLabel(long addr, String label);
-
-    public native Function addDescription(String desc);
 };

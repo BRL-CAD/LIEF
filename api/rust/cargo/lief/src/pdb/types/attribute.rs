@@ -35,7 +35,7 @@ impl Attribute<'_> {
     }
 
     /// Type of this attribute
-    pub fn get_type(&self) -> Option<Type<'_>> {
+    pub fn get_type(&self) -> Option<Type> {
         into_optional(self.ptr.get_type())
     }
 }

@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,8 +72,7 @@ class LIEF_API OptionalHeader : public Object {
     EFI_RUNTIME_DRIVER       = 12, ///< An EFI driver with run-time services.
     EFI_ROM                  = 13, ///< An EFI ROM image.
     XBOX                     = 14, ///< XBOX.
-    WINDOWS_BOOT_APPLICATION = 16, ///< A BCD application.
-    XBOX_CODE_CATALOG        = 17, ///< Security Metadata Containers
+    WINDOWS_BOOT_APPLICATION = 16  ///< A BCD application.
   };
 
   OptionalHeader(const details::pe32_optional_header& header);

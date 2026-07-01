@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,6 @@ class DWARF_types_ClassLike_Member : private Mirror<LIEF::dwarf::types::ClassLik
   uint64_t bit_offset(uint32_t& err) const {
     return details::make_error<uint64_t>(
         get().bit_offset(), err
-    );
-  }
-
-  uint64_t bit_size(uint32_t& err) const {
-    return details::make_error<uint64_t>(
-        get().bit_size(), err
     );
   }
 

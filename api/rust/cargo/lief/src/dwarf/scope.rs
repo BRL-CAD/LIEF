@@ -68,7 +68,7 @@ impl Scope<'_> {
     }
 
     /// Parent scope (if any)
-    pub fn parent(&self) -> Option<Scope<'_>> {
+    pub fn parent(&self) -> Option<Scope> {
         into_optional(self.ptr.parent())
     }
 

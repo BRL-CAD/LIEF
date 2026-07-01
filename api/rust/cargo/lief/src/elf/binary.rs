@@ -90,7 +90,7 @@ impl Binary {
     }
 
     /// Return the main ELF header
-    pub fn header(&self) -> Header<'_> {
+    pub fn header(&self) -> Header {
         Header::from_ffi(self.ptr.header())
     }
 
@@ -106,27 +106,27 @@ impl Binary {
     }
 
     /// Return sysv-hash information (if present)
-    pub fn sysv_hash(&self) -> Option<Sysv<'_>> {
+    pub fn sysv_hash(&self) -> Option<Sysv> {
         into_optional(self.ptr.sysv_hash())
     }
 
     /// Return GNU Hash info (if present)
-    pub fn gnu_hash(&self) -> Option<Gnu<'_>> {
+    pub fn gnu_hash(&self) -> Option<Gnu> {
         into_optional(self.ptr.gnu_hash())
     }
 
     /// Return an iterator over the [`crate::elf::Section`] of the binary
-    pub fn sections(&self) -> Sections<'_> {
+    pub fn sections(&self) -> Sections {
         Sections::new(self.ptr.sections())
     }
 
     /// Return an iterator over the [`crate::elf::Segment`] of the binary
-    pub fn segments(&self) -> Segments<'_> {
+    pub fn segments(&self) -> Segments {
         Segments::new(self.ptr.segments())
     }
 
     /// Return an iterator over the [`crate::elf::DynamicEntries`] of the binary
-    pub fn dynamic_entries(&self) -> DynamicEntries<'_> {
+    pub fn dynamic_entries(&self) -> DynamicEntries {
         DynamicEntries::new(self.ptr.dynamic_entries())
     }
 
@@ -139,7 +139,7 @@ impl Binary {
     }
 
     /// Add the given dynamic entry and return the new entry
-    pub fn add_dynamic_entry(&mut self, entry: &dyn dynamic::DynamicEntry) -> dynamic::Entries<'_> {
+    pub fn add_dynamic_entry(&mut self, entry: &dyn dynamic::DynamicEntry) -> dynamic::Entries {
         dynamic::Entries::from_ffi(
             self.ptr
                 .as_mut()
@@ -149,114 +149,114 @@ impl Binary {
     }
 
     /// Return an iterator over the dynamic [`crate::elf::Symbol`] of the binary
-    pub fn dynamic_symbols(&self) -> DynamicSymbols<'_> {
+    pub fn dynamic_symbols(&self) -> DynamicSymbols {
         DynamicSymbols::new(self.ptr.dynamic_symbols())
     }
 
     /// Return an iterator over the **exported** [`crate::elf::Symbol`] of the binary
-    pub fn exported_symbols(&self) -> ExportedSymbols<'_> {
+    pub fn exported_symbols(&self) -> ExportedSymbols {
         ExportedSymbols::new(self.ptr.exported_symbols())
     }
 
     /// Return an iterator over the **imported** [`crate::elf::Symbol`] of the binary
-    pub fn imported_symbols(&self) -> ImportedSymbols<'_> {
+    pub fn imported_symbols(&self) -> ImportedSymbols {
         ImportedSymbols::new(self.ptr.imported_symbols())
     }
 
     /// Return an iterator over the symtab-debug [`crate::elf::Symbol`] of the binary
-    pub fn symtab_symbols(&self) -> SymtabSymbols<'_> {
+    pub fn symtab_symbols(&self) -> SymtabSymbols {
         SymtabSymbols::new(self.ptr.symtab_symbols())
     }
 
     /// Return an iterator over the  [`crate::elf::SymbolVersion`] of the binary
-    pub fn symbols_version(&self) -> SymbolsVersion<'_> {
+    pub fn symbols_version(&self) -> SymbolsVersion {
         SymbolsVersion::new(self.ptr.symbols_version())
     }
 
     /// Return an iterator over the  [`crate::elf::SymbolVersionRequirement`] of the binary
-    pub fn symbols_version_requirement(&self) -> SymbolsVersionRequirement<'_> {
+    pub fn symbols_version_requirement(&self) -> SymbolsVersionRequirement {
         SymbolsVersionRequirement::new(self.ptr.symbols_version_requirement())
     }
 
     /// Return an iterator over the  [`crate::elf::SymbolVersionDefinition`] of the binary
-    pub fn symbols_version_definition(&self) -> SymbolsVersionDefinition<'_> {
+    pub fn symbols_version_definition(&self) -> SymbolsVersionDefinition {
         SymbolsVersionDefinition::new(self.ptr.symbols_version_definition())
     }
 
     /// Return an iterator over the  [`crate::elf::Notes`] of the binary
-    pub fn notes(&self) -> ItNotes<'_> {
+    pub fn notes(&self) -> ItNotes {
         ItNotes::new(self.ptr.notes())
     }
 
     /// Return an iterator over the `.plt.got` [`crate::elf::Relocation`] of the binary
-    pub fn pltgot_relocations(&self) -> PltGotRelocations<'_> {
+    pub fn pltgot_relocations(&self) -> PltGotRelocations {
         PltGotRelocations::new(self.ptr.pltgot_relocations())
     }
 
     /// Return an iterator over the regular [`crate::elf::Relocation`] of the binary
-    pub fn dynamic_relocations(&self) -> DynamicRelocations<'_> {
+    pub fn dynamic_relocations(&self) -> DynamicRelocations {
         DynamicRelocations::new(self.ptr.dynamic_relocations())
     }
 
     /// Return an iterator over the object-file (`.o`) [`crate::elf::Relocation`]
-    pub fn object_relocations(&self) -> ObjectRelocations<'_> {
+    pub fn object_relocations(&self) -> ObjectRelocations {
         ObjectRelocations::new(self.ptr.object_relocations())
     }
 
     /// Return an iterator over **all** [`crate::elf::Relocation`] of the binary
-    pub fn relocations(&self) -> Relocations<'_> {
+    pub fn relocations(&self) -> Relocations {
         Relocations::new(self.ptr.relocations())
     }
 
     /// Try to find the ELF section with the given name
-    pub fn section_by_name(&self, name: &str) -> Option<Section<'_>> {
+    pub fn section_by_name(&self, name: &str) -> Option<Section> {
         into_optional(self.ptr.section_by_name(name))
     }
 
     /// Try to find the ELF relocation that takes place at the given address
-    pub fn relocation_by_addr(&self, address: u64) -> Option<Relocation<'_>> {
+    pub fn relocation_by_addr(&self, address: u64) -> Option<Relocation> {
         into_optional(self.ptr.relocation_by_addr(address))
     }
 
     /// Try to find the `.plt.got` relocation for the given symbol name
-    pub fn relocation_for_symbol(&self, sym_name: &str) -> Option<Relocation<'_>> {
+    pub fn relocation_for_symbol(&self, sym_name: &str) -> Option<Relocation> {
         into_optional(self.ptr.relocation_for_symbol(sym_name))
     }
 
     /// Try to find the symbol with the given name in the dynamic `.dynsym` table
-    pub fn dynamic_symbol_by_name(&self, sym_name: &str) -> Option<Symbol<'_>> {
+    pub fn dynamic_symbol_by_name(&self, sym_name: &str) -> Option<Symbol> {
         into_optional(self.ptr.get_dynamic_symbol(sym_name))
     }
 
     /// Try to find the symbol with the given name in the debug `.symtab` table
-    pub fn symtab_symbol_by_name(&self, sym_name: &str) -> Option<Symbol<'_>> {
+    pub fn symtab_symbol_by_name(&self, sym_name: &str) -> Option<Symbol> {
         into_optional(self.ptr.get_symtab_symbol(sym_name))
     }
 
     /// Try to find the library (`DT_NEEDED`) with the given name
-    pub fn get_library(&self, name: &str) -> Option<dynamic::Library<'_>> {
+    pub fn get_library(&self, name: &str) -> Option<dynamic::Library> {
         into_optional(self.ptr.get_library(name))
     }
 
     /// Try to find the section that encompasses the given offset. `skip_nobits` can be used
     /// to include (or not) the `SHT_NOTBIT` sections
-    pub fn section_from_offset(&self, offset: u64, skip_nobits: bool) -> Option<Section<'_>> {
+    pub fn section_from_offset(&self, offset: u64, skip_nobits: bool) -> Option<Section> {
         into_optional(self.ptr.section_from_offset(offset, skip_nobits))
     }
 
     /// Try to find the section that encompasses the given virtual address. `skip_nobits` can be used
     /// to include (or not) the `SHT_NOTBIT` sections
-    pub fn section_from_virtual_address(&self, address: u64, skip_nobits: bool) -> Option<Section<'_>> {
+    pub fn section_from_virtual_address(&self, address: u64, skip_nobits: bool) -> Option<Section> {
         into_optional(self.ptr.section_from_virtual_address(address, skip_nobits))
     }
 
     /// Try to find the segment that encompasses the given virtual address
-    pub fn segment_from_virtual_address(&self, address: u64) -> Option<Segment<'_>> {
+    pub fn segment_from_virtual_address(&self, address: u64) -> Option<Segment> {
         into_optional(self.ptr.segment_from_virtual_address(address))
     }
 
     /// Try to find the segment that encompasses the given offset
-    pub fn segment_from_offset(&self, offset: u64) -> Option<Segment<'_>> {
+    pub fn segment_from_offset(&self, offset: u64) -> Option<Segment> {
         into_optional(self.ptr.segment_from_offset(offset))
     }
 
@@ -361,18 +361,18 @@ impl Binary {
     }
 
     /// Iterator over the functions found in this binary
-    pub fn functions(&self) -> generic::Functions<'_> {
+    pub fn functions(&self) -> generic::Functions {
         generic::Functions::new(self.ptr.functions())
     }
 
     /// Try to find the dynamic entry associated with the given tag
-    pub fn dynamic_entry_by_tag(&self, tag: dynamic::Tag) -> Option<dynamic::Entries<'_>> {
+    pub fn dynamic_entry_by_tag(&self, tag: dynamic::Tag) -> Option<dynamic::Entries> {
         into_optional(self.ptr.dynamic_entry_by_tag(tag.into()))
     }
 
     /// Look for the segment with the given type. If there are multiple segment
     /// with the same type, it returns the first one.
-    pub fn segment_by_type(&self, seg_type: segment::Type) -> Option<Segment<'_>> {
+    pub fn segment_by_type(&self, seg_type: segment::Type) -> Option<Segment> {
         into_optional(self.ptr.segment_by_type(seg_type.into()))
     }
 
@@ -410,7 +410,7 @@ impl Binary {
 
     /// Add the provided segment to the binary. This function returns the
     /// newly added segment which could define additional attributes like the virtual address.
-    pub fn add_segment(&mut self, segment: &Segment) -> Option<Segment<'_>> {
+    pub fn add_segment(&mut self, segment: &Segment) -> Option<Segment> {
         into_optional(
             self.ptr
                 .pin_mut()
@@ -425,7 +425,7 @@ impl Binary {
 
     /// Try to find the SymbolVersionRequirement associated with the given library
     /// name (e.g. `libc.so.6`)
-    pub fn find_version_requirement(&self, libname: &str) -> Option<SymbolVersionRequirement<'_>> {
+    pub fn find_version_requirement(&self, libname: &str) -> Option<SymbolVersionRequirement> {
         into_optional(self.ptr.find_version_requirement(libname.to_string()))
     }
 

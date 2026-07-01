@@ -1,8 +1,7 @@
 use lief_ffi as ffi;
 
-use crate::common::{FromFFI, into_optional};
+use crate::common::FromFFI;
 use std::marker::PhantomData;
-use super::Type;
 use crate::dwarf::types::DwarfType;
 use crate::declare_fwd_iterator;
 use crate::dwarf::Parameters;
@@ -29,13 +28,8 @@ impl DwarfType for Subroutine<'_> {
 }
 
 impl Subroutine<'_> {
-    /// Return the [`Type`] associated with the **return type** of this function.
-    pub fn return_type(&self) -> Option<Type<'_>> {
-        into_optional(self.ptr.return_type())
-    }
-
     /// [`Parameters`] of this subroutine
-    pub fn parameters(&self) -> ParametersIt<'_> {
+    pub fn parameters(&self) -> ParametersIt {
         ParametersIt::new(self.ptr.parameters())
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,10 +36,6 @@ class DWARF_types_Subroutine : public DWARF_Type {
 
   static bool classof(const DWARF_Type& type) {
     return lief_t::classof(&type.get());
-  }
-
-  auto return_type() const {
-    return details::try_unique<DWARF_Type>(impl().return_type()); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
   }
 
   auto parameters() const {

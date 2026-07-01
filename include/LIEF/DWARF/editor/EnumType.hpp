@@ -1,4 +1,4 @@
-/* Copyright 2022 - 2026 R. Thomas
+/* Copyright 2022 - 2025 R. Thomas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,9 +47,6 @@ class LIEF_API EnumType : public Type {
   /// Define the number of bytes required to hold an instance of the
   /// enumeration (`DW_AT_byte_size`).
   EnumType& set_size(uint64_t size);
-
-  /// Set the underlying type that is used to encode this enum
-  EnumType& set_underlying_type(const Type& type);
 
   /// Add an enum value by specifying its name and its integer value
   std::unique_ptr<Value> add_value(const std::string& name, int64_t value);

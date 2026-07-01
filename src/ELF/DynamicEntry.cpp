@@ -1,5 +1,5 @@
-/* Copyright 2017 - 2026 R. Thomas
- * Copyright 2017 - 2026 Quarkslab
+/* Copyright 2017 - 2025 R. Thomas
+ * Copyright 2017 - 2025 Quarkslab
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -219,6 +219,8 @@ const char* to_string(DynamicEntry::TAG tag) {
     ENTRY(RELR),
     ENTRY(RELRENT),
     ENTRY(GNU_HASH),
+    ENTRY(TLSDESC_PLT),
+    ENTRY(TLSDESC_GOT),
     ENTRY(RELACOUNT),
     ENTRY(RELCOUNT),
     ENTRY(FLAGS_1),

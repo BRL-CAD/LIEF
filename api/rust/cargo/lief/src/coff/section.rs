@@ -92,27 +92,19 @@ impl Section<'_> {
     }
 
     /// Iterator over the relocations associated with this section
-    pub fn relocations(&self) -> Relocations<'_> {
+    pub fn relocations(&self) -> Relocations {
         Relocations::new(self.ptr.relocations())
     }
 
     /// Iterator over the symbols associated with this section
-    pub fn symbols(&self) -> Symbols<'_> {
+    pub fn symbols(&self) -> Symbols {
         Symbols::new(self.ptr.symbols())
     }
 
-    /// Return comdat information (only if the section has the
+    /// Return comdat infomration (only if the section has the
     /// [`crate::pe::section::Characteristics::LNK_COMDAT`] characteristic)
-    pub fn comdat_info(&self) -> Option<ComdatInfo<'_>> {
+    pub fn comdat_info(&self) -> Option<ComdatInfo> {
         into_optional(self.ptr.comdat_info())
-    }
-
-    /// Return the COFF string associated with the section's name (or a None)
-    ///
-    /// This coff string is usually present for long section names whose length
-    /// does not fit in the 8 bytes allocated by the COFF format.
-    pub fn coff_string(&self) -> Option<coff::String<'_>> {
-        into_optional(self.ptr.coff_string())
     }
 }
 
@@ -153,7 +145,7 @@ pub struct ComdatInfo<'a> {
 }
 
 impl ComdatInfo<'_> {
-    pub fn symbol(&self) -> Option<Symbol<'_>> {
+    pub fn symbol(&self) -> Option<Symbol> {
         into_optional(self.ptr.symbol())
     }
 
