@@ -73,7 +73,7 @@ Integrating LIEF into your project is also straightforward:
 
       .. code-block:: text
 
-        lief==0.17.6
+        lief==1.0.0
 
   .. tab:: :fa:`regular fa-file-code` C++
 
@@ -107,10 +107,11 @@ Integrating LIEF into your project is also straightforward:
 
         # For a tagged release
         [dependencies]
-        lief = "0.17.6"
+        lief = "1.0.0"
 
 You can find additional content, including release notes, on the `LIEF blog </blog/>`_:
 
+- `LIEF 1.0.0  release info </blog/2026-07-13-lief-1-0-0/>`_
 - `LIEF 0.17.0 release info </blog/2025-09-14-lief-0-17-0/>`_
 - `LIEF 0.16.0 release info </blog/2024-12-10-lief-0-16-0/>`_
 - `LIEF 0.15.0 release info </blog/2024-07-21-lief-0.15-0/>`_

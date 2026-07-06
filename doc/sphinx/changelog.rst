@@ -3,8 +3,8 @@
 :fa:`solid fa-code-compare` Changelog
 =====================================
 
-1.0.0 - Not Released Yet
-------------------------
+1.0.0 - July 12th, 2026
+-----------------------
 
 .. admonition:: Runtime
   :class: tip

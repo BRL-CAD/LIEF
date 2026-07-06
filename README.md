@@ -90,7 +90,7 @@ version = "0.0.1"
 edition = "2021"
 
 [dependencies]
-lief = "0.17.6"
+lief = "1.0.0"
 ```
 
 ### Homebrew
@@ -119,7 +119,7 @@ pip install [--user] --force-reinstall --index-url https://lief.s3-website.fr-pa
 - **Nightly**:
   * SDK: https://lief.s3-website.fr-par.scw.cloud/latest/sdk
   * Python Wheels: https://lief.s3-website.fr-par.scw.cloud/latest/lief
-- **v0.17.6**: https://github.com/lief-project/LIEF/releases/tag/0.17.6
+- **v1.0.0**: https://github.com/lief-project/LIEF/releases/tag/1.0.0
 
 Here are guides to install or integrate LIEF:
 
@@ -220,7 +220,7 @@ Romain Thomas ([@rh0main](https://www.romainthomas.fr/)) - Formerly at [Quarksla
 
 ### License
 
-[Apache 2.0](https://github.com/lief-project/LIEF/blob/0.17.6/LICENSE).
+[Apache 2.0](https://github.com/lief-project/LIEF/blob/1.0.0/LICENSE).
 
 ### Bibtex
 
@@ -233,4 +233,3 @@ Romain Thomas ([@rh0main](https://www.romainthomas.fr/)) - Formerly at [Quarksla
   year         = "2017"
 }
 ```
-
