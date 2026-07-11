@@ -116,6 +116,17 @@ void DyldInfo::rebase_opcodes(buffer_t raw) {
   std::move(raw.begin(), raw.end(), rebase_opcodes_.data());
 }
 
+inline std::string safe_segment_name(Binary::it_segments& segments, size_t idx) {
+  return idx < segments.size() ? segments[idx].name() : "<invalid>";
+}
+
+inline std::string safe_library_name(Binary::it_libraries& libraries,
+                                     int64_t idx) {
+  if (idx >= 0 && static_cast<size_t>(idx) < libraries.size()) {
+    return libraries[idx].name();
+  }
+  return "<invalid>";
+}
 
 std::string DyldInfo::show_rebases_opcodes() const {
   static constexpr char tab[] = "    ";
@@ -179,7 +190,7 @@ std::string DyldInfo::show_rebases_opcodes() const {
 
         output << "[" << to_string(opcode) << "] ";
         output << fmt::format("Segment Index := {} ({}) ", segment_index,
-                              segments[segment_index].name());
+                              safe_segment_name(segments, segment_index));
         output << fmt::format("Segment Offset := {:#x}\n", segment_offset);
 
         break;
@@ -222,7 +233,8 @@ std::string DyldInfo::show_rebases_opcodes() const {
           output << tab << tab;
           output << fmt::format("rebase({}, {}, {:#x})\n",
                                 to_string(REBASE_TYPE(type)),
-                                segments[segment_index].name(), segment_offset);
+                                safe_segment_name(segments, segment_index),
+                                segment_offset);
 
           segment_offset += pint_v;
 
@@ -256,7 +268,8 @@ std::string DyldInfo::show_rebases_opcodes() const {
           output << tab << tab;
           output << fmt::format("rebase({}, {}, {:#x})\n",
                                 to_string(REBASE_TYPE(type)),
-                                segments[segment_index].name(), segment_offset);
+                                safe_segment_name(segments, segment_index),
+                                segment_offset);
 
           segment_offset += pint_v;
 
@@ -277,7 +290,8 @@ std::string DyldInfo::show_rebases_opcodes() const {
         output << tab;
         output << fmt::format("rebase({}, {}, {:#x})\n",
                               to_string(REBASE_TYPE(type)),
-                              segments[segment_index].name(), segment_offset);
+                              safe_segment_name(segments, segment_index),
+                              segment_offset);
 
         uint64_t val = 0;
         if (auto res = rebase_stream.read_uleb128()) {
@@ -331,7 +345,8 @@ std::string DyldInfo::show_rebases_opcodes() const {
           output << tab << tab;
           output << fmt::format("rebase({}, {}, {:#x})\n",
                                 to_string(REBASE_TYPE(type)),
-                                segments[segment_index].name(), segment_offset);
+                                safe_segment_name(segments, segment_index),
+                                segment_offset);
 
           segment_offset += skip + pint_v;
 
@@ -534,7 +549,8 @@ void DyldInfo::show_bindings(std::ostream& output,
           break;
         }
 
-        output << tab << "Segment := " << segments[segment_idx].name() << '\n';
+        output << tab << "Segment := " << safe_segment_name(segments, segment_idx)
+               << '\n';
         output << tab << fmt::format("Segment Offset := {:#x}\n", segment_offset);
 
         break;
@@ -569,10 +585,11 @@ void DyldInfo::show_bindings(std::ostream& output,
                  << fmt::format("bind({}, {}, {:#x}, {}, library_ordinal={}, "
                                 "addend={}, is_weak_import={})\n",
                                 to_string(DyldBindingInfo::TYPE(type)),
-                                segments[segment_idx].name(), segment_offset,
-                                symbol_name,
+                                safe_segment_name(segments, segment_idx),
+                                segment_offset, symbol_name,
                                 library_ordinal > 0 ?
-                                    libraries[library_ordinal - 1].name() :
+                                    safe_library_name(libraries,
+                                                      library_ordinal - 1) :
                                     std::to_string(library_ordinal),
                                 addend, is_weak_import);
 
@@ -598,10 +615,11 @@ void DyldInfo::show_bindings(std::ostream& output,
                << fmt::format("bind({}, {}, {:#x}, {}, library_ordinal={}, "
                               "addend={}, is_weak_import={})\n",
                               to_string(DyldBindingInfo::TYPE(type)),
-                              segments[segment_idx].name(), segment_offset,
-                              symbol_name,
+                              safe_segment_name(segments, segment_idx),
+                              segment_offset, symbol_name,
                               library_ordinal > 0 ?
-                                  libraries[library_ordinal - 1].name() :
+                                  safe_library_name(libraries,
+                                                    library_ordinal - 1) :
                                   std::to_string(library_ordinal),
                               addend, is_weak_import);
 
@@ -629,10 +647,11 @@ void DyldInfo::show_bindings(std::ostream& output,
                << fmt::format("bind({}, {}, {:#x}, {}, library_ordinal={}, "
                               "addend={}, is_weak_import={})\n",
                               to_string(DyldBindingInfo::TYPE(type)),
-                              segments[segment_idx].name(), segment_offset,
-                              symbol_name,
+                              safe_segment_name(segments, segment_idx),
+                              segment_offset, symbol_name,
                               library_ordinal > 0 ?
-                                  libraries[library_ordinal - 1].name() :
+                                  safe_library_name(libraries,
+                                                    library_ordinal - 1) :
                                   std::to_string(library_ordinal),
                               addend, is_weak_import);
 
@@ -682,10 +701,11 @@ void DyldInfo::show_bindings(std::ostream& output,
                  << fmt::format("bind({}, {}, {:#x}, {}, library_ordinal={}, "
                                 "addend={}, is_weak_import={})\n",
                                 to_string(DyldBindingInfo::TYPE(type)),
-                                segments[segment_idx].name(), segment_offset,
-                                symbol_name,
+                                safe_segment_name(segments, segment_idx),
+                                segment_offset, symbol_name,
                                 library_ordinal > 0 ?
-                                    libraries[library_ordinal - 1].name() :
+                                    safe_library_name(libraries,
+                                                      library_ordinal - 1) :
                                     std::to_string(library_ordinal),
                                 addend, is_weak_import);
 
@@ -706,6 +726,10 @@ void DyldInfo::show_bindings(std::ostream& output,
           {
             output << tab << fmt::format("[{}]\n", to_string(subopcode));
             uint64_t delta = 0;
+            if (segment_idx >= segments.size()) {
+              LIEF_WARN("Invalid segment index {} in THREADED bind", segment_idx);
+              break;
+            }
             const SegmentCommand& current_segment = segments[segment_idx];
             do {
               const uint64_t address =
@@ -757,7 +781,8 @@ void DyldInfo::show_bindings(std::ostream& output,
                               segment_offset, current_segment.name(),
                               th_bind_data.symbol_name,
                               library_ordinal > 0 ?
-                                  libraries[library_ordinal - 1].name() :
+                                  safe_library_name(libraries,
+                                                    library_ordinal - 1) :
                                   std::to_string(library_ordinal),
                               th_bind_data.addend, th_bind_data.symbol_flags
                           );

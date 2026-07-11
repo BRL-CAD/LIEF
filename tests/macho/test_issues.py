@@ -186,3 +186,32 @@ def test_negative_relative_offset():
     assert target is not None
     assert len(target.sections) == 1
     assert bytes(target.sections[0].content) == b""
+
+
+@pytest.mark.private
+def test_dyld_corrupted_indices():
+    sample = get_sample("private/MachO/dyld_bad_indices.macho")
+    subprocess.check_call(
+        [
+            sys.executable,
+            "-c",
+            dedent(f"""\
+            import lief
+            fat = lief.MachO.parse(r"{sample}")
+            di = fat.at(0).dyld_info
+            assert di is not None
+            di.show_rebases_opcodes
+            di.show_bind_opcodes
+            di.show_lazy_bind_opcodes
+            di.show_weak_bind_opcodes"""),
+        ],
+        timeout=30.0,
+    )
+
+    target = parse_macho(sample).at(0)
+    assert target is not None
+    di = target.dyld_info
+    assert di is not None
+
+    assert "<invalid>" in di.show_rebases_opcodes
+    assert "<invalid>" in di.show_bind_opcodes
