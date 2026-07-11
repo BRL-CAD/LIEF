@@ -124,7 +124,13 @@ void Parser::parse_strings() {
   const uint64_t max_entries = (stream_size - table_offset) / sizeof(uint32_t);
   file_->strings_.reserve(nb_strings < max_entries ? nb_strings : max_entries);
 
+  uint64_t max_string = stream_size;
+
   for (size_t i = 0; i < strings_location.second; ++i) {
+    if (max_string == 0) {
+      LIEF_WARN("DEX string out of bounds");
+      break;
+    }
     auto string_offset =
         stream_->peek<uint32_t>(strings_location.first + i * sizeof(uint32_t));
     if (!string_offset) {
@@ -137,10 +143,12 @@ void Parser::parse_strings() {
     } else {
       break;
     }
-    auto string_value = stream_->read_mutf8(str_size);
+    const uint64_t to_read = std::min<uint64_t>(str_size, max_string);
+    auto string_value = stream_->read_mutf8(to_read);
     if (!string_value) {
       break;
     }
+    max_string -= to_read;
     file_->strings_.push_back(std::make_unique<std::string>(*string_value));
   }
 }
