@@ -1556,8 +1556,13 @@ ok_error_t BinaryParser::parse_dyldinfo_rebases() {
           LIEF_ERR("REBASE_OPCODE_DO_REBASE_ULEB_TIMES: Can't read uleb128 count");
           break;
         }
-        count = safe_dyld_opcode_count<uint32_t>(current_segment, segment_offset,
-                                                 sizeof(pint_t), *uleb128_val);
+
+        if (segment_index < segments.size()) {
+          count = safe_dyld_opcode_count<uint32_t>(&segments[segment_index],
+                                                   segment_offset, sizeof(pint_t),
+                                                   *uleb128_val);
+        }
+
         for (size_t i = 0; i < count; ++i) {
           if (current_segment == nullptr) {
             LIEF_WARN(
@@ -1626,8 +1631,11 @@ ok_error_t BinaryParser::parse_dyldinfo_rebases() {
         // Skip
         skip = *uleb128_val;
 
-        count = safe_dyld_opcode_count<uint32_t>(current_segment, segment_offset,
-                                                 sizeof(pint_t), count);
+        if (segment_index < segments.size()) {
+          count = safe_dyld_opcode_count<uint32_t>(&segments[segment_index],
+                                                   segment_offset, sizeof(pint_t),
+                                                   count);
+        }
 
         for (size_t i = 0; i < count; ++i) {
           if (current_segment == nullptr) {
