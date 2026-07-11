@@ -105,6 +105,9 @@ class LIEF_API GnuHash : public Object {
 
   /// Check if the given hash passes the bucket filter
   bool check_bucket(uint32_t hash) const {
+    if (nb_buckets() == 0) {
+      return false;
+    }
     return buckets_[hash % nb_buckets()] > 0;
   }
 

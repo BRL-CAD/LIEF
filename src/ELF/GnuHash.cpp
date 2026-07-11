@@ -30,6 +30,9 @@
 namespace LIEF::ELF {
 
 bool GnuHash::check_bloom_filter(uint32_t hash) const {
+  if (maskwords() == 0) {
+    return false;
+  }
   const size_t C = c_;
   const uint32_t h1 = hash;
   const uint32_t h2 = hash >> shift2();

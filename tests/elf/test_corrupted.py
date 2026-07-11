@@ -1,6 +1,7 @@
 import subprocess
 import sys
 from pathlib import Path
+from textwrap import dedent
 
 import lief
 import pytest
@@ -46,3 +47,20 @@ def test_dynamic_entries_capped():
     elf = lief.ELF.parse(sample)
     assert elf is not None
     assert len(elf.dynamic_entries) == 1000
+
+
+@pytest.mark.private
+def test_gnu_hash_zero():
+    sample = get_sample("private/ELF/corrupted_gnu_hash.elf")
+
+    script = dedent(f"""\
+        import lief;
+        b = lief.ELF.parse(r'{sample}');
+        assert b is not None;
+        gh = b.gnu_hash;
+        assert gh is not None;
+        assert gh.nb_buckets == 0 and len(gh.bloom_filters) == 0;
+        assert gh.check('foo') is False;
+        assert gh.check_bucket(0) is False;
+        assert gh.check_bloom_filter(0) is False""")
+    subprocess.check_call([sys.executable, "-c", script], timeout=10.0)
