@@ -213,7 +213,7 @@ void Parser::parse_fields() {
     const auto item = *res_item;
 
     // Class name in which the field is defined
-    if (item.class_idx > types_location.second) {
+    if (item.class_idx >= types_location.second) {
       LIEF_WARN("Corrupted type index for field name");
       continue;
     }
@@ -347,7 +347,7 @@ void Parser::parse_methods() {
     const auto item = *res_item;
 
     // Class name in which the method is defined
-    if (item.class_idx > types_location.second) {
+    if (item.class_idx >= types_location.second) {
       LIEF_WARN("Corrupted type index for method class name");
       continue;
     }
@@ -429,7 +429,7 @@ void Parser::parse_classes() {
     uint32_t type_idx = item.class_idx;
 
     std::string name;
-    if (type_idx > types_location.second) {
+    if (type_idx >= types_location.second) {
       LIEF_ERR("Corrupted type");
     } else {
       auto class_name_idx = stream_->peek<uint32_t>(types_location.first +
@@ -448,7 +448,7 @@ void Parser::parse_classes() {
     std::string parent_name;
     Class* parent_ptr = nullptr;
     if (item.superclass_idx != details::NO_INDEX) {
-      if (item.superclass_idx > types_location.second) {
+      if (item.superclass_idx >= types_location.second) {
         LIEF_WARN("Corrupted type index for superclass name");
         continue;
       }
