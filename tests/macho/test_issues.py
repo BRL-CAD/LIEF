@@ -244,6 +244,31 @@ def test_symtab_uncapped_alloc():
 
 
 @pytest.mark.private
+def test_nsects_bound_checks():
+    sample = get_sample("private/MachO/nsects_quadratic.macho")
+    subprocess.check_call(
+        [
+            sys.executable,
+            "-c",
+            dedent(f"""\
+            import lief
+            fat = lief.MachO.parse(r"{sample}")
+            assert fat is not None
+            b = fat.at(0)
+            assert b is not None
+            # cmdsize leaves no room for sections -> none are parsed.
+            assert len(b.sections) < 0x1000, len(b.sections)"""),
+        ],
+        timeout=30.0,
+        preexec_fn=address_space_limiter(),
+    )
+
+    target = parse_macho(sample).at(0)
+    assert target is not None
+    assert len(target.sections) < 0x1000
+
+
+@pytest.mark.private
 def test_rebase_uleb_times_uncapped():
     sample = get_sample("private/MachO/rebase_uleb_times.macho")
     subprocess.check_call(

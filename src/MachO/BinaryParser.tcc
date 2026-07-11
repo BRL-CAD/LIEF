@@ -354,7 +354,20 @@ ok_error_t BinaryParser::parse_load_commands() {
         // --------
         // Sections
         // --------
-        for (size_t j = 0; j < segment->numberof_sections(); ++j) {
+        uint64_t nsects = segment->numberof_sections();
+        uint64_t max_sects = 0;
+        if (segment_cmd->cmdsize >= sizeof(segment_command_t)) {
+          max_sects = (segment_cmd->cmdsize - sizeof(segment_command_t)) /
+                      sizeof(section_t) :
+        }
+
+        if (nsects > max_sects) {
+          LIEF_WARN("Segment '{}': nsects ({}) does not fit in the command size; "
+                    "clamping to {}",
+                    segment->name(), nsects, max_sects);
+          nsects = max_sects;
+        }
+        for (size_t j = 0; j < nsects; ++j) {
           const auto section_header = stream_->peek<section_t>(local_offset);
           if (!section_header) {
             LIEF_ERR("Can't parse section in {}#{}",
