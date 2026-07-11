@@ -138,6 +138,7 @@ void Handler::remove(uint64_t offset, uint64_t size, Node::Type type) {
 
   if (it_node == nodes_.end()) {
     LIEF_ERR("Node not found");
+    return;
   }
 
   nodes_.erase(it_node);
