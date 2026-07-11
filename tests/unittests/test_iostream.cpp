@@ -16,6 +16,8 @@
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <string>
+
 #include "LIEF/span.hpp"
 #include "LIEF/iostream.hpp"
 
@@ -28,5 +30,22 @@ TEST_CASE("lief.test.iostream", "[lief][test][iostream]") {
     ios.write(span_buffer);
 
     REQUIRE(ios.raw() == buffer);
+  }
+
+  SECTION("u16string write grows by bytes not chars") {
+    const std::u16string name = u"ABCDEFGHIJ"; // 10 chars -> 20 bytes
+    const size_t byte_size = name.size() * sizeof(char16_t);
+
+    LIEF::vector_iostream ios;
+    ios.write(std::vector<uint8_t>(name.size() + 5, 0));
+    ios.seekp(0);
+
+    ios.write(name, /*with_null_char=*/false);
+
+    // The buffer must have been grown to hold every byte written above.
+    REQUIRE(ios.size() >= byte_size);
+
+    const auto* out = reinterpret_cast<const char16_t*>(ios.raw().data());
+    REQUIRE(std::u16string(out, out + name.size()) == name);
   }
 }

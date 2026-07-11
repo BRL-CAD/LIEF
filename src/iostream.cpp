@@ -113,7 +113,7 @@ vector_iostream& vector_iostream::write(const std::u16string& s,
                                         bool with_null_char) {
   const size_t nullchar = with_null_char ? 1 : 0;
   const auto pos = static_cast<size_t>(tellp());
-  if (raw_->size() < (pos + s.size() + nullchar)) {
+  if (raw_->size() < pos + (s.size() + nullchar) * sizeof(char16_t)) {
     raw_->resize(pos + (s.size() + nullchar) * sizeof(char16_t));
   }
 
