@@ -31,11 +31,18 @@ class Import;
 
 /// Enum to define the behavior of LIEF::PE::get_imphash
 enum class IMPHASH_MODE {
-  DEFAULT = 0,    /**< Default implementation */
-  LIEF = DEFAULT, /**< Same as IMPHASH_MODE::DEFAULT */
-  PEFILE,         /**< Use pefile algorithm */
-  VT = PEFILE, /**< Same as IMPHASH_MODE::PEFILE since Virus Total is using pefile
-                */
+  /// Default implementation
+  DEFAULT = 0,
+
+  /// Same as IMPHASH_MODE::DEFAULT
+  LIEF = DEFAULT,
+
+  /// Use pefile algorithm
+  PEFILE,
+
+  /// Same as IMPHASH_MODE::PEFILE since Virus Total is using pefile
+  VT = PEFILE,
+
 };
 
 /// Check if the given stream wraps a PE binary

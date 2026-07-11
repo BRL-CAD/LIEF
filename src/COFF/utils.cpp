@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "LIEF/COFF/utils.hpp"
+#include "LIEF/BinaryStream/FileStream.hpp"
 #include "COFF/structures.hpp"
 
 namespace LIEF::COFF {

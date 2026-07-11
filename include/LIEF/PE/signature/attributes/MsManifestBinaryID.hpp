@@ -72,7 +72,7 @@ class LIEF_API MsManifestBinaryID : public Attribute {
 
   void accept(Visitor& visitor) const override;
 
-  virtual ~MsManifestBinaryID() = default;
+  ~MsManifestBinaryID() override = default;
 
   private:
   std::string id_;

@@ -16,6 +16,7 @@
 #define LIEF_ASM_RISCV_OPERAND_H
 #include "LIEF/visibility.h"
 #include "LIEF/iterators.hpp"
+#include "LIEF/compiler_attributes.hpp"
 
 #include <memory>
 #include <string>
@@ -55,7 +56,7 @@ class LIEF_API Operand {
     LIEF_API ~Iterator();
 
     // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
-    LIEF_API Iterator& operator++();
+    LIEF_API Iterator& operator++() LIEF_LIFETIMEBOUND;
 
     friend LIEF_API bool operator==(const Iterator& LHS, const Iterator& RHS);
 
@@ -63,10 +64,10 @@ class LIEF_API Operand {
       return !(LHS == RHS);
     }
 
-    LIEF_API const Operand& operator*() const;
+    LIEF_API const Operand& operator*() const LIEF_LIFETIMEBOUND;
 
     // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
-    LIEF_API const Operand* operator->() const;
+    LIEF_API const Operand* operator->() const LIEF_LIFETIMEBOUND;
 
     /// Transfer ownership of the operand at the current position to the
     /// caller. Returns `nullptr` if the iterator is past-the-end.

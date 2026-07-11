@@ -22,6 +22,7 @@
 
 #include "LIEF/visibility.h"
 #include "LIEF/iterators.hpp"
+#include "LIEF/compiler_attributes.hpp"
 
 #include <memory>
 #include <string>
@@ -66,10 +67,10 @@ class LIEF_API Module {
     // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
     LIEF_API Iterator& operator++();
 
-    LIEF_API const Module& operator*() const;
+    LIEF_API const Module& operator*() const LIEF_LIFETIMEBOUND;
 
     // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
-    LIEF_API const Module* operator->() const;
+    LIEF_API const Module* operator->() const LIEF_LIFETIMEBOUND;
 
     /// Transfer ownership of the module at the current position to the
     /// caller. Returns `nullptr` if the iterator is past-the-end.
@@ -154,7 +155,7 @@ class LIEF_API Module {
 
   /// This function can be used to **downcast** a Module instance
   template<class T>
-  const T* as() const {
+  const T* as() const LIEF_LIFETIMEBOUND {
     static_assert(std::is_base_of<Module, T>::value, "Require Module inheritance");
     if (T::classof(this)) {
       return static_cast<const T*>(this);
@@ -163,7 +164,7 @@ class LIEF_API Module {
   }
 
   template<class T>
-  T* as() {
+  T* as() LIEF_LIFETIMEBOUND {
     return const_cast<T*>(static_cast<const Module*>(this)->as<T>());
   }
 

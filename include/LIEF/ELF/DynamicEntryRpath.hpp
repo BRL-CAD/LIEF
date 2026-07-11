@@ -91,7 +91,7 @@ class LIEF_API DynamicEntryRpath : public DynamicEntry {
 
   std::ostream& print(std::ostream& os) const override;
 
-  ~DynamicEntryRpath() = default;
+  ~DynamicEntryRpath() override = default;
 
   private:
   std::string rpath_;

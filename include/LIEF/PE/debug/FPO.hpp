@@ -49,7 +49,7 @@ class LIEF_API FPO : public Debug {
     /// The size of the parameters
     uint32_t parameters_size = 0;
 
-    /// The number of bytes in the function prolog code.
+    /// The number of bytes in the function prologue code.
     uint16_t prolog_size = 0;
 
     /// Number of registers saved

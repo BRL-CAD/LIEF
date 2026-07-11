@@ -68,19 +68,21 @@ class LIEF_API Signature : public Object {
 
   /// Flags returned by the verification functions
   enum class VERIFICATION_FLAGS : uint32_t {
-    OK = 0,
-    INVALID_SIGNER = 1 << 0,
-    UNSUPPORTED_ALGORITHM = 1 << 1,
+    // clang-format off
+    OK                            = 0,
+    INVALID_SIGNER                = 1 << 0,
+    UNSUPPORTED_ALGORITHM         = 1 << 1,
     INCONSISTENT_DIGEST_ALGORITHM = 1 << 2,
-    CERT_NOT_FOUND = 1 << 3,
-    CORRUPTED_CONTENT_INFO = 1 << 4,
-    CORRUPTED_AUTH_DATA = 1 << 5,
-    MISSING_PKCS9_MESSAGE_DIGEST = 1 << 6,
-    BAD_DIGEST = 1 << 7,
-    BAD_SIGNATURE = 1 << 8,
-    NO_SIGNATURE = 1 << 9,
-    CERT_EXPIRED = 1 << 10,
-    CERT_FUTURE = 1 << 11,
+    CERT_NOT_FOUND                = 1 << 3,
+    CORRUPTED_CONTENT_INFO        = 1 << 4,
+    CORRUPTED_AUTH_DATA           = 1 << 5,
+    MISSING_PKCS9_MESSAGE_DIGEST  = 1 << 6,
+    BAD_DIGEST                    = 1 << 7,
+    BAD_SIGNATURE                 = 1 << 8,
+    NO_SIGNATURE                  = 1 << 9,
+    CERT_EXPIRED                  = 1 << 10,
+    CERT_FUTURE                   = 1 << 11,
+    // clang-format on
   };
 
   /// Convert a verification flag into a human-readable representation.

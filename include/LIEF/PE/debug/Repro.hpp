@@ -15,7 +15,6 @@
  */
 #ifndef LIEF_PE_REPRO_H
 #define LIEF_PE_REPRO_H
-#include <ostream>
 #include <vector>
 
 #include "LIEF/compiler_attributes.hpp"

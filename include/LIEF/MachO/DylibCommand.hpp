@@ -140,13 +140,12 @@ class LIEF_API DylibCommand : public LoadCommand {
 
   static bool classof(const LoadCommand* cmd) {
     const LoadCommand::TYPE type = cmd->command();
-    return type == LoadCommand::TYPE::LOAD_WEAK_DYLIB ||
+    return type == LoadCommand::TYPE::LOAD_UPWARD_DYLIB ||
+           type == LoadCommand::TYPE::LAZY_LOAD_DYLIB ||
+           type == LoadCommand::TYPE::LOAD_WEAK_DYLIB ||
            type == LoadCommand::TYPE::ID_DYLIB ||
            type == LoadCommand::TYPE::LOAD_DYLIB ||
-           type == LoadCommand::TYPE::LOAD_UPWARD_DYLIB ||
-           type == LoadCommand::TYPE::REEXPORT_DYLIB ||
-           type == LoadCommand::TYPE::LOAD_UPWARD_DYLIB ||
-           type == LoadCommand::TYPE::LAZY_LOAD_DYLIB;
+           type == LoadCommand::TYPE::REEXPORT_DYLIB;
   }
 
   private:

@@ -100,9 +100,8 @@ class LIEF_API Debug : public Object {
     EX_DLLCHARACTERISTICS = 20,
   };
   Debug() = default;
-  Debug(TYPES type) {
-    type_ = type;
-  }
+  Debug(TYPES type) :
+    type_(type) {}
 
   static span<uint8_t> get_payload(Section& section, uint32_t rva, uint32_t offset,
                                    uint32_t size);

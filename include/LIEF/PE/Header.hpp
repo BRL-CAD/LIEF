@@ -37,41 +37,43 @@ class LIEF_API Header : public Object {
   public:
   using signature_t = std::array<uint8_t, /* PE Magic */ 4>;
 
+  // clang-format off
   enum class MACHINE_TYPES {
-    UNKNOWN = 0x0,
-    ALPHA = 0x184,        /**< Alpha AXP, 32-bit address space */
-    ALPHA64 = 0x284,      /**< Alpha AXP, 64-bit address space */
-    AM33 = 0x1D3,         /**< Matsushita AM33                */
-    AMD64 = 0x8664,       /**< AMD x64                        */
-    ARM = 0x1C0,          /**< ARM little endian              */
-    ARMNT = 0x1C4,        /**< ARMv7 Thumb mode only          */
-    ARM64 = 0xAA64,       /**< ARMv8 in 64-bits mode          */
-    EBC = 0xEBC,          /**< EFI byte code                  */
-    I386 = 0x14C,         /**< Intel 386 or later             */
-    IA64 = 0x200,         /**< Intel Itanium processor family */
+    UNKNOWN     = 0x0,
+    ALPHA       = 0x184 , /**< Alpha AXP, 32-bit address space */
+    ALPHA64     = 0x284 , /**< Alpha AXP, 64-bit address space */
+    AM33        = 0x1D3,  /**< Matsushita AM33                */
+    AMD64       = 0x8664, /**< AMD x64                        */
+    ARM         = 0x1C0,  /**< ARM little endian              */
+    ARMNT       = 0x1C4,  /**< ARMv7 Thumb mode only          */
+    ARM64       = 0xAA64, /**< ARMv8 in 64-bits mode          */
+    EBC         = 0xEBC,  /**< EFI byte code                  */
+    I386        = 0x14C,  /**< Intel 386 or later             */
+    IA64        = 0x200,  /**< Intel Itanium processor family */
     LOONGARCH32 = 0x6232, /**< LoongArch 32-bit processor family  */
     LOONGARCH64 = 0x6264, /**< LoongArch 64-bit processor family  */
-    M32R = 0x9041,        /**< Mitsubishi M32R little endian  */
-    MIPS16 = 0x266,       /**< MIPS16                         */
-    MIPSFPU = 0x366,      /**< MIPS with FPU                  */
-    MIPSFPU16 = 0x466,    /**< MIPS16 with FPU                */
-    POWERPC = 0x1F0,      /**< Power PC little endian         */
-    POWERPCFP = 0x1F1,    /**< Power PC with floating point   */
-    POWERPCBE = 0x1F2,    /**< Power PC big endian            */
-    R4000 = 0x166,        /**< MIPS with little endian        */
-    RISCV32 = 0x5032,     /**< RISC-V 32-bit address space    */
-    RISCV64 = 0x5064,     /**< RISC-V 64-bit address space    */
-    RISCV128 = 0x5128,    /**< RISC-V 128-bit address space   */
-    SH3 = 0x1A2,          /**< Hitachi SH3                    */
-    SH3DSP = 0x1A3,       /**< Hitachi SH3 DSP                */
-    SH4 = 0x1A6,          /**< Hitachi SH4                    */
-    SH5 = 0x1A8,          /**< Hitachi SH5                    */
-    THUMB = 0x1C2,        /**< ARM or Thumb                   */
-    WCEMIPSV2 = 0x169,    /**< MIPS little-endian WCE v2      */
-    ARM64EC = 0xa641,
-    ARM64X = 0xa64e,
-    CHPE_X86 = 0x3a64,
+    M32R        = 0x9041, /**< Mitsubishi M32R little endian  */
+    MIPS16      = 0x266,  /**< MIPS16                         */
+    MIPSFPU     = 0x366,  /**< MIPS with FPU                  */
+    MIPSFPU16   = 0x466,  /**< MIPS16 with FPU                */
+    POWERPC     = 0x1F0,  /**< Power PC little endian         */
+    POWERPCFP   = 0x1F1,  /**< Power PC with floating point   */
+    POWERPCBE   = 0x1F2,  /**< Power PC big endian            */
+    R4000       = 0x166,  /**< MIPS with little endian        */
+    RISCV32     = 0x5032, /**< RISC-V 32-bit address space    */
+    RISCV64     = 0x5064, /**< RISC-V 64-bit address space    */
+    RISCV128    = 0x5128, /**< RISC-V 128-bit address space   */
+    SH3         = 0x1A2,  /**< Hitachi SH3                    */
+    SH3DSP      = 0x1A3,  /**< Hitachi SH3 DSP                */
+    SH4         = 0x1A6,  /**< Hitachi SH4                    */
+    SH5         = 0x1A8,  /**< Hitachi SH5                    */
+    THUMB       = 0x1C2,  /**< ARM or Thumb                   */
+    WCEMIPSV2   = 0x169,   /**< MIPS little-endian WCE v2      */
+    ARM64EC     = 0xa641,
+    ARM64X      = 0xa64e,
+    CHPE_X86    = 0x3a64,
   };
+  // clang-format on
 
   static bool is_known_machine(uint16_t machine);
 
@@ -145,34 +147,53 @@ class LIEF_API Header : public Object {
 
   enum class CHARACTERISTICS {
     NONE = 0x0000,
-    RELOCS_STRIPPED = 0x0001,  /**< The file does not contain base relocations and
-                                  must be loaded at its preferred base. If this
-                                  cannot be done, the loader will error.*/
-    EXECUTABLE_IMAGE = 0x0002, /**< File is executable (i.e. no unresolved external
-                                  references). */
-    LINE_NUMS_STRIPPED = 0x0004, /**< COFF line numbers have been stripped. This is
-                                    deprecated and should be 0 */
-    LOCAL_SYMS_STRIPPED =
-        0x0008, /**< COFF symbol table entries for local symbols have been removed.
-                   This is deprecated and should be 0.*/
-    AGGRESSIVE_WS_TRIM = 0x0010,  /**< Aggressively trim working set. This is
-                                     deprecated and must be 0. */
-    LARGE_ADDRESS_AWARE = 0x0020, /**< Image can handle > 2GiB addresses. */
-    BYTES_REVERSED_LO = 0x0080,   /**< Little endian: the LSB precedes the MSB in
-                                     memory. This is deprecated and should be 0.*/
-    NEED_32BIT_MACHINE =
-        0x0100,              /**< Machine is based on a 32bit word architecture. */
-    DEBUG_STRIPPED = 0x0200, /**< Debugging info has been removed. */
-    REMOVABLE_RUN_FROM_SWAP = 0x0400, /**< If the image is on removable media,
-                                         fully load it and copy it to swap. */
-    NET_RUN_FROM_SWAP = 0x0800, /**< If the image is on network media, fully load
-                                   it and copy it to swap. */
-    SYSTEM = 0x1000, /**< The image file is a system file, not a user program.*/
-    DLL = 0x2000,    /**< The image file is a DLL. */
-    UP_SYSTEM_ONLY =
-        0x4000, /**< This file should only be run on a uniprocessor machine. */
-    BYTES_REVERSED_HI = 0x8000, /**< Big endian: the MSB precedes the LSB in
-                                   memory. This is deprecated */
+    /// The file does not contain base relocations and must be loaded at its
+    /// preferred base. If this cannot be done, the loader will error.
+    RELOCS_STRIPPED = 0x0001,
+
+    /// File is executable (i.e. no unresolved external references).
+    EXECUTABLE_IMAGE = 0x0002,
+
+    /// COFF line numbers have been stripped. This is deprecated and should be 0
+    LINE_NUMS_STRIPPED = 0x0004,
+
+    /// COFF symbol table entries for local symbols have been removed. This is
+    /// deprecated and should be 0.
+    LOCAL_SYMS_STRIPPED = 0x0008,
+
+    /// Aggressively trim working set. This is deprecated and must be 0.
+    AGGRESSIVE_WS_TRIM = 0x0010,
+
+    /// Image can handle > 2GiB addresses.
+    LARGE_ADDRESS_AWARE = 0x0020,
+
+    /// Little endian: the LSB precedes the MSB in memory. This is deprecated and
+    /// should be 0.
+    BYTES_REVERSED_LO = 0x0080,
+
+    /// Machine is based on a 32bit word architecture.
+    NEED_32BIT_MACHINE = 0x0100,
+
+    /// Debugging info has been removed.
+    DEBUG_STRIPPED = 0x0200,
+
+    /// If the image is on removable media, fully load it and copy it to swap.
+    REMOVABLE_RUN_FROM_SWAP = 0x0400,
+
+    /// If the image is on network media, fully load it and copy it to swap.
+    NET_RUN_FROM_SWAP = 0x0800,
+
+    /// The image file is a system file, not a user program.
+    SYSTEM = 0x1000,
+
+    /// The image file is a DLL.
+    DLL = 0x2000,
+
+    /// This file should only be run on a uniprocessor machine.
+    UP_SYSTEM_ONLY = 0x4000,
+
+    /// Big endian: the MSB precedes the LSB in memory. This is deprecated
+    BYTES_REVERSED_HI = 0x8000,
   };
   static Header create(PE_TYPE type);
 

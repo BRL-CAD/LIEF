@@ -16,12 +16,10 @@
 #ifndef LIEF_ELF_SYMBOL_VERSION_AUX_REQUIREMENT_H
 #define LIEF_ELF_SYMBOL_VERSION_AUX_REQUIREMENT_H
 
-#include <string>
 #include <ostream>
 #include <cstdint>
 
 #include "LIEF/visibility.h"
-#include "LIEF/iterators.hpp"
 
 #include "LIEF/ELF/SymbolVersionAux.hpp"
 

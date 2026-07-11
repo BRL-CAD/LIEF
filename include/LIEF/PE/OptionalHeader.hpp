@@ -19,6 +19,7 @@
 #include <vector>
 #include <cstdint>
 
+#include "LIEF/compiler_attributes.hpp"
 #include "LIEF/Object.hpp"
 #include "LIEF/visibility.h"
 
@@ -45,18 +46,39 @@ class LIEF_API OptionalHeader : public Object {
 
   public:
   enum class DLL_CHARACTERISTICS : size_t {
-    HIGH_ENTROPY_VA = 0x0020, ///< ASLR with 64 bit address space.
-    DYNAMIC_BASE = 0x0040,    ///< DLL can be relocated at load time.
-    FORCE_INTEGRITY = 0x0080, ///< Code integrity checks are enforced.
-    NX_COMPAT = 0x0100,       ///< Image is NX compatible.
-    NO_ISOLATION = 0x0200,    ///< Isolation aware, but do not isolate the image.
-    NO_SEH = 0x0400,  ///< Does not use structured exception handling (SEH). No SEH
-                      ///< handler may be called in this image.
-    NO_BIND = 0x0800, ///< Do not bind the image.
-    APPCONTAINER = 0x1000,          ///< Image should execute in an AppContainer.
-    WDM_DRIVER = 0x2000,            ///< A WDM driver.
-    GUARD_CF = 0x4000,              ///< Image supports Control Flow Guard.
-    TERMINAL_SERVER_AWARE = 0x8000, ///< Terminal Server aware.
+    /// ASLR with 64 bit address space.
+    HIGH_ENTROPY_VA = 0x0020,
+
+    /// DLL can be relocated at load time.
+    DYNAMIC_BASE = 0x0040,
+
+    /// Code integrity checks are enforced.
+    FORCE_INTEGRITY = 0x0080,
+
+    /// Image is NX compatible.
+    NX_COMPAT = 0x0100,
+
+    /// Isolation aware, but do not isolate the image.
+    NO_ISOLATION = 0x0200,
+
+    /// Does not use structured exception handling (SEH). No SEH handler may be
+    /// called in this image.
+    NO_SEH = 0x0400,
+
+    /// Do not bind the image.
+    NO_BIND = 0x0800,
+
+    /// Image should execute in an AppContainer.
+    APPCONTAINER = 0x1000,
+
+    /// A WDM driver.
+    WDM_DRIVER = 0x2000,
+
+    /// Image supports Control Flow Guard.
+    GUARD_CF = 0x4000,
+
+    /// Terminal Server aware.
+    TERMINAL_SERVER_AWARE = 0x8000,
   };
 
   enum class SUBSYSTEM : size_t {
@@ -417,11 +439,11 @@ class LIEF_API OptionalHeader : public Object {
 
   void accept(Visitor& visitor) const override;
 
-  OptionalHeader& operator+=(DLL_CHARACTERISTICS c) {
+  OptionalHeader& operator+=(DLL_CHARACTERISTICS c) LIEF_LIFETIMEBOUND {
     add(c);
     return *this;
   }
-  OptionalHeader& operator-=(DLL_CHARACTERISTICS c) {
+  OptionalHeader& operator-=(DLL_CHARACTERISTICS c) LIEF_LIFETIMEBOUND {
     remove(c);
     return *this;
   }

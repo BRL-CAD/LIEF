@@ -301,7 +301,7 @@ class LIEF_API Section : public LIEF::Section {
   ///
   /// For instance, the `.dynamic` section contains an array of DynamicEntry. As
   /// the size of the raw C structure of this entry is 0x10 (`sizeof(Elf64_Dyn)`)
-  /// in a ELF64, the `entry_size` is set to this value.
+  /// in an ELF64, the `entry_size` is set to this value.
   uint64_t entry_size() const {
     return entry_size_;
   }

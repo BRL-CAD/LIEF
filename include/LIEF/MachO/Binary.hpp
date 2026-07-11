@@ -1173,15 +1173,15 @@ class LIEF_API Binary : public LIEF::Binary {
   }
 
   relocations_t& relocations_list() {
-    return this->relocations_;
+    return relocations_;
   }
 
   const relocations_t& relocations_list() const {
-    return this->relocations_;
+    return relocations_;
   }
 
   size_t pointer_size() const {
-    return this->is64_ ? sizeof(uint64_t) : sizeof(uint32_t);
+    return is64_ ? sizeof(uint64_t) : sizeof(uint32_t);
   }
 
   bool is64_ = true;

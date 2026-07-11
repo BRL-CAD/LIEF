@@ -55,41 +55,43 @@ class LIEF_API Section : public LIEF::Section {
   static constexpr size_t MAX_SECTION_NAME = 8;
 
   enum class CHARACTERISTICS : uint64_t {
-    TYPE_NO_PAD = 0x00000008,
-    CNT_CODE = 0x00000020,
-    CNT_INITIALIZED_DATA = 0x00000040,
+    // clang-format off
+    TYPE_NO_PAD            = 0x00000008,
+    CNT_CODE               = 0x00000020,
+    CNT_INITIALIZED_DATA   = 0x00000040,
     CNT_UNINITIALIZED_DATA = 0x00000080,
-    LNK_OTHER = 0x00000100,
-    LNK_INFO = 0x00000200,
-    LNK_REMOVE = 0x00000800,
-    LNK_COMDAT = 0x00001000,
-    GPREL = 0x00008000,
-    MEM_PURGEABLE = 0x00010000,
-    MEM_16BIT = 0x00020000,
-    MEM_LOCKED = 0x00040000,
-    MEM_PRELOAD = 0x00080000,
-    ALIGN_1BYTES = 0x00100000,
-    ALIGN_2BYTES = 0x00200000,
-    ALIGN_4BYTES = 0x00300000,
-    ALIGN_8BYTES = 0x00400000,
-    ALIGN_16BYTES = 0x00500000,
-    ALIGN_32BYTES = 0x00600000,
-    ALIGN_64BYTES = 0x00700000,
-    ALIGN_128BYTES = 0x00800000,
-    ALIGN_256BYTES = 0x00900000,
-    ALIGN_512BYTES = 0x00A00000,
-    ALIGN_1024BYTES = 0x00B00000,
-    ALIGN_2048BYTES = 0x00C00000,
-    ALIGN_4096BYTES = 0x00D00000,
-    ALIGN_8192BYTES = 0x00E00000,
-    LNK_NRELOC_OVFL = 0x01000000,
-    MEM_DISCARDABLE = 0x02000000,
-    MEM_NOT_CACHED = 0x04000000,
-    MEM_NOT_PAGED = 0x08000000,
-    MEM_SHARED = 0x10000000,
-    MEM_EXECUTE = 0x20000000,
-    MEM_READ = 0x40000000,
-    MEM_WRITE = 0x80000000,
+    LNK_OTHER              = 0x00000100,
+    LNK_INFO               = 0x00000200,
+    LNK_REMOVE             = 0x00000800,
+    LNK_COMDAT             = 0x00001000,
+    GPREL                  = 0x00008000,
+    MEM_PURGEABLE          = 0x00010000,
+    MEM_16BIT              = 0x00020000,
+    MEM_LOCKED             = 0x00040000,
+    MEM_PRELOAD            = 0x00080000,
+    ALIGN_1BYTES           = 0x00100000,
+    ALIGN_2BYTES           = 0x00200000,
+    ALIGN_4BYTES           = 0x00300000,
+    ALIGN_8BYTES           = 0x00400000,
+    ALIGN_16BYTES          = 0x00500000,
+    ALIGN_32BYTES          = 0x00600000,
+    ALIGN_64BYTES          = 0x00700000,
+    ALIGN_128BYTES         = 0x00800000,
+    ALIGN_256BYTES         = 0x00900000,
+    ALIGN_512BYTES         = 0x00A00000,
+    ALIGN_1024BYTES        = 0x00B00000,
+    ALIGN_2048BYTES        = 0x00C00000,
+    ALIGN_4096BYTES        = 0x00D00000,
+    ALIGN_8192BYTES        = 0x00E00000,
+    LNK_NRELOC_OVFL        = 0x01000000,
+    MEM_DISCARDABLE        = 0x02000000,
+    MEM_NOT_CACHED         = 0x04000000,
+    MEM_NOT_PAGED          = 0x08000000,
+    MEM_SHARED             = 0x10000000,
+    MEM_EXECUTE            = 0x20000000,
+    MEM_READ               = 0x40000000,
+    MEM_WRITE              = 0x80000000,
+    // clang-format on
   };
 
   Section(const details::pe_section& header);
@@ -226,35 +228,36 @@ class LIEF_API Section : public LIEF::Section {
   ///
   /// This coff string is usually present for long section names whose length
   /// does not fit in the 8 bytes allocated by the PE format.
-  COFF::String* coff_string() {
+  COFF::String* coff_string() LIEF_LIFETIMEBOUND {
     return coff_string_;
   }
 
-  const COFF::String* coff_string() const {
+  const COFF::String* coff_string() const LIEF_LIFETIMEBOUND {
     return coff_string_;
   }
 
-  Section& remove_characteristic(CHARACTERISTICS characteristic) {
+  Section&
+      remove_characteristic(CHARACTERISTICS characteristic) LIEF_LIFETIMEBOUND {
     characteristics_ &= ~static_cast<size_t>(characteristic);
     return *this;
   }
 
-  Section& add_characteristic(CHARACTERISTICS characteristic) {
+  Section& add_characteristic(CHARACTERISTICS characteristic) LIEF_LIFETIMEBOUND {
     characteristics_ |= static_cast<size_t>(characteristic);
     return *this;
   }
 
-  std::unique_ptr<SpanStream> stream() const;
+  std::unique_ptr<SpanStream> stream() const LIEF_LIFETIMEBOUND;
 
   /// @private
-  LIEF_LOCAL Section& reserve(size_t size, uint8_t value = 0) {
+  LIEF_LOCAL Section& reserve(size_t size, uint8_t value = 0) LIEF_LIFETIMEBOUND {
     content_.resize(size, value);
     return *this;
   }
 
   /// @private
-  LIEF_LOCAL vector_iostream edit() {
-    return vector_iostream(content_);
+  LIEF_LOCAL vector_iostream edit() LIEF_LIFETIMEBOUND {
+    return content_;
   }
 
   span<uint8_t> writable_content() LIEF_LIFETIMEBOUND {

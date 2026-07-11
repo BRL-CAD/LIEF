@@ -166,7 +166,7 @@ class LIEF_API EnclaveImport {
   private:
   TYPE type_ = TYPE::NONE;
   uint32_t min_security_version_ = 0;
-  long_id_t id_;
+  long_id_t id_ = {0};
   short_id_t family_id_ = {0};
   short_id_t image_id_ = {0};
   uint32_t import_name_rva_ = 0;

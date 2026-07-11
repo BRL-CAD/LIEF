@@ -95,19 +95,23 @@ class LIEF_API RelocationEntry : public LIEF::Relocation {
     /// occupies two slots.
     HIGHADJ = 4,
 
-    MIPS_JMPADDR = 5 | (1 << 8),
-    ARM_MOV32 = 5 | (1 << 9),
-    RISCV_HI20 = 5 | (1 << 10),
+    // clang-format off
 
-    SECTION = 6,
+    MIPS_JMPADDR     = 5 | (1 << 8),
+    ARM_MOV32        = 5 | (1 << 9),
+    RISCV_HI20       = 5 | (1 << 10),
 
-    THUMB_MOV32 = 7 | (1 << 11),
-    RISCV_LOW12I = 7 | (1 << 12),
+    SECTION          = 6,
 
-    RISCV_LOW12S = 8 | (1 << 13),
+    THUMB_MOV32      = 7 | (1 << 11),
+    RISCV_LOW12I     = 7 | (1 << 12),
+
+    RISCV_LOW12S     = 8 | (1 << 13),
     LOONARCH_MARK_LA = 8 | (1 << 14),
 
-    MIPS_JMPADDR16 = 9,
+    MIPS_JMPADDR16   = 9,
+
+    // clang-format on
 
     /// This value matches `IMAGE_REL_BASED_DIR64`
     ///
@@ -136,9 +140,10 @@ class LIEF_API RelocationEntry : public LIEF::Relocation {
   RelocationEntry(const RelocationEntry& other) :
     LIEF::Relocation(other),
     position_(other.position_),
-    type_(other.type_),
-    // Parent relocation is not forwarded during copy
-    relocation_(nullptr) {}
+    type_(other.type_)
+  /* Parent relocation is not forwarded during copy
+   * relocation_(nullptr) */
+  {}
 
   RelocationEntry& operator=(RelocationEntry other) {
     swap(other);

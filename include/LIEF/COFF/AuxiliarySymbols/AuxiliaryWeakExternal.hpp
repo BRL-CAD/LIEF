@@ -46,10 +46,13 @@ class LIEF_API AuxiliaryWeakExternal : public AuxiliarySymbol {
   enum class CHARACTERISTICS : uint32_t {
     /// No library search for `sym1` should be performed.
     SEARCH_NOLIBRARY = 1,
+
     /// A library search for `sym1` should be performed.
     SEARCH_LIBRARY = 2,
+
     /// `sym1` is an alias for sym2
     SEARCH_ALIAS = 3,
+
     ANTI_DEPENDENCY = 4,
   };
 

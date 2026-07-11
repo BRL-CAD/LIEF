@@ -16,6 +16,7 @@
 #define LIEF_ASM_INST_H
 #include "LIEF/visibility.h"
 #include "LIEF/iterators.hpp"
+#include "LIEF/compiler_attributes.hpp"
 #include "LIEF/errors.hpp"
 
 #include <ostream>
@@ -66,10 +67,10 @@ class LIEF_API Instruction {
       return !(LHS == RHS);
     }
 
-    LIEF_API const Instruction& operator*() const;
+    LIEF_API const Instruction& operator*() const LIEF_LIFETIMEBOUND;
 
     // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
-    LIEF_API const Instruction* operator->() const;
+    LIEF_API const Instruction* operator->() const LIEF_LIFETIMEBOUND;
 
     /// Transfer ownership of the instruction at the current position to the
     /// caller. Returns `nullptr` if the iterator is past-the-end.
@@ -98,7 +99,7 @@ class LIEF_API Instruction {
   size_t size() const;
 
   /// Raw bytes of the current instruction
-  const std::vector<uint8_t>& raw() const;
+  const std::vector<uint8_t>& raw() const LIEF_LIFETIMEBOUND;
 
   /// Instruction mnemonic (e.g. `br`)
   std::string mnemonic() const;
@@ -175,7 +176,7 @@ class LIEF_API Instruction {
   ///
   /// @warning Because of ABI compatibility, this MCInst can **only be used**
   ///          with the **same** version of LLVM used by LIEF (see documentation)
-  const llvm::MCInst& mcinst() const;
+  const llvm::MCInst& mcinst() const LIEF_LIFETIMEBOUND;
 
   /// This function can be used to **down cast** an Instruction instance:
   ///
@@ -186,7 +187,7 @@ class LIEF_API Instruction {
   /// }
   /// ```
   template<class T>
-  const T* as() const {
+  const T* as() const LIEF_LIFETIMEBOUND {
     static_assert(std::is_base_of<Instruction, T>::value,
                   "Require Instruction inheritance");
     if (T::classof(this)) {
@@ -208,13 +209,13 @@ class LIEF_API Instruction {
       create(std::unique_ptr<details::Instruction> impl);
 
   /// @private
-  LIEF_LOCAL const details::Instruction& impl() const {
+  LIEF_LOCAL const details::Instruction& impl() const LIEF_LIFETIMEBOUND {
     assert(impl_ != nullptr);
     return *impl_;
   }
 
   /// @private
-  LIEF_LOCAL details::Instruction& impl() {
+  LIEF_LOCAL details::Instruction& impl() LIEF_LIFETIMEBOUND {
     assert(impl_ != nullptr);
     return *impl_;
   }

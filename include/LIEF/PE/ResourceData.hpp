@@ -107,7 +107,7 @@ class LIEF_API ResourceData : public ResourceNode {
 
   /// @private
   LIEF_LOCAL vector_iostream edit() {
-    return vector_iostream(content_);
+    return content_;
   }
 
   /// @private

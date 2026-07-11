@@ -20,7 +20,6 @@
 #include "LIEF/PE/resources/ResourceDialog.hpp"
 #include "LIEF/errors.hpp"
 #include "LIEF/iterators.hpp"
-#include "LIEF/span.hpp"
 
 namespace LIEF {
 class BinaryStream;

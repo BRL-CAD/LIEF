@@ -71,7 +71,7 @@ class LIEF_API DyldBindingInfo : public BindingInfo {
     class_ = bind_class;
   }
 
-  /// Type of the binding. Most of the times it's TYPE::POINTER
+  /// Type of the binding. Most of the time it's TYPE::POINTER
   TYPE binding_type() const {
     return binding_type_;
   }
@@ -81,11 +81,11 @@ class LIEF_API DyldBindingInfo : public BindingInfo {
   }
 
   bool is_non_weak_definition() const {
-    return this->is_non_weak_definition_;
+    return is_non_weak_definition_;
   }
 
   void set_non_weak_definition(bool val) {
-    this->is_non_weak_definition_ = val;
+    is_non_weak_definition_ = val;
   }
 
   /// Original relative offset of the binding opcodes

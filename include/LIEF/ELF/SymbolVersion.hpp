@@ -43,12 +43,12 @@ class LIEF_API SymbolVersion : public Object {
 
   /// Generate a *local* SymbolVersion
   static SymbolVersion local() {
-    return SymbolVersion(LOCAL_VERSION);
+    return LOCAL_VERSION;
   }
 
   /// Generate a *global* SymbolVersion
   static SymbolVersion global() {
-    return SymbolVersion(GLOBAL_VERSION);
+    return GLOBAL_VERSION;
   }
 
   ~SymbolVersion() override = default;

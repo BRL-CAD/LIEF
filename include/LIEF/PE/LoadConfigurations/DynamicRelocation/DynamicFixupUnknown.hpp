@@ -24,7 +24,7 @@
 namespace LIEF {
 namespace PE {
 
-/// This class represents an special dynamic relocation where the format of the
+/// This class represents a special dynamic relocation where the format of the
 /// fixups is not supported by LIEF.
 class LIEF_API DynamicFixupUnknown : public DynamicFixup {
   public:

@@ -210,7 +210,7 @@ class LIEF_API SegmentCommand : public LoadCommand {
 
   /// The original index of this segment or -1 if not defined
   int8_t index() const {
-    return this->index_;
+    return index_;
   }
 
   void name(std::string name) {

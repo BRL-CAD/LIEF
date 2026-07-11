@@ -22,7 +22,6 @@
 #include "LIEF/errors.hpp"
 
 #include "LIEF/PE/signature/Signature.hpp"
-#include "LIEF/PE/signature/OIDToString.hpp"
 
 namespace LIEF {
 class BinaryStream;

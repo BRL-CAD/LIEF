@@ -83,7 +83,7 @@ class LIEF_API ContentInfo : public Object {
   friend class SignatureParser;
 
   public:
-  class Content : public Object {
+  class LIEF_API Content : public Object {
     public:
     Content(oid_t oid) :
       type_(std::move(oid)) {}

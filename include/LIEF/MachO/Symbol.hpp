@@ -230,7 +230,7 @@ class LIEF_API Symbol : public LIEF::Symbol {
   Symbol(CATEGORY cat) :
     category_(cat) {}
   void library(DylibCommand& library) {
-    this->library_ = &library;
+    library_ = &library;
   }
 
   uint8_t type_ = 0;

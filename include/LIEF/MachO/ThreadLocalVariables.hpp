@@ -61,9 +61,15 @@ class LIEF_API ThreadLocalVariables : public LIEF::MachO::Section {
   /// The layout mirrors the `tlv_descriptor` structure defined in
   /// `<mach-o/loader.h>` (see also `libdyld/ThreadLocalVariables.h` in dyld).
   struct LIEF_API Thunk {
-    uint64_t func = 0;   ///< Address of the initializer function (`tlv_thunk`)
-    uint64_t key = 0;    ///< `pthread_key_t` key used by the runtime
-    uint64_t offset = 0; ///< Offset of the variable in the TLS block
+    /// Address of the initializer function (`tlv_thunk`)
+    uint64_t func = 0;
+
+    /// `pthread_key_t` key used by the runtime
+    uint64_t key = 0;
+
+    /// Offset of the variable in the TLS block
+    uint64_t offset = 0;
+
     std::string to_string() const;
 
     friend std::ostream& operator<<(std::ostream& os, const Thunk& thunk) {

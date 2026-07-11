@@ -60,8 +60,10 @@ class LIEF_API Symbol : public LIEF::Symbol {
   /// correspond to a section. Microsoft tools use this setting along with
   /// `.file` records.
   static constexpr auto SYM_SEC_IDX_DEBUG = -2;
+
   /// The symbol has an absolute (non-relocatable) value and is not an address.
   static constexpr auto SYM_SEC_IDX_ABS = -1;
+
   /// The symbol record is not yet assigned a section. A value of zero indicates
   /// that a reference to an external symbol is defined elsewhere. A value of
   /// non-zero is a common symbol with a size that is specified by the value.
@@ -225,7 +227,7 @@ class LIEF_API Symbol : public LIEF::Symbol {
 
   std::string& name() override;
 
-  /// COFF string used to represents the (long) symbol name
+  /// COFF string used to represent the (long) symbol name
   const String* coff_name() const {
     return coff_name_;
   }

@@ -15,6 +15,7 @@
 #ifndef LIEF_ASM_EBPF_OPERAND_H
 #define LIEF_ASM_EBPF_OPERAND_H
 #include "LIEF/visibility.h"
+#include "LIEF/compiler_attributes.hpp"
 #include "LIEF/iterators.hpp"
 
 #include <memory>
@@ -55,7 +56,7 @@ class LIEF_API Operand {
     LIEF_API ~Iterator();
 
     // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
-    LIEF_API Iterator& operator++();
+    LIEF_API Iterator& operator++() LIEF_LIFETIMEBOUND;
 
     friend LIEF_API bool operator==(const Iterator& LHS, const Iterator& RHS);
 
@@ -63,10 +64,10 @@ class LIEF_API Operand {
       return !(LHS == RHS);
     }
 
-    LIEF_API const Operand& operator*() const;
+    LIEF_API const Operand& operator*() const LIEF_LIFETIMEBOUND;
 
     // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
-    LIEF_API const Operand* operator->() const;
+    LIEF_API const Operand* operator->() const LIEF_LIFETIMEBOUND;
 
     /// Transfer ownership of the operand at the current position to the
     /// caller. Returns `nullptr` if the iterator is past-the-end.
@@ -91,7 +92,7 @@ class LIEF_API Operand {
   /// }
   /// ```
   template<class T>
-  const T* as() const {
+  const T* as() const LIEF_LIFETIMEBOUND {
     static_assert(std::is_base_of<Operand, T>::value,
                   "Require Operand inheritance");
     if (T::classof(this)) {
@@ -107,13 +108,13 @@ class LIEF_API Operand {
       create(std::unique_ptr<details::Operand> impl);
 
   /// @private
-  LIEF_LOCAL const details::Operand& impl() const {
+  LIEF_LOCAL const details::Operand& impl() const LIEF_LIFETIMEBOUND {
     assert(impl_ != nullptr);
     return *impl_;
   }
 
   /// @private
-  LIEF_LOCAL details::Operand& impl() {
+  LIEF_LOCAL details::Operand& impl() LIEF_LIFETIMEBOUND {
     assert(impl_ != nullptr);
     return *impl_;
   }

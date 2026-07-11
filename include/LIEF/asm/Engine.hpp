@@ -16,6 +16,7 @@
 #define LIEF_ASM_ENGINE_H
 #include "LIEF/visibility.h"
 #include "LIEF/iterators.hpp"
+#include "LIEF/compiler_attributes.hpp"
 
 #include "LIEF/asm/Instruction.hpp"
 #include "LIEF/asm/AssemblerConfig.hpp"
@@ -72,13 +73,13 @@ class LIEF_API Engine {
   ~Engine();
 
   /// @private
-  LIEF_LOCAL const details::Engine& impl() const {
+  LIEF_LOCAL const details::Engine& impl() const LIEF_LIFETIMEBOUND {
     assert(impl_ != nullptr);
     return *impl_;
   }
 
   /// @private
-  LIEF_LOCAL details::Engine& impl() {
+  LIEF_LOCAL details::Engine& impl() LIEF_LIFETIMEBOUND {
     assert(impl_ != nullptr);
     return *impl_;
   }

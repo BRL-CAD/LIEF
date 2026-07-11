@@ -58,12 +58,16 @@ class LIEF_API AuxiliarySymbol {
     CLR_TOKEN,
     /// Auxiliary Format 1 from the PE-COFF documentation
     FUNC_DEF,
+
     /// Auxiliary Format 2: .bf and .ef Symbols from the PE-COFF documentation
     BF_AND_EF,
+
     /// Auxiliary Format 3: Weak Externals from the PE-COFF documentation
     WEAK_EXTERNAL,
+
     /// Auxiliary Format 4: Files from the PE-COFF documentation
     FILE,
+
     /// Auxiliary Format 5: Section Definitions from the PE-COFF documentation
     SEC_DEF,
   };
@@ -90,7 +94,7 @@ class LIEF_API AuxiliarySymbol {
 
   virtual ~AuxiliarySymbol() = default;
 
-  /// Helper to **downcast** a AuxiliarySymbol into a concrete implementation
+  /// Helper to **downcast** an AuxiliarySymbol into a concrete implementation
   template<class T>
   const T* as() const {
     static_assert(std::is_base_of<AuxiliarySymbol, T>::value,

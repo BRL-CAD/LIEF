@@ -63,7 +63,7 @@ class LIEF_API TLS : public Object {
   /// List of the callbacks associated with the current TLS.
   ///
   /// These functions are called before any other functions.
-  const std::vector<uint64_t>& callbacks() const {
+  const std::vector<uint64_t>& callbacks() const LIEF_LIFETIMEBOUND {
     return callbacks_;
   }
 
@@ -151,7 +151,7 @@ class LIEF_API TLS : public Object {
   }
 
   void addressof_raw_data(std::pair<uint64_t, uint64_t> addresses) {
-    va_rawdata_ = addresses;
+    va_rawdata_ = std::move(addresses);
   }
 
   void addressof_index(uint64_t addr_idx) {

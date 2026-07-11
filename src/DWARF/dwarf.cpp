@@ -211,8 +211,8 @@ std::unique_ptr<Variable> Variable::Iterator::yield() {
 Parameter::~Parameter() = default;
 
 
-Parameter::Parameter(Parameter&& other) = default;
-Parameter& Parameter::operator=(Parameter&& other) = default;
+Parameter::Parameter(Parameter&& other) noexcept = default;
+Parameter& Parameter::operator=(Parameter&& other) noexcept = default;
 
 Parameter::Parameter(std::unique_ptr<details::Parameter> /*impl*/) :
   impl_(nullptr) {}

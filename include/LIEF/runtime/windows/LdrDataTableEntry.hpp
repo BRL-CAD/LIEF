@@ -21,6 +21,7 @@
 #include <string>
 
 #include <LIEF/visibility.h>
+#include <LIEF/compiler_attributes.hpp>
 #include <LIEF/iterators.hpp>
 #include <LIEF/optional.hpp>
 
@@ -68,15 +69,15 @@ class LIEF_API LdrDataTableEntry {
     }
 
     // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
-    LIEF_API Iterator& operator++();
+    LIEF_API Iterator& operator++() LIEF_LIFETIMEBOUND;
 
     // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
-    LIEF_API Iterator& operator--();
+    LIEF_API Iterator& operator--() LIEF_LIFETIMEBOUND;
 
-    LIEF_API const LdrDataTableEntry& operator*() const;
+    LIEF_API const LdrDataTableEntry& operator*() const LIEF_LIFETIMEBOUND;
 
     // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
-    LIEF_API const LdrDataTableEntry* operator->() const;
+    LIEF_API const LdrDataTableEntry* operator->() const LIEF_LIFETIMEBOUND;
 
     /// Transfer ownership of the entry at the current position to the caller.
     /// Returns `nullptr` if the iterator is past-the-end.

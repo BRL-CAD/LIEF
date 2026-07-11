@@ -17,7 +17,6 @@
 #define LIEF_ELF_SYMBOL_H
 
 #include <string>
-#include <vector>
 #include <ostream>
 
 #include "LIEF/visibility.h"

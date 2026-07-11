@@ -149,4 +149,4 @@ LIEF_API const char* to_string(DataDirectory::TYPES e);
 }
 }
 
-#endif /* LIEF_PE_DATADIRECTORY_H */
+#endif

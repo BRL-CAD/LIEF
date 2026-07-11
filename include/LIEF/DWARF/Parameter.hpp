@@ -81,8 +81,8 @@ class LIEF_API Parameter {
   };
 
   Parameter() = delete;
-  Parameter(Parameter&& other);
-  Parameter& operator=(Parameter&& other);
+  Parameter(Parameter&& other) noexcept;
+  Parameter& operator=(Parameter&& other) noexcept;
   Parameter& operator=(const Parameter&) = delete;
   Parameter(const Parameter&) = delete;
 

@@ -44,7 +44,7 @@ class LIEF_API MemoryStream : public BinaryStream {
   MemoryStream& operator=(MemoryStream&&) noexcept = default;
 
   uintptr_t base_address() const {
-    return this->baseaddr_;
+    return baseaddr_;
   }
 
   const uint8_t* p() const override {
@@ -60,7 +60,7 @@ class LIEF_API MemoryStream : public BinaryStream {
   }
 
   Binary* binary() {
-    return this->binary_;
+    return binary_;
   }
 
   uint64_t size() const override {

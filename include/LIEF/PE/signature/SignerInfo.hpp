@@ -22,7 +22,6 @@
 #include "LIEF/visibility.h"
 #include "LIEF/span.hpp"
 
-#include "LIEF/PE/signature/types.hpp"
 #include "LIEF/iterators.hpp"
 #include "LIEF/PE/enums.hpp"
 #include "LIEF/PE/signature/Attribute.hpp"

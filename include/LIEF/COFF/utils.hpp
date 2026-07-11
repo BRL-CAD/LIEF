@@ -17,7 +17,6 @@
 #define LIEF_COFF_UTILS_H
 #include "LIEF/visibility.h"
 #include "LIEF/COFF/Header.hpp"
-#include "LIEF/BinaryStream/FileStream.hpp"
 #include "LIEF/BinaryStream/SpanStream.hpp"
 #include <string>
 

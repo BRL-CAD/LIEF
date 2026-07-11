@@ -16,7 +16,6 @@
 #ifndef LIEF_PE_RESOURCE_ACCELERATOR_H
 #define LIEF_PE_RESOURCE_ACCELERATOR_H
 
-#include <string>
 #include <ostream>
 #include <vector>
 

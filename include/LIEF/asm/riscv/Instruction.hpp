@@ -15,6 +15,7 @@
 #ifndef LIEF_ASM_RISCV_INST_H
 #define LIEF_ASM_RISCV_INST_H
 #include "LIEF/visibility.h"
+#include "LIEF/compiler_attributes.hpp"
 
 #include "LIEF/asm/Instruction.hpp"
 #include "LIEF/asm/riscv/opcodes.hpp"
@@ -37,7 +38,7 @@ class LIEF_API Instruction : public assembly::Instruction {
   OPCODE opcode() const;
 
   /// Iterator over the operands of the current instruction
-  operands_it operands() const;
+  operands_it operands() const LIEF_LIFETIMEBOUND;
 
   /// True if `inst` is an **effective** instance of riscv::Instruction
   static bool classof(const assembly::Instruction* inst);

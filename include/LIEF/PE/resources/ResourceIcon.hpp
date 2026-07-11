@@ -16,7 +16,6 @@
 #ifndef LIEF_PE_RESOURCE_ICON_H
 #define LIEF_PE_RESOURCE_ICON_H
 #include <ostream>
-#include <climits>
 #include <vector>
 
 #include "LIEF/compiler_attributes.hpp"

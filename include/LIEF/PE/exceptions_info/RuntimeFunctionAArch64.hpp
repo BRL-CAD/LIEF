@@ -87,7 +87,7 @@ class LIEF_API RuntimeFunctionAArch64 : public ExceptionInfo {
     return info->arch() == ExceptionInfo::ARCH::ARM64;
   }
 
-  ~RuntimeFunctionAArch64() = default;
+  ~RuntimeFunctionAArch64() override = default;
 
   protected:
   uint32_t length_ = 0;

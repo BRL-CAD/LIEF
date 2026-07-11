@@ -24,6 +24,7 @@
 #include "LIEF/visibility.h"
 #include "LIEF/optional.hpp"
 #include "LIEF/logging.hpp"
+#include "LIEF/compiler_attributes.hpp"
 
 #include "LIEF/runtime/utils.hpp"
 
@@ -88,7 +89,7 @@ class LIEF_API Memory {
 
     /// Returns the start address of the memory chunk.
     uintptr_t addr() const {
-      return (uintptr_t)addr_;
+      return reinterpret_cast<uintptr_t>(addr_);
     }
 
     /// Returns the size of the memory chunk in bytes.
@@ -109,7 +110,7 @@ class LIEF_API Memory {
     uintptr_t page_end() const;
 
     /// Changes the permissions of the memory chunk.
-    Chunk& change_permissions(uint32_t p) {
+    Chunk& change_permissions(uint32_t p) LIEF_LIFETIMEBOUND {
       if (!Memory::mprotect(*this, p)) {
         logging::err("mprotect failed for chunk: {}", to_string());
       }
@@ -118,33 +119,33 @@ class LIEF_API Memory {
     }
 
     /// Sets the permissions to Execute only.
-    Chunk& make_x() {
+    Chunk& make_x() LIEF_LIFETIMEBOUND {
       return change_permissions(P_EXEC);
     }
 
     /// Sets the permissions to Read and Write.
-    Chunk& make_rw() {
+    Chunk& make_rw() LIEF_LIFETIMEBOUND {
       return change_permissions(P_READ | P_WRITE);
     }
 
     /// Sets the permissions to Read and Execute.
-    Chunk& make_rx() {
+    Chunk& make_rx() LIEF_LIFETIMEBOUND {
       return change_permissions(P_READ | P_EXEC);
     }
 
     /// Sets the permissions to Read, Write, and Execute.
-    Chunk& make_rwx() {
+    Chunk& make_rwx() LIEF_LIFETIMEBOUND {
       return change_permissions(P_READ | P_WRITE | P_EXEC);
     }
 
     /// Sets the permissions to Read Only.
-    Chunk& make_ro() {
+    Chunk& make_ro() LIEF_LIFETIMEBOUND {
       return change_permissions(P_READ);
     }
 
     /// Flushes the instruction cache for this memory chunk.
     /// This should be used when modifying code in memory (e.g., hooking, JIT).
-    Chunk& cache_flush();
+    Chunk& cache_flush() LIEF_LIFETIMEBOUND;
 
     /// Check if this chunk is valid
     bool is_valid() const {

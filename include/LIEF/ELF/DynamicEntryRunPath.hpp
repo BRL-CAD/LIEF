@@ -93,7 +93,7 @@ class LIEF_API DynamicEntryRunPath : public DynamicEntry {
 
   std::ostream& print(std::ostream& os) const override;
 
-  ~DynamicEntryRunPath() = default;
+  ~DynamicEntryRunPath() override = default;
 
   private:
   std::string runpath_;

@@ -41,7 +41,7 @@ class LIEF_API RegularHeader : public Header {
     return std::unique_ptr<Header>(new RegularHeader(*this));
   }
 
-  /// The size of the optional header that follows this header (should be 0)
+  /// The size of the optional header which follows this header (should be 0)
   uint16_t sizeof_optionalheader() const {
     return sizeof_optionalheader_;
   }

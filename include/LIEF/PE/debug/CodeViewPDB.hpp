@@ -19,7 +19,6 @@
 
 #include <cstdint>
 #include <array>
-#include <ostream>
 
 namespace LIEF {
 namespace PE {
@@ -58,13 +57,13 @@ class LIEF_API CodeViewPDB : public CodeView {
   CodeViewPDB(CodeViewPDB&& other) = default;
   CodeViewPDB& operator=(CodeViewPDB&& other) = default;
 
-  /// The GUID signature to verify against the .pdb file signature.
+  /// The GUID signature to verify against the `.pdb` file signature.
   /// This attribute might be used to lookup remote PDB file on a symbol server
   std::string guid() const;
 
   /// Age value to verify. The age does not necessarily correspond to any known
-  /// time value, it is used to determine if a .pdb file is out of sync with a
-  /// corresponding .exe file.
+  /// time value, it is used to determine if a .pdb file is out of sync with
+  /// corresponding `.exe` file.
   uint32_t age() const {
     return age_;
   }

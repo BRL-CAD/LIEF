@@ -17,7 +17,6 @@
 #define LIEF_PE_ENUM_TO_STRING_H
 
 #include <cstdint>
-#include <cstddef>
 
 #include "LIEF/visibility.h"
 

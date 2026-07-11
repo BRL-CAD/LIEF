@@ -16,7 +16,6 @@
 #ifndef LIEF_PE_BUILDER_H
 #define LIEF_PE_BUILDER_H
 
-#include <cstring>
 #include <string>
 #include <vector>
 #include <functional>
@@ -114,9 +113,9 @@ class LIEF_API Builder {
   };
 
   Builder() = delete;
-  Builder(Binary& binary, const config_t& config) :
+  Builder(Binary& binary, config_t config) :
     binary_(&binary),
-    config_(config) {}
+    config_(std::move(config)) {}
 
   ~Builder();
 

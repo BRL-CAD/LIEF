@@ -107,7 +107,7 @@ class LIEF_API ResourceNode : public Object {
   }
 
   /// Name of the entry (if any)
-  const std::u16string& name() const {
+  const std::u16string& name() const LIEF_LIFETIMEBOUND {
     return name_;
   }
 
@@ -211,10 +211,10 @@ class LIEF_API ResourceNode : public Object {
   /// @warning For internal use only
   ///
   /// @private
-  LIEF_LOCAL const ResourceNode& safe_get_at(size_t idx) const;
+  LIEF_LOCAL const ResourceNode& safe_get_at(size_t idx) const LIEF_LIFETIMEBOUND;
 
   /// @private
-  LIEF_LOCAL ResourceNode& safe_get_at(size_t idx) {
+  LIEF_LOCAL ResourceNode& safe_get_at(size_t idx) LIEF_LIFETIMEBOUND {
     return const_cast<ResourceNode&>(
         static_cast<const ResourceNode*>(this)->safe_get_at(idx)
     );
