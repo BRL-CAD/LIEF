@@ -22,7 +22,15 @@
 #include "LIEF/ELF/Binary.hpp"
 #include "LIEF/ELF/ParserConfig.hpp"
 
+namespace LIEF::runtime {
+namespace details {
+class ModuleIt {};
+class Module {};
+}
+}
+
 namespace LIEF::runtime::android {
+
 void* Module::handle() const {
   return nullptr;
 }

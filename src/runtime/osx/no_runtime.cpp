@@ -22,6 +22,13 @@
 
 #include <spdlog/fmt/fmt.h>
 
+namespace LIEF::runtime {
+namespace details {
+class ModuleIt {};
+class Module {};
+}
+}
+
 namespace LIEF::runtime::osx {
 
 std::unique_ptr<Module> Module::from_handle(void* /*handle*/) {

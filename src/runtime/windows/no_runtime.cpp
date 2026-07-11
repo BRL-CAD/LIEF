@@ -23,6 +23,14 @@
 #include "LIEF/PE/Binary.hpp"
 #include "LIEF/optional.hpp"
 
+
+namespace LIEF::runtime {
+namespace details {
+class ModuleIt {};
+class Module {};
+}
+}
+
 namespace LIEF::runtime::windows {
 
 namespace details {
