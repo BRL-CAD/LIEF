@@ -48,10 +48,9 @@ Libraries only (SDK)
 Python bindings
 ---------------
 
-.. note::
-
-  Since LIEF 0.13.0, ``setup.py`` has moved from the project root directory
-  to the ``api/python`` directory.
+The Python bindings are built from the ``api/python`` directory, which uses a
+`PEP 517 <https://peps.python.org/pep-0517/>`_ build backend based on
+`scikit-build-core <https://scikit-build-core.readthedocs.io/>`_:
 
 .. code-block:: console
 
@@ -247,9 +246,9 @@ contains the build process to generate the **Linux x86-64 SDK**.
 On Windows, the SDK is built with the following Python script:
 `scripts/windows/package_sdk.py <https://github.com/lief-project/LIEF/blob/main/scripts/windows/package_sdk.py>`_
 
-For **OSX & iOS**, refer to the CI configs `.github/workflows/ios.yml <https://github.com/lief-project/LIEF/blob/main/.github/workflows/ios.yml>`_
-and `.github/workflows/osx.yml <https://github.com/lief-project/LIEF/blob/main/.github/workflows/osx.yml>`_
-to see how LIEF is compiled (and cross-compiled) for these platforms.
+For **OSX**, refer to the CI config `.github/workflows/osx.yml <https://github.com/lief-project/LIEF/blob/main/.github/workflows/osx.yml>`_,
+and for **iOS**, see the `scripts/osx/package_ios.sh <https://github.com/lief-project/LIEF/blob/main/scripts/osx/package_ios.sh>`_
+script, to see how LIEF is compiled (and cross-compiled) for these platforms.
 
 CMake Options
 -------------

@@ -69,8 +69,8 @@ From this |lief-dsc-dyldsharedcache| object, we can inspect the embedded
       .. code-block:: cpp
 
         std::unique_ptr<LIEF::dsc::DyldSharedCache> dyld_cache;
-        for (std::unique_ptr<LIEF::dsc::Dylib> dylib : dyld_cache->libraries()) {
-          std::cout << dylib->address() << ' ' << dylib->path() << '\n';
+        for (const LIEF::dsc::Dylib& dylib : dyld_cache->libraries()) {
+          std::cout << dylib.address() << ' ' << dylib.path() << '\n';
         }
 
     .. tab:: :fa:`brands fa-rust` Rust

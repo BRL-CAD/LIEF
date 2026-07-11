@@ -153,7 +153,7 @@ A *full* example is available in the ``examples/cmake/external_project`` directo
 Visual Studio Integration
 -------------------------
 
-Given a pre-compiled version of the LIEF SDK (e.g., ``LIEF-0.17.6-win64.zip``):
+Given a pre-compiled version of the LIEF SDK (e.g., ``LIEF-1.0.0-win64.zip``):
 
 .. code-block:: text
 

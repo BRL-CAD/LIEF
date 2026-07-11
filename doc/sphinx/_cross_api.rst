@@ -37,6 +37,18 @@
     :py:meth:`lief.objc.Metadata.to_decl`
     :cpp:func:`LIEF::objc::Metadata::to_decl`
 
+.. |lief-objc-metadata-categories| lief-api:: lief.ObjC.Metadata.categories
+
+    :rust:method:`lief::objc::Metadata::categories [struct]`
+    :py:attr:`lief.objc.Metadata.categories`
+    :cpp:func:`LIEF::objc::Metadata::categories`
+
+.. |lief-objc-category| lief-api:: lief.ObjC.Category
+
+    :rust:struct:`lief::objc::Category`
+    :py:class:`lief.objc.Category`
+    :cpp:class:`LIEF::objc::Category`
+
 .. |lief-objc-method-address| lief-api:: lief.ObjC.Method.address()
 
     :rust:method:`lief::objc::Method::address [struct]`

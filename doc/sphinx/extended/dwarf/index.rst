@@ -125,19 +125,19 @@ debug information:
 
       .. code-block:: cpp
 
-        for (std::unique_ptr<LIEF::dwarf::CompilationUnit> CU : dbg->compilation_units()) {
-          log(LEVEL::INFO, "Producer: {}", CU->producer());
-          for (std::unique_ptr<LIEF::dwarf::Function> func : CU->functions()) {
+        for (const LIEF::dwarf::CompilationUnit& CU : dbg->compilation_units()) {
+          log(LEVEL::INFO, "Producer: {}", CU.producer());
+          for (const LIEF::dwarf::Function& func : CU.functions()) {
             log(LEVEL::INFO, "name={}, linkage={}, address={}",
-                func->name(), func->linkage_name(), func->address().value_or(0));
+                func.name(), func.linkage_name(), func.address().value_or(0));
           }
 
-          for (std::unique_ptr<LIEF::dwarf::Variable> var : CU->variables()) {
-            log(LEVEL::INFO, "name={}, address={}", var->name(), var->address().value_or(0));
+          for (const LIEF::dwarf::Variable& var : CU.variables()) {
+            log(LEVEL::INFO, "name={}, address={}", var.name(), var.address().value_or(0));
           }
 
-          for (std::unique_ptr<LIEF::dwarf::Type> ty : CU->types()) {
-            log(LEVEL::INFO, "name={}, size={}", ty->name().value_or(""), std::to_string(ty->size().value_or(0)));
+          for (const LIEF::dwarf::Type& ty : CU.types()) {
+            log(LEVEL::INFO, "name={}, size={}", ty.name().value_or(""), std::to_string(ty.size().value_or(0)));
           }
         }
 
@@ -251,8 +251,8 @@ defined in the debug file previously loaded:
         binary->load_debug_info("/home/romain/dev/LIEF/some.dwo");
 
         // The location (address/size) of `my_function` is defined in some.dwo
-        for (std::unique_ptr<LIEF::asm::Instruction> inst : binary->disassemble("my_function")) {
-          std::cout << *inst << '\n';
+        for (const LIEF::assembly::Instruction& inst : binary->disassemble("my_function")) {
+          std::cout << inst << '\n';
         }
 
    .. tab:: :fa:`brands fa-rust` Rust
@@ -324,8 +324,8 @@ prefer C++ syntax or change the indentation):
         LIEF::DeclOpt opt;
         opt.is_cpp(true).indentation(4);
 
-        for (std::unique_ptr<LIEF::dwarf::CompilationUnit> CU : dbg->compilation_units()) {
-          std::cout << CU->to_decl(opt) << '\n';
+        for (const LIEF::dwarf::CompilationUnit& CU : dbg->compilation_units()) {
+          std::cout << CU.to_decl(opt) << '\n';
         }
 
    .. tab:: :fa:`brands fa-rust` Rust

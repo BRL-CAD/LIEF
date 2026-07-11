@@ -196,13 +196,13 @@ Then, you can use ``openssl`` to process its content:
 
             object: undefined (1.3.6.1.4.1.311.2.1.11)
 
-The `authenticode_reader.py <https://github.com/lief-project/LIEF/blob/main/api/python/examples/authenticode/authenticode_reader.py>`_
-script in the `examples/ <https://github.com/lief-project/LIEF/tree/main/examples/python/authenticode>`_ directory
+The `pe_authenticode_reader.py <https://github.com/lief-project/LIEF/blob/main/api/python/examples/pe_authenticode_reader.py>`_
+script in the `examples/ <https://github.com/lief-project/LIEF/tree/main/api/python/examples>`_ directory
 can also be used to inspect the signature:
 
 .. code-block:: console
 
-   $ python authenticode_reader.py --all avast_free_antivirus_setup_online.exe
+   $ python pe_authenticode_reader.py --all avast_free_antivirus_setup_online.exe
 
 .. code-block:: text
 

@@ -129,14 +129,14 @@ Rebase Bytecode
 As mentioned previously, recent Mach-O loaders use bytecode to relocate (or
 rebase) the binary. The offset and size of the bytecode are specified in the
 :attr:`lief.MachO.DyldInfo.rebase` attribute. Basically, the bytecode is
-composed of :class:`~lief.MachO.REBASE_OPCODES` that define addresses to
+composed of :class:`~lief.MachO.DyldInfo.REBASE_OPCODES` that define addresses to
 relocate.
 
 .. warning::
 
   Note that the :class:`~lief.MachO.Section` object has a
   :attr:`~lief.MachO.Section.relocation_offset` attribute. This appears to be
-  used only for Mach-O object files (:attr:`lief.MachO.FILE_TYPES.OBJECT`) or
+  used only for Mach-O object files (:attr:`lief.MachO.Header.FILE_TYPE.OBJECT`) or
   executables using an old version of the Mach-O loader.
 
   This offset points to a list of relocation structures (not bytecode), the
@@ -435,8 +435,8 @@ In this example, we will inject assembly code that executes ``/bin/sh``:
   section = lief.MachO.Section("__shell", raw_shell)
 
   section.alignment = 2
-  section += lief.MachO.SECTION_FLAGS.SOME_INSTRUCTIONS
-  section += lief.MachO.SECTION_FLAGS.PURE_INSTRUCTIONS
+  section += lief.MachO.Section.FLAGS.SOME_INSTRUCTIONS
+  section += lief.MachO.Section.FLAGS.PURE_INSTRUCTIONS
 
   section = app.add_section(section)
   print(section)

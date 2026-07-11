@@ -83,10 +83,10 @@ a header-like output of all the Objective-C metadata found in the binary.
 
         std::unique_ptr<LIEF::objc::Metadata> metadata = bin->objc_metadata();
 
-        for (const std::unique_ptr<LIEF::objc::Class>& clazz : metadata->classes()) {
-          log(LOG_LVL, "name={}", clazz->name());
-          for (const std::unique_ptr<LIEF::objc::Method>& meth : clazz->methods()) {
-            log(LOG_LVL, "  method.name={}", meth->name());
+        for (const LIEF::objc::Class& clazz : metadata->classes()) {
+          log(LOG_LVL, "name={}", clazz.name());
+          for (const LIEF::objc::Method& meth : clazz.methods()) {
+            log(LOG_LVL, "  method.name={}", meth.name());
           }
         }
 

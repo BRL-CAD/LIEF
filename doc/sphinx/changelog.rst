@@ -14,6 +14,7 @@
 :BinaryNinja:
 
   * Add :ref:`Android JNI Analyzer <plugins-binaryninja-analyzers-android-jni>`
+  * The DWARF import plugin now supports comments
 
 :Ghidra:
 
@@ -110,6 +111,11 @@
   * Add support for adding an |lief-pe-import| at a specific position:
     |lief-pe-binary-add-import| (:pr:`1298`)
   * Improve support for EFI binaries, such as ``bzImage`` (:pr:`1293`)
+
+:ObjC:
+
+  * Add support for Objective-C categories (:issue:`1353`): |lief-objc-category|,
+    accessible through |lief-objc-metadata-categories|
 
 :Assembly:
 

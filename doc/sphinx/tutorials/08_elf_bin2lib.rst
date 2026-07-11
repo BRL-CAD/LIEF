@@ -28,11 +28,11 @@ Using LIEF, we can access this information through the
 
   >>> libm = lief.parse("/usr/lib/libm.so.6")
   >>> print(libm.header.file_type)
-  E_TYPE.DYNAMIC
+  FILE_TYPE.DYN
 
   >>> ssh = lief.parse("/usr/bin/ssh")
   >>> print(ssh.header.file_type)
-  E_TYPE.DYNAMIC
+  FILE_TYPE.DYN
 
 The main difference between PIE binaries and shared libraries is how symbols
 are exported.

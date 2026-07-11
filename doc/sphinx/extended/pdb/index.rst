@@ -101,27 +101,27 @@ the PDB debug information:
 
         log(LEVEL::INFO, "age={}, guid={}", std::to_string(pdb->age()), pdb->guid());
 
-        for (std::unique_ptr<LIEF::pdb::PublicSymbol> symbol : pdb->public_symbols()) {
+        for (const LIEF::pdb::PublicSymbol& symbol : pdb->public_symbols()) {
           log(LEVEL::INFO, "name={}, section={}, RVA={}",
-              symbol->name(), symbol->section_name(), symbol->RVA());
+              symbol.name(), symbol.section_name(), symbol.RVA());
         }
 
-        for (std::unique_ptr<LIEF::pdb::Type> ty : pdb->types()) {
-          if (LIEF::pdb::types::Class::classof(ty.get())) {
-            auto* clazz = ty->as<LIEF::pdb::types::Class>();
+        for (const LIEF::pdb::Type& ty : pdb->types()) {
+          if (LIEF::pdb::types::Class::classof(&ty)) {
+            const auto* clazz = ty.as<LIEF::pdb::types::Class>();
             log(LEVEL::INFO, "Class[name]={}", clazz->name());
           }
         }
 
-        for (std::unique_ptr<LIEF::pdb::CompilationUnit> CU : pdb->compilation_units()) {
-          log(LEVEL::INFO, "module={}", CU->module_name());
-          for (const std::string& src : CU->sources()) {
+        for (const LIEF::pdb::CompilationUnit& CU : pdb->compilation_units()) {
+          log(LEVEL::INFO, "module={}", CU.module_name());
+          for (const std::string& src : CU.sources()) {
             log(LEVEL::INFO, "  - {}", src);
           }
 
-          for (std::unique_ptr<LIEF::pdb::Function> func : CU->functions()) {
+          for (const LIEF::pdb::Function& func : CU.functions()) {
             log(LEVEL::INFO, "name={}, section={}, RVA={}, code size={}",
-                func->name(), func->section_name(), func->RVA(), func->code_size());
+                func.name(), func.section_name(), func.RVA(), func.code_size());
           }
         }
 
@@ -232,8 +232,8 @@ defined in the debug file previously loaded:
         binary->load_debug_info("C:\\Users\\romain\\LIEF.pdb");
 
         // The location (address/size) of `my_function` is defined in LIEF.pdb
-        for (std::unique_ptr<LIEF::asm::Instruction> inst : binary->disassemble("my_function")) {
-          std::cout << *inst << '\n';
+        for (const LIEF::assembly::Instruction& inst : binary->disassemble("my_function")) {
+          std::cout << inst << '\n';
         }
 
    .. tab:: :fa:`brands fa-rust` Rust
@@ -291,14 +291,14 @@ The generated output can be configured with a |lief-declopt| structure:
         LIEF::DeclOpt opt;
         opt.is_cpp(true);
 
-        for (std::unique_ptr<LIEF::pdb::Type> ty : pdb->types()) {
-          std::cout << ty->to_decl(opt) << '\n';
+        for (const LIEF::pdb::Type& ty : pdb->types()) {
+          std::cout << ty.to_decl(opt) << '\n';
         }
 
-        for (std::unique_ptr<LIEF::pdb::CompilationUnit> CU : pdb->compilation_units()) {
-          std::cout << CU->to_decl(opt) << '\n';
-          for (std::unique_ptr<LIEF::pdb::Function> func : CU->functions()) {
-            std::cout << func->to_decl(opt) << '\n';
+        for (const LIEF::pdb::CompilationUnit& CU : pdb->compilation_units()) {
+          std::cout << CU.to_decl(opt) << '\n';
+          for (const LIEF::pdb::Function& func : CU.functions()) {
+            std::cout << func.to_decl(opt) << '\n';
           }
         }
 

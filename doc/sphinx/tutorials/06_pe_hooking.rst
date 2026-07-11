@@ -81,7 +81,7 @@ First, we create the ``.htext`` section, which will hold the hooking code:
   section_text                 = lief.PE.Section(".htext")
   section_text.content         = code
   section_text.virtual_address = 0x7000
-  section_text.characteristics = lief.PE.SECTION_CHARACTERISTICS.CNT_CODE | lief.PE.SECTION_CHARACTERISTICS.MEM_READ | lief.PE.SECTION_CHARACTERISTICS.MEM_EXECUTE
+  section_text.characteristics = lief.PE.Section.CHARACTERISTICS.CNT_CODE | lief.PE.Section.CHARACTERISTICS.MEM_READ | lief.PE.Section.CHARACTERISTICS.MEM_EXECUTE
 
   section_text = pe.add_section(section_text)
 
@@ -95,7 +95,7 @@ Next, we create the ``.hdata`` section for the ``MessageBox`` title:
   section_data                 = lief.PE.Section(".hdata")
   section_data.content         = data
   section_data.virtual_address = 0x8000
-  section_data.characteristics = lief.PE.SECTION_CHARACTERISTICS.CNT_INITIALIZED_DATA | lief.PE.SECTION_CHARACTERISTICS.MEM_READ
+  section_data.characteristics = lief.PE.Section.CHARACTERISTICS.CNT_INITIALIZED_DATA | lief.PE.Section.CHARACTERISTICS.MEM_READ
 
   section_data = pe.add_section(section_data)
 
@@ -103,14 +103,14 @@ Since ASLR is enabled, we will disable it to avoid dealing with relocations:
 
 .. code-block:: python
 
-  binary.optional_header.dll_characteristics &= ~lief.PE.DLL_CHARACTERISTICS.DYNAMIC_BASE
+  binary.optional_header.dll_characteristics &= ~lief.PE.OptionalHeader.DLL_CHARACTERISTICS.DYNAMIC_BASE
 
 We will also disable ``NX`` protection:
 
 
 .. code-block:: python
 
-  binary.optional_header.dll_characteristics &= ~lief.PE.DLL_CHARACTERISTICS.NX_COMPAT
+  binary.optional_header.dll_characteristics &= ~lief.PE.OptionalHeader.DLL_CHARACTERISTICS.NX_COMPAT
 
 As ``ExitProcess`` is not imported in ``KERNEL32.dll``, we need to add it:
 

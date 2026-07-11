@@ -52,7 +52,7 @@ user-friendly API [2]_ to perform it.
 
 To summarize, executable formats include libraries that are linked with the
 executable. We can obtain a list of linked libraries using ``ldd`` or
-``readelf`` (Unix) or with `elf_reader.py <https://github.com/lief-project/LIEF/blob/main/examples/python/elf_reader.py>`_ (Linux, Windows, OSX):
+``readelf`` (Unix) or with `elf_reader.py <https://github.com/lief-project/LIEF/blob/main/api/python/examples/elf_reader.py>`_ (Linux, Windows, OSX):
 
 .. code-block:: console
 
