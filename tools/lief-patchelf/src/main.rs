@@ -1014,9 +1014,9 @@ fn main() -> Result<()> {
         lief::logging::set_level(lief::logging::Level::DEBUG);
     }
 
-    let mut parser_config = lief::elf::parser_config::Config::default();
+    let mut _parser_config = lief::elf::parser_config::Config::default();
     if let Some(pagesize) = matches.get_one::<u64>("page-size") {
-        parser_config.page_size = *pagesize;
+        _parser_config.page_size = *pagesize;
     }
 
     let opt_output = matches.get_one::<std::path::PathBuf>("output");
