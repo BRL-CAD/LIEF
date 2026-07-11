@@ -22,13 +22,3 @@ runtime = false
 [lief.logging]
 enabled = true
 debug   = false
-
-#[lief.runtime]
-#platform = 'linux'
-#architecture = 'x86_64'
-
-#[lief.cross-compilation]
-#osx-arch = "arm64"
-
-#[lief.third-party]
-#spdlog  = "/path/to/spdlog-install"

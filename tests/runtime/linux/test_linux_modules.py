@@ -81,9 +81,6 @@ def test_parse_from_memory():
     )
     assert libc is not None
 
-    # The in-memory ELF parsing implementation is still a TODO on Linux, so
-    # these calls currently return None. Once implemented, this test should be
-    # strengthened.
     libc.parse_from_memory()
     libc.parse_from_memory(lief.ELF.ParserConfig.all)
 

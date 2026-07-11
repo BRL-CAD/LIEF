@@ -85,20 +85,6 @@ def test_parse_from_memory(tmp_path: Path):
     check_attributes(mem.dyld_chained_fixups, macho.dyld_chained_fixups)
     check_attributes(mem.function_starts, macho.function_starts)
     check_attributes(mem.rpaths, macho.rpaths)
-    # check_attributes(
-    #    mem.relocations, macho.relocations, skip_list=["section", "segment"]
-    # )
-    # check_attributes(mem.bindings, macho.bindings, skip_list=["segment"])
-
-    # thread_vars_mem = mem.get_section("__thread_vars")
-    # thread_vars_file = macho.get_section("__thread_vars")
-
-    # if thread_vars_file is not None:
-    #    assert thread_vars_mem is not None
-    #    assert isinstance(thread_vars_mem, lief.MachO.ThreadLocalVariables)
-    #    assert isinstance(thread_vars_file, lief.MachO.ThreadLocalVariables)
-
-    #    check_attributes(thread_vars_mem.thunks, thread_vars_file.thunks)
 
     output = tmp_path / f"mem_{library.name}"
     mem.write(output)

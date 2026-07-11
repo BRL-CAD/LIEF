@@ -14,8 +14,6 @@ def test_peb():
     assert peb is not None
     assert isinstance(peb, lief.runtime.windows.PEB)
 
-    # The loader data and the process parameters are always populated by the
-    # Windows loader.
     assert peb.ldr != 0
     assert peb.process_parameters != 0
 
@@ -33,11 +31,9 @@ def test_peb_entries():
     assert peb is not None
 
     entries = list(peb.entries)
-    # A process always has at least its main image and a few system DLLs loaded.
     assert len(entries) > 1
     assert all(isinstance(e, lief.runtime.windows.LdrDataTableEntry) for e in entries)
 
-    # The first entry of the load-order list is the main executable.
     first = entries[0]
     assert first is not None
     assert first.dll_base != 0
@@ -46,7 +42,6 @@ def test_peb_entries():
     assert first.full_dll_name.lower().endswith(first.base_dll_name.lower())
     assert isinstance(first.entry_point, int)
 
-    # ntdll.dll is always loaded in a Windows process.
     names = [e.base_dll_name.lower() for e in entries if e is not None]
     assert "ntdll.dll" in names
 
@@ -59,7 +54,6 @@ def test_peb_entry_extended_fields():
     first = next(iter(peb.entries), None)
     assert first is not None
 
-    # Fields located before the Windows 8 loader rewrite are always available.
     assert isinstance(first.flags, int)
     assert isinstance(first.obsolete_load_count, int)
     assert isinstance(first.tls_index, int)
@@ -70,8 +64,6 @@ def test_peb_entry_extended_fields():
     version_t = lief.runtime.windows.Host.version_t
     version = lief.runtime.windows.Host.version
 
-    # The dependency-graph fields only exist with the Windows 8+ layout, so they
-    # must be exposed exactly when the host is recent enough.
     win8_fields = (
         first.ddag_node,
         first.load_context,
@@ -91,7 +83,6 @@ def test_peb_entry_extended_fields():
     else:
         assert all(v is None for v in win8_fields)
 
-    # Code-integrity fields appeared in Windows 10.
     win10_fields = (first.signing_level, first.check_sum)
     if version >= version_t(10, 0, 10240):
         assert all(v is not None for v in win10_fields)
@@ -99,7 +90,6 @@ def test_peb_entry_extended_fields():
     else:
         assert all(v is None for v in win10_fields)
 
-    # Hot-patching fields appeared in Windows 11.
     win11_fields = (first.active_patch_image_base, first.hot_patch_state)
     if version >= version_t(10, 0, 22000):
         assert all(v is not None for v in win11_fields)
