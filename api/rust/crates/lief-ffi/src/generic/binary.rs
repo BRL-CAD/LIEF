@@ -48,6 +48,18 @@ pub mod ffi {
             file: &CxxString,
         ) -> UniquePtr<AbstracDebugInfo>;
         fn page_size(self: &AbstractBinary) -> u64;
+        unsafe fn patch_address_bytes(
+            self: Pin<&mut AbstractBinary>,
+            address: u64,
+            patch_value: *const u8,
+            size: u64,
+        );
+        fn patch_address_value(
+            self: Pin<&mut AbstractBinary>,
+            address: u64,
+            patch_value: u64,
+            size: u64,
+        );
         fn get_u8(self: &AbstractBinary, addr: u64, err: Pin<&mut u32>) -> u8;
         fn get_u16(self: &AbstractBinary, addr: u64, err: Pin<&mut u32>) -> u16;
         fn get_u32(self: &AbstractBinary, addr: u64, err: Pin<&mut u32>) -> u32;

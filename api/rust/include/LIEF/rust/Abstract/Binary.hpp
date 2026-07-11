@@ -151,6 +151,16 @@ class AbstractBinary : public Mirror<LIEF::Binary> {
   uint64_t page_size() const {
     return get().page_size();
   }
+
+  void patch_address_bytes(uint64_t address, const uint8_t* patch_value,
+                           uint64_t size) {
+    get().patch_address(address,
+                        std::vector<uint8_t>(patch_value, patch_value + size));
+  }
+
+  void patch_address_value(uint64_t address, uint64_t patch_value, uint64_t size) {
+    get().patch_address(address, patch_value, size);
+  }
 };
 
 using AbstractBinary_it_functions = AbstractBinary::it_functions;
