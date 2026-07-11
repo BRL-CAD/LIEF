@@ -6,6 +6,16 @@ pub mod ffi {
         type Span = crate::utils::ffi::Span;
         type ELF_Section;
 
+        #[Self = "ELF_Section"]
+        fn create() -> UniquePtr<ELF_Section>;
+        #[Self = "ELF_Section"]
+        fn create_with_name(name: &CxxString) -> UniquePtr<ELF_Section>;
+        #[Self = "ELF_Section"]
+        unsafe fn create_with_content(
+            name: &CxxString,
+            buffer: *const u8,
+            size: usize,
+        ) -> UniquePtr<ELF_Section>;
         fn get_type(self: &ELF_Section) -> u64;
         fn flags(self: &ELF_Section) -> u64;
         fn alignment(self: &ELF_Section) -> u64;

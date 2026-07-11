@@ -37,6 +37,38 @@ pub fn add_loaded_segment(some_elf: &mut lief::elf::Binary) {
     // lief-doc: add-segment-end
 }
 
+pub fn add_loaded_section(some_elf: &mut lief::elf::Binary) {
+    // lief-doc: add-section-loaded-start
+    let elf: &mut lief::elf::Binary = some_elf;
+
+    let section = lief::elf::Section::new_with_content(".lief_demo", &[1, 2, 3]);
+
+    elf.add_section(
+        &section,
+        /* loaded= */ true,
+        lief::elf::binary::SecInsertPos::AUTO,
+    );
+    elf.write("new.elf");
+    // lief-doc: add-section-loaded-end
+}
+
+pub fn add_unloaded_section(some_elf: &mut lief::elf::Binary) {
+    // lief-doc: add-section-unloaded-start
+    let elf: &mut lief::elf::Binary = some_elf;
+
+    let section = lief::elf::Section::new_with_content(".metadata", b"version: 1.2.3");
+
+    // /!\ Note that loaded is set to false here
+    // -----------------------------------------
+    elf.add_section(
+        &section,
+        /* loaded= */ false,
+        lief::elf::binary::SecInsertPos::AUTO,
+    );
+    elf.write("new.elf");
+    // lief-doc: add-section-unloaded-end
+}
+
 pub fn parse_from_dump() {
     // lief-doc: dump-start
     let elf = lief::elf::Binary::parse_from_dump("module.dump", 0x7f9b_98e0_0000).unwrap();

@@ -207,6 +207,14 @@ create an associated ``PT_LOAD`` segment:
         :end-before: lief-doc: add-section-loaded-end
         :dedent:
 
+  .. tab:: :fa:`brands fa-rust` Rust
+
+      .. literalinclude:: ../../../code/rust/src/elf.rs
+        :language: rust
+        :start-after: lief-doc: add-section-loaded-start
+        :end-before: lief-doc: add-section-loaded-end
+        :dedent:
+
 As mentioned above, the segments table is more critical than the sections table
 from a loading perspective. Therefore, it is more appropriate to explicitly add
 a new segment rather than adding a section that implicitly adds a segment.
@@ -229,6 +237,14 @@ the end of the binary, immediately after the data wrapped by the segments:
 
       .. literalinclude:: ../../../code/cpp/elf.cpp
         :language: cpp
+        :start-after: lief-doc: add-section-unloaded-start
+        :end-before: lief-doc: add-section-unloaded-end
+        :dedent:
+
+  .. tab:: :fa:`brands fa-rust` Rust
+
+      .. literalinclude:: ../../../code/rust/src/elf.rs
+        :language: rust
         :start-after: lief-doc: add-section-unloaded-start
         :end-before: lief-doc: add-section-unloaded-end
         :dedent:

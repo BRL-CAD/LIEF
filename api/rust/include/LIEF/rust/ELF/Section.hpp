@@ -24,6 +24,23 @@ class ELF_Section : public AbstractSection {
   using lief_t = LIEF::ELF::Section;
   ELF_Section(const lief_t& section) :
     AbstractSection(section) {}
+  ELF_Section(std::unique_ptr<lief_t> impl) :
+    AbstractSection(std::move(impl)) {}
+
+  static auto create() {
+    return std::make_unique<ELF_Section>(std::make_unique<lief_t>());
+  }
+
+  static auto create_with_name(const std::string& name) {
+    return std::make_unique<ELF_Section>(std::make_unique<lief_t>(name));
+  }
+
+  static auto create_with_content(const std::string& name, const uint8_t* buffer,
+                                  size_t size) {
+    auto section = std::make_unique<lief_t>(name);
+    section->content(std::vector<uint8_t>{buffer, buffer + size});
+    return std::make_unique<ELF_Section>(std::move(section));
+  }
 
   uint64_t get_type() const {
     return to_int(impl().type());

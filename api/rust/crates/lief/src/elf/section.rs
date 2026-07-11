@@ -16,6 +16,29 @@ pub struct Section<'a> {
 }
 
 impl Section<'_> {
+    /// Create a new section
+    pub fn new() -> Section<'static> {
+        Section::from_ffi(ffi::ELF_Section::create())
+    }
+
+    /// Create a new section with the given name
+    pub fn new_with_name(name: &str) -> Section<'static> {
+        cxx::let_cxx_string!(__cxx_name = name);
+        Section::from_ffi(ffi::ELF_Section::create_with_name(&__cxx_name))
+    }
+
+    /// Create a new section with the given name and content
+    pub fn new_with_content(name: &str, content: &[u8]) -> Section<'static> {
+        cxx::let_cxx_string!(__cxx_name = name);
+        unsafe {
+            Section::from_ffi(ffi::ELF_Section::create_with_content(
+                &__cxx_name,
+                content.as_ptr(),
+                content.len(),
+            ))
+        }
+    }
+
     /// Type of the section
     pub fn get_type(&self) -> Type {
         Type::from(self.ptr.get_type())
