@@ -27,27 +27,22 @@ the successful result or an error.
 
 The user can process this result as follows:
 
-.. code-block:: cpp
-
-   result<PE_TYPE> pe_type = PE::get_type("/tmp/NotPE.elf");
-   if (pe_type) {
-     PE_TYPE effective_type = pe_type.value();
-   } else {
-     lief_errors err = as_lief_err(pe_type);
-   }
+.. literalinclude:: ../../../code/cpp/error_handling.cpp
+   :language: cpp
+   :start-after: lief-doc: result-handling-start
+   :end-before: lief-doc: result-handling-end
+   :dedent:
 
 In the case of Python, we leverage the *dynamic* features of the language to
 return either the expected value or an error if the function fails.
 For instance, in previous versions of :func:`lief.PE.get_type`, the
 implementation raised an exception to inform the user:
 
-.. code-block:: python
-
-  try:
-    pe_type = lief.PE.get_type("/tmp/NotPE.elf")
-    # If it does not fail, pe_type handles a lief.PE.PE_TYPE object
-  except Exception as e:
-    print(f"Error: {e}")
+.. literalinclude:: ../../../code/python/error_handling.py
+   :language: python
+   :start-after: lief-doc: get-type-exception-start
+   :end-before: lief-doc: get-type-exception-end
+   :dedent:
 
 With the new implementation that relies on the ``ResultOrError`` idiom, the
 function returns the :class:`lief.PE.PE_TYPE` value if everything is correct,
@@ -56,16 +51,11 @@ and returns a :class:`lief.lief_errors` in case of a processing error.
 The user can handle this new interface by using the ``isinstance()`` function or by comparing the value with
 a :class:`lief.lief_errors` attribute:
 
-.. code-block:: python
-
-  pe_type = lief.PE.get_type("/tmp/NotPE.elf")
-
-  if pe_type == lief.lief_errors.file_error:
-    print("File error")
-  elif isinstance(pe_type, lief.lief_errors):
-    print("Another kind of error")
-  else:
-    print("No error, type is: {}".format(pe_type))
+.. literalinclude:: ../../../code/python/error_handling.py
+   :language: python
+   :start-after: lief-doc: get-type-error-start
+   :end-before: lief-doc: get-type-error-end
+   :dedent:
 
 :fa:`solid fa-code` API
 ~~~~~~~~~~~~~~~~~~~~~~~

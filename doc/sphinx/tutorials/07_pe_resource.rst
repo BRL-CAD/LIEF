@@ -16,13 +16,11 @@ To retrieve the section where resources are located, you can use the
 :attr:`~lief.PE.DataDirectory.section` attribute of the associated
 :class:`~lief.PE.DataDirectory`:
 
-.. code-block:: python
-
-  binary = lief.parse("C:\\Windows\\explorer.exe")
-  if binary.has_resources:
-    rsrc_directory = binary.data_directory(lief.PE.DataDirectory.TYPES.RESOURCE_TABLE)
-    if rsrc_directory.has_section:
-      print(rsrc_directory.section)
+.. literalinclude:: ../../code/python/tuto_pe_resource.py
+  :language: python
+  :start-after: lief-doc: resource-section-start
+  :end-before: lief-doc: resource-section-end
+  :dedent:
 
 .. code-block:: console
 
@@ -60,31 +58,11 @@ Given a :class:`~lief.PE.ResourceDirectory`, the
 The following snippet retrieves the :attr:`~lief.PE.ResourcesManager.TYPE.MANIFEST`
 element and prints it:
 
-.. code-block:: python
-
-  filezilla = lief.parse("filezilla.exe")
-
-  if not filezilla.has_resources:
-      print("'{}' has no resources. Abort!".format(filezilla.name), file=sys.stderr)
-      sys.exit(1)
-
-  root = filezilla.resources
-
-  # First level => Type (ResourceDirectory node)
-  manifest_node = next(i for i in root.childs if i.id == lief.PE.ResourcesManager.TYPE.MANIFEST)
-  print(manifest_node)
-
-  # Second level => ID (ResourceDirectory node)
-  id_node = manifest_node.childs[0]
-  print(id_node)
-
-  # Third level => Lang (ResourceData node)
-  lang_node = id_node.childs[0]
-  print(lang_node)
-
-  manifest = bytes(lang_node.content).decode("utf8")
-
-  print(manifest)
+.. literalinclude:: ../../code/python/tuto_pe_resource.py
+  :language: python
+  :start-after: lief-doc: manifest-tree-start
+  :end-before: lief-doc: manifest-tree-end
+  :dedent:
 
 .. code-block:: console
 
@@ -144,12 +122,11 @@ binary's resources, you can simply *print* the :class:`~lief.PE.ResourcesManager
 instance:
 
 
-.. code-block:: python
-
-  filezilla = lief.parse("filezilla.exe")
-
-  resource_manager = filezilla.resources_manager
-  print(resource_manager)
+.. literalinclude:: ../../code/python/tuto_pe_resource.py
+  :language: python
+  :start-after: lief-doc: overview-start
+  :end-before: lief-doc: overview-end
+  :dedent:
 
 .. literalinclude:: ../_static/tutorial/07/resource_manager_output.txt
 
@@ -157,18 +134,11 @@ Similar to the previous example, accessing the
 :attr:`~lief.PE.ResourcesManager.TYPE.MANIFEST` element is as simple as:
 
 
-.. code-block:: python
-
-  filezilla = lief.parse("filezilla.exe")
-
-  resources_manager = filezilla.resources_manager
-
-  if not resources_manager.has_manifest:
-      print("'{}' has no manifest. Abort!".format(filezilla.name), file=sys.stderr)
-      sys.exit(1)
-
-  manifest = resources_manager.manifest
-  print(manifest)
+.. literalinclude:: ../../code/python/tuto_pe_resource.py
+  :language: python
+  :start-after: lief-doc: get-manifest-start
+  :end-before: lief-doc: get-manifest-end
+  :dedent:
 
 
 Playing with the Manifest
@@ -207,19 +177,11 @@ This tag has the following options:
 Using :class:`~lief.PE.ResourcesManager`, replacing the ``asInvoker`` value
 with ``requireAdministrator`` is straightforward:
 
-.. code-block:: python
-
-  filezilla = lief.parse("filezilla.exe")
-
-  resources_manager = filezilla.resources_manager
-
-  if not resources_manager.has_manifest:
-      print("'{}' has no manifest. Abort!".format(filezilla.name), file=sys.stderr)
-      sys.exit(1)
-
-  manifest = resources_manager.manifest
-  manifest = manifest.replace("asInvoker", "requireAdministrator")
-  resources_manager.manifest = manifest
+.. literalinclude:: ../../code/python/tuto_pe_resource.py
+  :language: python
+  :start-after: lief-doc: set-admin-start
+  :end-before: lief-doc: set-admin-end
+  :dedent:
 
 The PE :class:`~lief.PE.Builder` can be configured to rebuild the resource tree.
 To apply the modifications, we must rebuild it:
@@ -251,22 +213,19 @@ two applications.
 As in the previous section, obtain the :class:`~lief.PE.ResourcesManager` as
 follows:
 
-.. code-block:: python
-
-  mfc = lief.parse("mfc.exe")
-  cmd = lief.parse("cmd.exe")
-
-  mfc_rsrc_manager = mfc.resources_manager
-  cmd_rsrc_manager = cmd.resources_manager
+.. literalinclude:: ../../code/python/tuto_pe_resource.py
+  :language: python
+  :start-after: lief-doc: load-managers-start
+  :end-before: lief-doc: load-managers-end
+  :dedent:
 
 Then, switch the first icons of the applications:
 
-.. code-block:: python
-
-  mfc_icons = mfc_rsrc_manager.icons
-  cmd_icons = cmd_rsrc_manager.icons
-  for i in range(min(len(mfc_icons), len(cmd_icons))):
-      mfc_rsrc_manager.change_icon(mfc_icons[i], cmd_icons[i])
+.. literalinclude:: ../../code/python/tuto_pe_resource.py
+  :language: python
+  :start-after: lief-doc: change-icons-start
+  :end-before: lief-doc: change-icons-end
+  :dedent:
 
 
 The MFC icons before switching:

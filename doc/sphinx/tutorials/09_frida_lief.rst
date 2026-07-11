@@ -78,13 +78,12 @@ embedded in the APK.
 
 Adding such a dependency is as simple as:
 
-.. code-block:: python
-
-  import lief
-
-  libnative = lief.parse("libnative.so")
-  libnative.add_library("libgadget.so") # Injection!
-  libnative.write("libnative.so")
+.. literalinclude:: ../../code/python/tuto_frida.py
+  :language: python
+  :prepend: import lief
+  :start-after: lief-doc: inject-start
+  :end-before: lief-doc: inject-end
+  :dedent:
 
 Telegram
 ~~~~~~~~

@@ -27,34 +27,28 @@ This attribute returns a |lief-dwarf-debug-info| object:
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        elf = lief.ELF.parse("/bin/with_debug")
-        if debug_info := elf.debug_info:
-            assert isinstance(debug_info, lief.dwarf.DebugInfo)
-            print(f"DWARF Debug handler: {debug_info}")
+      .. literalinclude:: ../../../code/python/dwarf.py
+        :language: python
+        :prepend: import lief
+        :start-after: lief-doc: embedded-start
+        :end-before: lief-doc: embedded-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        auto elf = LIEF::ELF::Parser::parse("/bin/with_debug");
-        if (const LIEF::DebugInfo* info = elf->debug_info()) {
-          assert(LIEF::dwarf::DebugInfo::classof(info) && "Wrong debug type");
-
-          const auto& dwarf_dbg = static_cast<const LIEF::dwarf::DebugInfo&>(*info);
-        }
+      .. literalinclude:: ../../../code/cpp/dwarf.cpp
+        :language: cpp
+        :start-after: lief-doc: embedded-start
+        :end-before: lief-doc: embedded-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let elf = lief::elf::Binary::parse("/bin/ls");
-        if let Some(lief::DebugInfo::Dwarf(dwarf)) = elf.debug_info() {
-            // DWARF debug info
-        }
+      .. literalinclude:: ../../../code/rust/src/dwarf.rs
+        :language: rust
+        :start-after: lief-doc: embedded-start
+        :end-before: lief-doc: embedded-end
+        :dedent:
 
 Additionally, the |lief-dwarf-load| function can be used to load a
 DWARF file, whether it is embedded or standalone:
@@ -63,29 +57,28 @@ DWARF file, whether it is embedded or standalone:
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        dbg: lief.dwarf.DebugInfo = lief.dwarf.load("/bin/with_debug")
-        dbg: lief.dwarf.DebugInfo = lief.dwarf.load("external_dwarf")
-        dbg: lief.dwarf.DebugInfo = lief.dwarf.load("debug.dwo")
+      .. literalinclude:: ../../../code/python/dwarf.py
+        :language: python
+        :prepend: import lief
+        :start-after: lief-doc: load-start
+        :end-before: lief-doc: load-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        auto dbg = LIEF::dwarf::load("/bin/with_debug");
-        auto dbg = LIEF::dwarf::load("external_dwarf");
-        auto dbg = LIEF::dwarf::load("debug.dwo");
+      .. literalinclude:: ../../../code/cpp/dwarf.cpp
+        :language: cpp
+        :start-after: lief-doc: load-start
+        :end-before: lief-doc: load-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let dbg = lief::dwarf::load("/bin/with_debug");
-        let dbg = lief::dwarf::load("external_dwarf");
-        let dbg = lief::dwarf::load("debug.dwo");
+      .. literalinclude:: ../../../code/rust/src/dwarf.rs
+        :language: rust
+        :start-after: lief-doc: load-start
+        :end-before: lief-doc: load-end
+        :dedent:
 
 Once loaded, you can use the |lief-dwarf-debug-info| API to interact with the
 debug information:
@@ -94,94 +87,27 @@ debug information:
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        dbg: lief.dwarf.DebugInfo = ...
-
-        for compilation_unit in dbg.compilation_units:
-            print(compilation_unit.producer)
-            for func in compilation_unit.functions:
-                print(func.name, func.linkage_name, func.address)
-
-            for var in compilation_unit.variables:
-                print(var.name, var.address)
-
-            for ty in compilation_unit.types:
-                print(ty.name, ty.size)
-
-        dbg.find_function("_ZNSi4peekEv")
-        dbg.find_function("std::basic_istream<char, std::char_traits<char> >::peek()")
-        dbg.find_function(0x137a70)
-
-        dbg.find_variable("_ZNSt12out_of_rangeC1EPKc")
-        dbg.find_variable("std::out_of_range::out_of_range(char const*)")
-        dbg.find_variable(0x2773a0)
-
-        dbg.find_type("my_type_t")
+      .. literalinclude:: ../../../code/python/dwarf.py
+        :language: python
+        :start-after: lief-doc: iterate-start
+        :end-before: lief-doc: iterate-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        for (const LIEF::dwarf::CompilationUnit& CU : dbg->compilation_units()) {
-          log(LEVEL::INFO, "Producer: {}", CU.producer());
-          for (const LIEF::dwarf::Function& func : CU.functions()) {
-            log(LEVEL::INFO, "name={}, linkage={}, address={}",
-                func.name(), func.linkage_name(), func.address().value_or(0));
-          }
-
-          for (const LIEF::dwarf::Variable& var : CU.variables()) {
-            log(LEVEL::INFO, "name={}, address={}", var.name(), var.address().value_or(0));
-          }
-
-          for (const LIEF::dwarf::Type& ty : CU.types()) {
-            log(LEVEL::INFO, "name={}, size={}", ty.name().value_or(""), std::to_string(ty.size().value_or(0)));
-          }
-        }
-
-        dbg->find_function("_ZNSi4peekEv");
-        dbg->find_function("std::basic_istream<char, std::char_traits<char> >::peek()");
-        dbg->find_function(0x137a70);
-
-        dbg->find_variable("_ZNSt12out_of_rangeC1EPKc");
-        dbg->find_variable("std::out_of_range::out_of_range(char const*)");
-        dbg->find_variable(0x2773a0);
+      .. literalinclude:: ../../../code/cpp/dwarf.cpp
+        :language: cpp
+        :start-after: lief-doc: iterate-start
+        :end-before: lief-doc: iterate-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let dbg = lief::dwarf::load(&path).unwrap_or_else(|| {
-            process::exit(1);
-        });
-
-        for cu in dbg.compilation_units() {
-            println!("Producer: {}", cu.producer());
-            for func in cu.functions() {
-                println!("name={}, linkage={}, address={}",
-                    func.name(), func.linkage_name(),
-                    func.address().unwrap_or(0)
-                );
-            }
-
-            for var in cu.variables() {
-                println!("name={}, address={}", var.name(), var.address().unwrap_or(0));
-            }
-
-            for ty in cu.types() {
-                println!("name={}, size={}", ty.name().unwrap_or("".to_string()), ty.size().unwrap_or(0));
-            }
-        }
-
-        dbg.function_by_name("_ZNSi4peekEv");
-        dbg.function_by_name("std::basic_istream<char, std::char_traits<char> >::peek()");
-        dbg.function_by_addr(0x137a70);
-
-        dbg.variable_by_name("_ZNSt12out_of_rangeC1EPKc");
-        dbg.variable_by_name("std::out_of_range::out_of_range(char const*)");
-        dbg.variable_by_addr(0x137a70);
+      .. literalinclude:: ../../../code/rust/src/dwarf.rs
+        :language: rust
+        :start-after: lief-doc: iterate-start
+        :end-before: lief-doc: iterate-end
+        :dedent:
 
 .. _extended-dwarf-load-ext:
 
@@ -195,31 +121,27 @@ Here's an example:
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        binary: lief.Binary = ... # Can be an ELF/PE/Mach-O [...]
-
-        dbg: lief.DebugInfo = binary.load_debug_info("/home/romain/dev/LIEF/some.dwo")
+      .. literalinclude:: ../../../code/python/dwarf.py
+        :language: python
+        :start-after: lief-doc: load-external-start
+        :end-before: lief-doc: load-external-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::Binary> binary; // Can be an ELF/PE/Mach-O
-
-        binary->load_debug_info("/home/romain/dev/LIEF/some.dwo");
+      .. literalinclude:: ../../../code/cpp/dwarf.cpp
+        :language: cpp
+        :start-after: lief-doc: load-external-start
+        :end-before: lief-doc: load-external-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        bin: &mut dyn lief::generic::Binary = ...;
-
-        let path = PathBuf::from("/home/romain/dev/LIEF/some.dwo");
-
-        bin.load_debug_info(&path);
+      .. literalinclude:: ../../../code/rust/src/dwarf.rs
+        :language: rust
+        :start-after: lief-doc: load-external-start
+        :end-before: lief-doc: load-external-end
+        :dedent:
 
 This external loading API is useful for adding debug information that might not
 already be present in the binary. For instance, the |lief-disassemble| function
@@ -230,45 +152,27 @@ defined in the debug file previously loaded:
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        binary: lief.Binary = ... # Can be an ELF/PE/Mach-O [...]
-
-        dbg: lief.DebugInfo = binary.load_debug_info("/home/romain/dev/LIEF/some.dwo")
-
-        # The location (address/size) of `my_function` is defined in some.dwo
-        for inst in binary.disassemble("my_function"):
-            print(inst)
+      .. literalinclude:: ../../../code/python/dwarf.py
+        :language: python
+        :start-after: lief-doc: disassemble-start
+        :end-before: lief-doc: disassemble-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::Binary> binary; // Can be an ELF/PE/Mach-O
-
-        binary->load_debug_info("/home/romain/dev/LIEF/some.dwo");
-
-        // The location (address/size) of `my_function` is defined in some.dwo
-        for (const LIEF::assembly::Instruction& inst : binary->disassemble("my_function")) {
-          std::cout << inst << '\n';
-        }
+      .. literalinclude:: ../../../code/cpp/dwarf.cpp
+        :language: cpp
+        :start-after: lief-doc: disassemble-start
+        :end-before: lief-doc: disassemble-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        bin: &mut dyn lief::generic::Binary = ...;
-
-        let path = PathBuf::from("/home/romain/dev/LIEF/some.dwo");
-
-        bin.load_debug_info(&path);
-
-        // The location (address/size) of `my_function` is defined in some.dwo
-        for inst in bin.disassemble_symbol("my_function") {
-            println!("{inst}");
-        }
+      .. literalinclude:: ../../../code/rust/src/dwarf.rs
+        :language: rust
+        :start-after: lief-doc: disassemble-start
+        :end-before: lief-doc: disassemble-end
+        :dedent:
 
 Additionally, you may also want to explore the
 :ref:`BinaryNinja <plugins-binaryninja-dwarf>` and
@@ -295,53 +199,27 @@ prefer C++ syntax or change the indentation):
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        dbg: lief.dwarf.DebugInfo = lief.dwarf.load("/bin/with_debug")
-
-        func = dbg.find_function("main")
-        print(func.to_decl())
-
-        opt = lief.DeclOpt()
-        opt.is_cpp = True
-        opt.indentation = 4
-
-        for cu in dbg.compilation_units:
-            # Emit the definition of the functions of the compilation unit
-            print(cu.to_decl(opt))
+      .. literalinclude:: ../../../code/python/dwarf.py
+        :language: python
+        :start-after: lief-doc: to-decl-start
+        :end-before: lief-doc: to-decl-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        auto dbg = LIEF::dwarf::load("/bin/with_debug");
-
-        std::unique_ptr<LIEF::dwarf::Function> func = dbg->find_function("main");
-        std::cout << func->to_decl() << '\n';
-
-        LIEF::DeclOpt opt;
-        opt.is_cpp(true).indentation(4);
-
-        for (const LIEF::dwarf::CompilationUnit& CU : dbg->compilation_units()) {
-          std::cout << CU.to_decl(opt) << '\n';
-        }
+      .. literalinclude:: ../../../code/cpp/dwarf.cpp
+        :language: cpp
+        :start-after: lief-doc: to-decl-start
+        :end-before: lief-doc: to-decl-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let dbg = lief::dwarf::load("/bin/with_debug").unwrap();
-
-        if let Some(func) = dbg.function_by_name("main") {
-            println!("{}", func.to_decl());
-        }
-
-        let opt = lief::DeclOpt { is_cpp: true, indentation: 4, ..Default::default() };
-        for cu in dbg.compilation_units() {
-            println!("{}", cu.to_decl_with_opt(&opt));
-        }
+      .. literalinclude:: ../../../code/rust/src/dwarf.rs
+        :language: rust
+        :start-after: lief-doc: to-decl-start
+        :end-before: lief-doc: to-decl-end
+        :dedent:
 
 .. _extended-dwarf-editor:
 
@@ -361,30 +239,28 @@ instantiated using |lief-dwarf-editor-from_binary|:
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe = lief.PE.parse("demo.exe")
-
-        editor: lief.dwarf.Editor = lief.dwarf.Editor.from_binary(pe)
+      .. literalinclude:: ../../../code/python/dwarf.py
+        :language: python
+        :start-after: lief-doc: editor-from-binary-start
+        :end-before: lief-doc: editor-from-binary-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::PE::Binary> pe = LIEF::PE::Parser::parse("demo.exe");
-
-        std::unique_ptr<LIEF::dwarf::Editor> editor =
-          LIEF::dwarf::Editor::from_binary(*pe);
+      .. literalinclude:: ../../../code/cpp/dwarf.cpp
+        :language: cpp
+        :start-after: lief-doc: editor-from-binary-start
+        :end-before: lief-doc: editor-from-binary-end
+        :dedent:
 
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut bin = lief::pe::Binary::parse(&path).unwrap();
-        let editor = lief::dwarf::Editor::from_binary(&mut bin);
+      .. literalinclude:: ../../../code/rust/src/dwarf.rs
+        :language: rust
+        :start-after: lief-doc: editor-from-binary-start
+        :end-before: lief-doc: editor-from-binary-end
+        :dedent:
 
 
 Given this |lief-dwarf-editor|, you can create one or more
@@ -396,61 +272,27 @@ Given this |lief-dwarf-editor|, you can create one or more
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        unit: lief.dwarf.editor.CompilationUnit = editor.create_compilation_unit()
-        unit.set_producer("LIEF")
-
-        func: lief.dwarf.editor.Function = unit.create_function("hello")
-        func.set_address(0x123)
-        func.set_return_type(
-            unit.create_structure("my_struct_t").pointer_to()
-        )
-
-        var: lief.dwarf.editor.Variable = func.create_stack_variable("local_var")
-        var.set_stack_offset(8)
-
-        editor.write("/tmp/out.debug")
+      .. literalinclude:: ../../../code/python/dwarf.py
+        :language: python
+        :start-after: lief-doc: editor-create-start
+        :end-before: lief-doc: editor-create-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::dwarf::editor::CompilationUnit>
-          unit = editor->create_compilation_unit();
-        unit->set_producer("LIEF");
-
-        std::unique_ptr<LIEF::dwarf::editor::Function>
-          func = unit->create_function("hello");
-        func->set_address(0x123);
-
-        func->set_return_type(
-          *unit->create_structure("my_struct_t")->pointer_to()
-        );
-
-        std::unique_ptr<LIEF::dwarf::editor::Variable> var =
-          func->create_stack_variable("local_var");
-
-        var->set_stack_offset(8);
-        editor->write("/tmp/out.debug");
+      .. literalinclude:: ../../../code/cpp/dwarf.cpp
+        :language: cpp
+        :start-after: lief-doc: editor-create-start
+        :end-before: lief-doc: editor-create-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut unit = editor.create_compile_unit().unwrap();
-        unit.set_producer("LIEF");
-
-        let mut func = unit.create_function("hello").unwrap();
-        func.set_address(0x123);
-        func.set_return_type(
-            &unit.create_structure("my_struct_t").pointer_to()
-        );
-
-        let mut var = func.create_stack_variable("local_var");
-        var.set_stack_offset(8);
-
-        editor.write("/tmp/out.debug");
+      .. literalinclude:: ../../../code/rust/src/dwarf.rs
+        :language: rust
+        :start-after: lief-doc: editor-create-start
+        :end-before: lief-doc: editor-create-end
+        :dedent:
 
 .. admonition:: BinaryNinja & Ghidra
   :class: note

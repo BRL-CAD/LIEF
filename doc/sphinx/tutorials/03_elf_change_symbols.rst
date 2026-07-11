@@ -26,14 +26,11 @@ Imported and exported functions are abstracted in LIEF, and you can iterate
 over these elements using the following properties:
 :attr:`~lief.Binary.exported_functions` and :attr:`~lief.Binary.imported_functions`
 
-.. code-block:: python
-
-  import lief
-  binary  = lief.parse("/usr/bin/ls")
-  library = lief.parse("/usr/lib/libc.so.6")
-
-  print(binary.imported_functions)
-  print(library.exported_functions)
+.. literalinclude:: ../../code/python/tuto_elf_symbols.py
+  :language: python
+  :start-after: lief-doc: imported-exported-start
+  :end-before: lief-doc: imported-exported-end
+  :dedent:
 
 
 When analyzing a binary, imported functions can reveal information about its
@@ -87,58 +84,31 @@ For example, let's swap ``pow`` and ``log`` with ``cos`` and ``sin``:
 
 First, we must load both the library and the executable:
 
-.. code-block:: python
-
-  #!/usr/bin/env python3
-  import lief
-
-  hashme = lief.parse("hashme")
-  libm  = lief.parse("/usr/lib/libm.so.6")
-  # Note: the path to libm.so.6 might be different on your system.
+.. literalinclude:: ../../code/python/tuto_elf_symbols.py
+  :language: python
+  :prepend: import lief
+  :start-after: lief-doc: load-start
+  :end-before: lief-doc: load-end
+  :dedent:
 
 Then, we can change the names of the two imported functions in the
 **executable**:
 
-.. code-block:: python
-
-  hashme_pow_sym = next(i for i in hashme.imported_symbols if i.name == "pow")
-  hashme_log_sym = next(i for i in hashme.imported_symbols if i.name == "log")
-
-  hashme_pow_sym.name = "cos"
-  hashme_log_sym.name = "sin"
+.. literalinclude:: ../../code/python/tuto_elf_symbols.py
+  :language: python
+  :start-after: lief-doc: change-imported-start
+  :end-before: lief-doc: change-imported-end
+  :dedent:
 
 
 And we must do the same in the library: the ``log`` symbol name is swapped
 with ``sin``, and ``pow`` with ``cos``:
 
-.. code-block:: python
-
-  #!/usr/bin/env python3
-  import lief
-
-  hashme = lief.parse("hashme")
-  libm  = lief.parse("/usr/lib/libm.so.6")
-
-
-  def swap(obj, a, b):
-      symbol_a = next(i for i in obj.dynamic_symbols if i.name == a)
-      symbol_b = next(i for i in obj.dynamic_symbols if i.name == b)
-      b_name = symbol_b.name
-      symbol_b.name = symbol_a.name
-      symbol_a.name = b_name
-
-  hashme_pow_sym = next(i for i in hashme.imported_symbols if i.name == "pow")
-  hashme_log_sym = next(i for i in hashme.imported_symbols if i.name == "log")
-
-  hashme_pow_sym.name = "cos"
-  hashme_log_sym.name = "sin"
-
-
-  swap(libm, "log", "sin")
-  swap(libm, "pow", "cos")
-
-  hashme.write("hashme.obf")
-  libm.write("libm.so.6")
+.. literalinclude:: ../../code/python/tuto_elf_symbols.py
+  :language: python
+  :start-after: lief-doc: swap-all-start
+  :end-before: lief-doc: swap-all-end
+  :dedent:
 
 .. image:: ../_static/tutorial/03/hashme_obf.png
   :scale: 60 %

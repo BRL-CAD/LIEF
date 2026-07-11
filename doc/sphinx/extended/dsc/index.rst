@@ -25,25 +25,29 @@ One can load a shared cache using the |lief-dsc-load| function:
 
     .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        dyld_cache: lief.dsc.DylibSharedCache = lief.dsc.load("macos-15.0.1/")
+      .. literalinclude:: ../../../code/python/dsc.py
+        :language: python
+        :prepend: import lief
+        :start-after: lief-doc: load-start
+        :end-before: lief-doc: load-end
+        :dedent:
 
     .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/DyldSharedCache.hpp>
-
-        std::unique_ptr<LIEF::dsc::DyldSharedCache> dyld_cache = LIEF::dsc::load("macos-15.0.1/")
+      .. literalinclude:: ../../../code/cpp/dsc.cpp
+        :language: cpp
+        :prepend: #include <LIEF/DyldSharedCache.hpp>
+        :start-after: lief-doc: load-start
+        :end-before: lief-doc: load-end
+        :dedent:
 
     .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let dyld_cache = lief::dsc::load_from_path("macos-15.0.1/", "");
+      .. literalinclude:: ../../../code/rust/src/dsc.rs
+        :language: rust
+        :start-after: lief-doc: load-start
+        :end-before: lief-doc: load-end
+        :dedent:
 
 .. warning::
 
@@ -57,31 +61,27 @@ From this |lief-dsc-dyldsharedcache| object, we can inspect the embedded
 
     .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        dyld_cache: lief.dsc.DylibSharedCache = ...
-
-        for dylib in dyld_cache.libraries:
-            print("0x{:016x}: {}".format(dylib.address, dylib.path))
+      .. literalinclude:: ../../../code/python/dsc.py
+        :language: python
+        :start-after: lief-doc: libraries-start
+        :end-before: lief-doc: libraries-end
+        :dedent:
 
     .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::dsc::DyldSharedCache> dyld_cache;
-        for (const LIEF::dsc::Dylib& dylib : dyld_cache->libraries()) {
-          std::cout << dylib.address() << ' ' << dylib.path() << '\n';
-        }
+      .. literalinclude:: ../../../code/cpp/dsc.cpp
+        :language: cpp
+        :start-after: lief-doc: libraries-start
+        :end-before: lief-doc: libraries-end
+        :dedent:
 
     .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let dyld_cache: lief::dsc::DyldSharedCache;
-
-        for dylib in dyld_cache.libraries() {
-            println!("0x{:016x}: {}", dylib.address(), dylib.path());
-        }
+      .. literalinclude:: ../../../code/rust/src/dsc.rs
+        :language: rust
+        :start-after: lief-doc: libraries-start
+        :end-before: lief-doc: libraries-end
+        :dedent:
 
 It is worth mentioning that |lief-dsc-dylib| exposes the |lief-dsc-dylib-get|
 method, which can be used to **extract** a |lief-macho-binary| instance from
@@ -91,42 +91,27 @@ Dyld shared cache libraries:
 
     .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        dyld_cache: lief.dsc.DylibSharedCache = ...
-
-        liblockdown = dyld_cache.find_lib_from_name("liblockdown.dylib")
-
-        macho: lief.MachO.Binary = liblockdown.get()
-
-        for segment in macho.segments:
-            print(segment.name)
+      .. literalinclude:: ../../../code/python/dsc.py
+        :language: python
+        :start-after: lief-doc: extract-start
+        :end-before: lief-doc: extract-end
+        :dedent:
 
     .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::dsc::DyldSharedCache> dyld_cache;
-        std::unique_ptr<Dylib> liblockdown = dyld_cache->find_lib_from_name("liblockdown.dylib");
-
-        std::unique_ptr<LIEF::MachO::Binary> macho = liblockdown.get();
-        for (const LIEF::MachO::SegmentCommand& segment : macho->segments()) {
-          std::cout << segment.name() << '\n';
-        }
+      .. literalinclude:: ../../../code/cpp/dsc.cpp
+        :language: cpp
+        :start-after: lief-doc: extract-start
+        :end-before: lief-doc: extract-end
+        :dedent:
 
     .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let dyld_cache: lief::dsc::DyldSharedCache;
-
-        let liblockdown = dyld_cache.find_lib_from_name("liblockdown.dylib").unwrap();
-
-        let macho = liblockdown.get().unwrap();
-
-        for segment in macho.segments() {
-            println!("{}", segment.name());
-        }
+      .. literalinclude:: ../../../code/rust/src/dsc.rs
+        :language: rust
+        :start-after: lief-doc: extract-start
+        :end-before: lief-doc: extract-end
+        :dedent:
 
 Finally, we can leverage the |lief-macho-binary-write| function to write back
 the |lief-macho-binary| object:
@@ -135,31 +120,27 @@ the |lief-macho-binary| object:
 
     .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        liblockdown = dyld_cache.find_lib_from_name("liblockdown.dylib")
-
-        macho: lief.MachO.Binary = liblockdown.get()
-        macho.write("on-disk-liblockdown.dylib")
+      .. literalinclude:: ../../../code/python/dsc.py
+        :language: python
+        :start-after: lief-doc: write-start
+        :end-before: lief-doc: write-end
+        :dedent:
 
     .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::dsc::DyldSharedCache> dyld_cache;
-        std::unique_ptr<Dylib> liblockdown = dyld_cache->find_lib_from_name("liblockdown.dylib");
-
-        std::unique_ptr<LIEF::MachO::Binary> macho = liblockdown.get();
-        macho->write("on-disk-liblockdown.dylib");
+      .. literalinclude:: ../../../code/cpp/dsc.cpp
+        :language: cpp
+        :start-after: lief-doc: write-start
+        :end-before: lief-doc: write-end
+        :dedent:
 
     .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let liblockdown = dyld_cache.find_lib_from_name("liblockdown.dylib").unwrap();
-        let macho = liblockdown.get().unwrap();
-
-        macho.write("on-disk-liblockdown.dylib");
+      .. literalinclude:: ../../../code/rust/src/dsc.rs
+        :language: rust
+        :start-after: lief-doc: write-start
+        :end-before: lief-doc: write-end
+        :dedent:
 
 .. warning::
 
@@ -205,36 +186,19 @@ so that we can programmatically do:
 
     .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        dyld_cache: lief.dsc.DyldSharedCache = ...
-
-        # No cost
-        libraries = cache.libraries
-
-        # O(1) cost
-        first_lib = libraries[0]
-
-        # O(len(libraries)) cost
-        for lib in libraries:
-            print(lib.path)
+      .. literalinclude:: ../../../code/python/dsc.py
+        :language: python
+        :start-after: lief-doc: random-access-start
+        :end-before: lief-doc: random-access-end
+        :dedent:
 
     .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::dsc::DyldSharedCache> dyld_cache;
-
-        // No cost
-        auto libraries = dyld_cache.libraries();
-
-        // O(1) cost
-        std::unique_ptr<Dylib> first_lib = libraries[0];
-
-        // O(libraries.size()) cost
-        for (const auto& dylib : libraries) {
-          std::cout << dylib.path() << '\n';
-        }
+      .. literalinclude:: ../../../code/cpp/dsc.cpp
+        :language: cpp
+        :start-after: lief-doc: random-access-start
+        :end-before: lief-doc: random-access-end
+        :dedent:
 
 When extracting a |lief-macho-binary| from a |lief-dsc-dylib| object using
 |lief-dsc-dylib-get|, **the extraction can take a substantial amount of time**,

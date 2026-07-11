@@ -30,41 +30,27 @@ You can also instantiate a |lief-pdb-debug-info| object using |lief-pdb-load|:
 
     .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe = lief.PE.parse("some.exe")
-        if debug_info := pe.debug_info:
-            assert isinstance(debug_info, lief.pdb.DebugInfo)
-            print(f"PDB Debug handler: {debug_info}")
-
-        # Or you can load the PDB directly:
-        pdb: lief.pdb.DebugInfo = lief.pdb.load("some.pdb")
+      .. literalinclude:: ../../../code/python/pdb.py
+        :language: python
+        :start-after: lief-doc: load-start
+        :end-before: lief-doc: load-end
+        :dedent:
 
     .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::PE::Binary> pe = LIEF::PE::Parser::parse("some.exe");
-        if (const LIEF::DebugInfo* info = pe->debug_info()) {
-          assert(LIEF::pdb::DebugInfo::classof(info) && "Wrong DebugInfo type");
-          const auto& pdb = static_cast<const LIEF::pdb::DebugInfo&>(*info);
-        }
-
-        // Or loading directly the pdb file
-        std::unique_ptr<LIEF::pdb::DebugInfo> pdb = LIEF::pdb::load("some.pdb");
+      .. literalinclude:: ../../../code/cpp/pdb.cpp
+        :language: cpp
+        :start-after: lief-doc: load-start
+        :end-before: lief-doc: load-end
+        :dedent:
 
     .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let pe = lief::pe::Binary::parse("some.exe");
-        if let Some(lief::DebugInfo::Pdb(pdb)) = pe.debug_info() {
-            // PDB debug info
-        }
-
-        let pdb = lief::pdb::load("some.pdb");
+      .. literalinclude:: ../../../code/rust/src/pdb.rs
+        :language: rust
+        :start-after: lief-doc: load-start
+        :end-before: lief-doc: load-end
+        :dedent:
 
 
 At this point, the PDB instance (|lief-pdb-debug-info|) can be used to explore
@@ -74,92 +60,28 @@ the PDB debug information:
 
     .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        print("arg={}, guid={}", pdb.age, pdb.guid)
-
-        for sym in pdb.public_symbols:
-            print("name={}, section={}, RVA={}",
-                  sym.name, sym.section_name, sym.RVA)
-
-        for ty in pdb.types:
-            if isinstance(ty, lief.pdb.types.Class):
-                print("Class[name]={}", ty.name)
-
-        for cu in pdb.compilation_units:
-            print("module={}", cu.module_name)
-            for src in cu.sources:
-                print("  - {}", src)
-
-            for func in cu.functions:
-                print("name={}, section={}, RVA={}, code_size={}",
-                      func.name, func.section_name, func.RVA, func.code_size)
+      .. literalinclude:: ../../../code/python/pdb.py
+        :language: python
+        :start-after: lief-doc: explore-start
+        :end-before: lief-doc: explore-end
+        :dedent:
 
     .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        log(LEVEL::INFO, "age={}, guid={}", std::to_string(pdb->age()), pdb->guid());
-
-        for (const LIEF::pdb::PublicSymbol& symbol : pdb->public_symbols()) {
-          log(LEVEL::INFO, "name={}, section={}, RVA={}",
-              symbol.name(), symbol.section_name(), symbol.RVA());
-        }
-
-        for (const LIEF::pdb::Type& ty : pdb->types()) {
-          if (LIEF::pdb::types::Class::classof(&ty)) {
-            const auto* clazz = ty.as<LIEF::pdb::types::Class>();
-            log(LEVEL::INFO, "Class[name]={}", clazz->name());
-          }
-        }
-
-        for (const LIEF::pdb::CompilationUnit& CU : pdb->compilation_units()) {
-          log(LEVEL::INFO, "module={}", CU.module_name());
-          for (const std::string& src : CU.sources()) {
-            log(LEVEL::INFO, "  - {}", src);
-          }
-
-          for (const LIEF::pdb::Function& func : CU.functions()) {
-            log(LEVEL::INFO, "name={}, section={}, RVA={}, code size={}",
-                func.name(), func.section_name(), func.RVA(), func.code_size());
-          }
-        }
+      .. literalinclude:: ../../../code/cpp/pdb.cpp
+        :language: cpp
+        :start-after: lief-doc: explore-start
+        :end-before: lief-doc: explore-end
+        :dedent:
 
 
     .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let pdb = lief::pdb::load(&path).unwrap_or_else(|| {
-            process::exit(1);
-        });
-
-        println!("age={}, guid={}", pdb.age(), pdb.guid());
-
-        for symbol in pdb.public_symbols() {
-            println!("name={}, section={}, RVA={}",
-                symbol.name(), symbol.section_name().unwrap_or("".to_string()),
-                symbol.rva());
-        }
-
-        for ty in pdb.types() {
-            if let lief::pdb::Type::Class(clazz) = ty {
-                println!("Class[name]={}", clazz.name());
-            }
-        }
-
-        for cu in pdb.compilation_units() {
-            println!("module={}", cu.module_name());
-            for src in cu.sources() {
-                println!("  - {}", src);
-            }
-
-            for func in cu.functions() {
-                println!("name={}, section={}, RVA={}, code_size={}",
-                    func.name(), func.section_name(), func.rva(), func.code_size()
-                );
-            }
-        }
+      .. literalinclude:: ../../../code/rust/src/pdb.rs
+        :language: rust
+        :start-after: lief-doc: explore-start
+        :end-before: lief-doc: explore-end
+        :dedent:
 
 .. _extended-pdb-load-ext:
 
@@ -170,31 +92,27 @@ a PDB file to an existing |lief-abstract-binary|:
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        binary: lief.Binary = ... # Can be an ELF/PE/Mach-O [...]
-
-        dbg: lief.DebugInfo = binary.load_debug_info(r"C:\Users\romain\LIEF.pdb")
+      .. literalinclude:: ../../../code/python/pdb.py
+        :language: python
+        :start-after: lief-doc: load-ext-start
+        :end-before: lief-doc: load-ext-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::Binary> binary; // Can be an ELF/PE/Mach-O
-
-        binary->load_debug_info("C:\\Users\\romain\\LIEF.pdb");
+      .. literalinclude:: ../../../code/cpp/pdb.cpp
+        :language: cpp
+        :start-after: lief-doc: load-ext-start
+        :end-before: lief-doc: load-ext-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        bin: &mut dyn lief::generic::Binary = ...;
-
-        let path = PathBuf::from("C:\\Users\\romain\\LIEF.pdb");
-
-        bin.load_debug_info(&path);
+      .. literalinclude:: ../../../code/rust/src/pdb.rs
+        :language: rust
+        :start-after: lief-doc: load-ext-start
+        :end-before: lief-doc: load-ext-end
+        :dedent:
 
 Note that |lief-abstract-binary-load_debug_info| can also attach an external
 DWARF file to a PE binary, even though this is not a typical use case.
@@ -211,45 +129,27 @@ defined in the debug file previously loaded:
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        binary: lief.Binary = ... # Can be an ELF/PE/Mach-O [...]
-
-        dbg: lief.DebugInfo = binary.load_debug_info(r"C:\Users\romain\LIEF.pdb")
-
-        # The location (address/size) of `my_function` is defined in LIEF.pdb
-        for inst in binary.disassemble("my_function"):
-            print(inst)
+      .. literalinclude:: ../../../code/python/pdb.py
+        :language: python
+        :start-after: lief-doc: disassemble-start
+        :end-before: lief-doc: disassemble-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::Binary> binary; // Can be an ELF/PE/Mach-O
-
-        binary->load_debug_info("C:\\Users\\romain\\LIEF.pdb");
-
-        // The location (address/size) of `my_function` is defined in LIEF.pdb
-        for (const LIEF::assembly::Instruction& inst : binary->disassemble("my_function")) {
-          std::cout << inst << '\n';
-        }
+      .. literalinclude:: ../../../code/cpp/pdb.cpp
+        :language: cpp
+        :start-after: lief-doc: disassemble-start
+        :end-before: lief-doc: disassemble-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        bin: &mut dyn lief::generic::Binary = ...;
-
-        let path = PathBuf::from("C:\\Users\\romain\\LIEF.pdb");
-
-        bin.load_debug_info(&path);
-
-        // The location (address/size) of `my_function` is defined in LIEF.pdb
-        for inst in bin.disassemble_symbol("my_function") {
-            println!("{inst}");
-        }
+      .. literalinclude:: ../../../code/rust/src/pdb.rs
+        :language: rust
+        :start-after: lief-doc: disassemble-start
+        :end-before: lief-doc: disassemble-end
+        :dedent:
 
 .. _extended-pdb-to-decl:
 
@@ -269,55 +169,27 @@ The generated output can be configured with a |lief-declopt| structure:
 
     .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        opt = lief.DeclOpt()
-        opt.is_cpp = True
-
-        for ty in pdb.types:
-            print(ty.to_decl(opt))
-
-        for cu in pdb.compilation_units:
-            # Emit the definition of the functions of the compilation unit
-            print(cu.to_decl(opt))
-
-            for func in cu.functions:
-                print(func.to_decl(opt))
+      .. literalinclude:: ../../../code/python/pdb.py
+        :language: python
+        :start-after: lief-doc: to-decl-start
+        :end-before: lief-doc: to-decl-end
+        :dedent:
 
     .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        LIEF::DeclOpt opt;
-        opt.is_cpp(true);
-
-        for (const LIEF::pdb::Type& ty : pdb->types()) {
-          std::cout << ty.to_decl(opt) << '\n';
-        }
-
-        for (const LIEF::pdb::CompilationUnit& CU : pdb->compilation_units()) {
-          std::cout << CU.to_decl(opt) << '\n';
-          for (const LIEF::pdb::Function& func : CU.functions()) {
-            std::cout << func.to_decl(opt) << '\n';
-          }
-        }
+      .. literalinclude:: ../../../code/cpp/pdb.cpp
+        :language: cpp
+        :start-after: lief-doc: to-decl-start
+        :end-before: lief-doc: to-decl-end
+        :dedent:
 
     .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let opt = lief::DeclOpt { is_cpp: true, ..Default::default() };
-
-        for ty in pdb.types() {
-            println!("{}", ty.to_decl_with_opt(&opt));
-        }
-
-        for cu in pdb.compilation_units() {
-            println!("{}", cu.to_decl_with_opt(&opt));
-            for func in cu.functions() {
-                println!("{}", func.to_decl_with_opt(&opt));
-            }
-        }
+      .. literalinclude:: ../../../code/rust/src/pdb.rs
+        :language: rust
+        :start-after: lief-doc: to-decl-start
+        :end-before: lief-doc: to-decl-end
+        :dedent:
 
 ----
 

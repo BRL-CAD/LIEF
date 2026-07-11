@@ -451,6 +451,10 @@ if(LIEF_TESTS)
   add_subdirectory(tests)
 endif()
 
+if(LIEF_COMPILE_DOC_EXAMPLES)
+  add_subdirectory(doc/code/cpp)
+endif()
+
 # Post-build operations
 # ======================
 if(BUILD_SHARED_LIBS AND CMAKE_BUILD_TYPE MATCHES "Release")

@@ -33,23 +33,19 @@ In Python/C++, one can access an *abstract* binary object by using the generic
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        target: lief.Binary = lief.parse("/tmp/some.elf")
-
-        target: lief.Binary = lief.parse("/Users/demo/some.macho")
-
-        target: lief.Binary = lief.parse(r"C:\some.pe.exe")
+      .. literalinclude:: ../../../code/python/abstract.py
+        :language: python
+        :start-after: lief-doc: parse-start
+        :end-before: lief-doc: parse-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::Binary> target = LIEF::Parser::parse("some.elf");
-
-        std::unique_ptr<LIEF::Binary> target = LIEF::Parser::parse("some.macho");
-
-        std::unique_ptr<LIEF::Binary> target = LIEF::Parser::parse("some.exe");
+      .. literalinclude:: ../../../code/cpp/abstract.cpp
+        :language: cpp
+        :start-after: lief-doc: parse-start
+        :end-before: lief-doc: parse-end
+        :dedent:
 
 Due to Python's dynamic polymorphism, the return value of
 :py:func:`lief.parse` is automatically cast into either:
@@ -58,26 +54,20 @@ To **upcast** this object into a :class:`lief.Binary` object, one can use the
 :attr:`lief.Binary.abstract` attribute, which returns a :class:`lief.Binary`
 instance:
 
-.. code-block:: python
-
-   import lief
-
-   target = lief.parse("some.elf")
-   assert type(target) is lief.ELF.Binary
-
-   abstract = target.abstract
-   assert type(abstract) is lief.Binary
+.. literalinclude:: ../../../code/python/abstract.py
+  :language: python
+  :start-after: lief-doc: upcast-start
+  :end-before: lief-doc: upcast-end
+  :dedent:
 
 In C++, a :cpp:class:`LIEF::Binary` instance can be **downcast** to its underlying
 type using the ``classof`` idiom:
 
-.. code-block:: cpp
-
-   std::unique_ptr<LIEF::Binary> target = LIEF::Parser::parse("some.elf");
-
-   if (LIEF::ELF::Binary::classof(target.get())) {
-     auto& elf = static_cast<LIEF::ELF::Binary&>(*target);
-   }
+.. literalinclude:: ../../../code/cpp/abstract.cpp
+  :language: cpp
+  :start-after: lief-doc: downcast-start
+  :end-before: lief-doc: downcast-end
+  :dedent:
 
 .. seealso::
 

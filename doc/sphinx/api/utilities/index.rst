@@ -12,9 +12,11 @@ LIEF exposes a demangling API for the following formats:
 
     **Input**
 
-    .. code-block:: python
-
-      lief.demangle("?h@@YAXH@Z")
+    .. literalinclude:: ../../../code/python/utilities.py
+      :language: python
+      :start-after: lief-doc: demangle-msvc-start
+      :end-before: lief-doc: demangle-msvc-end
+      :dedent:
 
     **Result**
 
@@ -26,9 +28,11 @@ LIEF exposes a demangling API for the following formats:
 
     **Input**
 
-    .. code-block:: python
-
-      lief.demangle("_RNvCskwGfYPst2Cb_3foo16example_function")
+    .. literalinclude:: ../../../code/python/utilities.py
+      :language: python
+      :start-after: lief-doc: demangle-rust-start
+      :end-before: lief-doc: demangle-rust-end
+      :dedent:
 
     **Result**
 
@@ -40,9 +44,11 @@ LIEF exposes a demangling API for the following formats:
 
     **Input**
 
-    .. code-block:: python
-
-      lief.demangle("_ZTSN3lld13SpecificAllocINS_4coff9TpiSourceEEE")
+    .. literalinclude:: ../../../code/python/utilities.py
+      :language: python
+      :start-after: lief-doc: demangle-itanium-start
+      :end-before: lief-doc: demangle-itanium-end
+      :dedent:
 
     **Result**
 
@@ -54,9 +60,11 @@ LIEF exposes a demangling API for the following formats:
 
     **Input**
 
-    .. code-block:: python
-
-      lief.demangle("_$s10Foundation4DataV15_RepresentationON")
+    .. literalinclude:: ../../../code/python/utilities.py
+      :language: python
+      :start-after: lief-doc: demangle-swift-start
+      :end-before: lief-doc: demangle-swift-end
+      :dedent:
 
     **Result**
 
@@ -129,11 +137,11 @@ The ``lief.dump()`` utility can be used to pretty-print a buffer.
 
 For example:
 
-.. code-block:: python
-
-  pe = lief.PE.parse("some.exe")
-  text = pe.get_section(".text")
-  print(lief.dump(text.content))
+.. literalinclude:: ../../../code/python/utilities.py
+  :language: python
+  :start-after: lief-doc: dump-start
+  :end-before: lief-doc: dump-end
+  :dedent:
 
 .. autofunction:: lief.dump
 

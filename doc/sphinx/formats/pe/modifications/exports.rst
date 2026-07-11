@@ -25,67 +25,27 @@ This could be used for code lifting or fuzzing.
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe: lief.PE.Binary = ...
-
-        exp: lief.PE.Export = pe.get_export()
-
-        # Remove an entry
-        exp.remove_entry("my_exported_name")
-
-        # Add a new export
-        exp.add_entry("fuzz_me", 0x10010)
-
-        config = lief.PE.Builder.config_t()
-        config.exports = True
-        config.export_section = ".myedata" # optional
-
-        pe.write("out.dll", config)
+      .. literalinclude:: ../../../../code/python/pe_exports.py
+        :language: python
+        :start-after: lief-doc: create-entries-start
+        :end-before: lief-doc: create-entries-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        LIEF::PE::Export* exp = pe->get_export();
-
-        // Remove an entry
-        exp->remove_entry("my_exported_name");
-
-        // Add a new export
-        exp->add_entry("fuzz_me", 0x10010);
-
-        LIEF::PE::Builder::config_t config();
-        config.exports = true;
-        config.export_section = ".myedata";
-
-        pe->write("out.dll", config);
+      .. literalinclude:: ../../../../code/cpp/pe_exports.cpp
+        :language: cpp
+        :start-after: lief-doc: create-entries-start
+        :end-before: lief-doc: create-entries-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe: lief::pe::Binary;
-
-        let mut exp: lief::pe::Export = pe.export().unwrap();
-
-        // Remove an entry
-        exp.remove_entry_by_name("my_exported_name");
-
-        // Add a new export
-        exp.add_entry_by_name("fuzz_me", 0x10010);
-
-        let mut config = lief::pe::builder::Config::default();
-        config.exports = true;
-        config.export_section = true;
-
-        pe.write_with_config("out.dll", config);
+      .. literalinclude:: ../../../../code/rust/src/pe_exports.rs
+        :language: rust
+        :start-after: lief-doc: create-entries-start
+        :end-before: lief-doc: create-entries-end
+        :dedent:
 
 
 Creating an Export Table
@@ -106,36 +66,27 @@ format:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe: lief.PE.Binary = ...
-
-        pe.header.add_characteristic(lief.PE.Header.CHARACTERISTICS.DLL)
-        pe.optional_header.addressof_entrypoint = 0
-
+      .. literalinclude:: ../../../../code/python/pe_exports.py
+        :language: python
+        :start-after: lief-doc: dll-header-start
+        :end-before: lief-doc: dll-header-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        pe->header().add_characteristic(LIEF::PE::Header::CHARACTERISTICS::DLL);
-        pe->optional_header().addressof_entrypoint(0);
-
+      .. literalinclude:: ../../../../code/cpp/pe_exports.cpp
+        :language: cpp
+        :start-after: lief-doc: dll-header-start
+        :end-before: lief-doc: dll-header-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe: lief::pe::Binary;
-
-        pe.header().add_characteristic(lief::pe::headers::Characteristics::DLL);
-        pe.optional_header().set_addressof_entrypoint(0);
+      .. literalinclude:: ../../../../code/rust/src/pe_exports.rs
+        :language: rust
+        :start-after: lief-doc: dll-header-start
+        :end-before: lief-doc: dll-header-end
+        :dedent:
 
 Then, we can start creating and populating a new export table:
 
@@ -143,53 +94,27 @@ Then, we can start creating and populating a new export table:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        exp = lief.PE.Export("lib_exe2dll.dll", [
-            lief.PE.ExportEntry("cbk1", 0x0001000),
-            lief.PE.ExportEntry("cbk2", 0x0001010),
-        ])
-
-        pe.set_export(exp)
-
-        config = lief.PE.Builder.config_t()
-        config.exports = True
-
-        pe.write("lib_exe2dll.dll")
-
+      .. literalinclude:: ../../../../code/python/pe_exports.py
+        :language: python
+        :start-after: lief-doc: create-table-start
+        :end-before: lief-doc: create-table-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-
-        LIEF::PE::Export exp("lib_exe2dll.dll",
-          {
-            LIEF::PE::ExportEntry("cbk1", 0x0001000),
-            LIEF::PE::ExportEntry("cbk2", 0x0001010),
-          }
-        );
-
-        pe->set_export(exp)
-
-        LIEF::PE::Builder::config_t config();
-        config.exports = true;
-
-        pe->write("lib_exe2dll.dll", config);
+      .. literalinclude:: ../../../../code/cpp/pe_exports.cpp
+        :language: cpp
+        :start-after: lief-doc: create-table-start
+        :end-before: lief-doc: create-table-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut exp = lief::pe::Export::new();
-
-        exp.set_name("lib_exe2dll.dll");
-        exp.add_entry_by_name("cbk1", 0x0001000);
-        exp.add_entry_by_name("cbk2", 0x0001010);
-
-        pe.set_export(&exp);
-
-        pe.write_with_config("lib_exe2dll.dll", config);
+      .. literalinclude:: ../../../../code/rust/src/pe_exports.rs
+        :language: rust
+        :start-after: lief-doc: create-table-start
+        :end-before: lief-doc: create-table-end
+        :dedent:
 
 .. admonition:: Limitations
   :class: tip

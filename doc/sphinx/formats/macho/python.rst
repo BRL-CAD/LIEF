@@ -8,11 +8,11 @@ Parser
 
 .. autoclass:: lief.MachO.ParserConfig
 
-.. code-block:: python
-
-  fatbinary_1 = lief.MachO.parse("/usr/bin/ls", config=lief.MachO.ParserConfig.deep)
-  # or
-  fatbinary_2 = lief.MachO.parse("/usr/bin/ls", config=lief.MachO.ParserConfig.quick)
+.. literalinclude:: ../../../code/python/macho.py
+  :language: python
+  :start-after: lief-doc: parse-config-start
+  :end-before: lief-doc: parse-config-end
+  :dedent:
 
 
 ----------

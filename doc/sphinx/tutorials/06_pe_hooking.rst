@@ -101,23 +101,28 @@ Next, we create the ``.hdata`` section for the ``MessageBox`` title:
 
 Since ASLR is enabled, we will disable it to avoid dealing with relocations:
 
-.. code-block:: python
-
-  binary.optional_header.dll_characteristics &= ~lief.PE.OptionalHeader.DLL_CHARACTERISTICS.DYNAMIC_BASE
+.. literalinclude:: ../../code/python/tuto_pe_hooking.py
+  :language: python
+  :start-after: lief-doc: disable-aslr-start
+  :end-before: lief-doc: disable-aslr-end
+  :dedent:
 
 We will also disable ``NX`` protection:
 
 
-.. code-block:: python
-
-  binary.optional_header.dll_characteristics &= ~lief.PE.OptionalHeader.DLL_CHARACTERISTICS.NX_COMPAT
+.. literalinclude:: ../../code/python/tuto_pe_hooking.py
+  :language: python
+  :start-after: lief-doc: disable-nx-start
+  :end-before: lief-doc: disable-nx-end
+  :dedent:
 
 As ``ExitProcess`` is not imported in ``KERNEL32.dll``, we need to add it:
 
-.. code-block:: python
-
-  kernel32 = binary.get_import("KERNEL32.dll")
-  kernel32.add_entry("ExitProcess")
+.. literalinclude:: ../../code/python/tuto_pe_hooking.py
+  :language: python
+  :start-after: lief-doc: add-exitprocess-start
+  :end-before: lief-doc: add-exitprocess-end
+  :dedent:
 
 The ``MessageBoxA`` function is located in ``user32.dll``, so we must add it:
 

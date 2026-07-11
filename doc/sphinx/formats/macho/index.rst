@@ -29,39 +29,30 @@ Mach-O binaries can be parsed using the |lief-macho-parse| function.
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        # Using filepath
-        macho: lief.MachO.FatBinary = lief.MachO.parse("/bin/ls")
-
-        # Using a Path from pathlib
-        macho: lief.MachO.FatBinary = lief.MachO.parse(pathlib.Path(r"C:\Users\test.macho"))
-
-        # Using a io object
-        with open("/bin/ssh", 'rb') as f:
-          macho: lief.MachO.FatBinary = lief.MachO.parse(f)
+      .. literalinclude:: ../../../code/python/macho.py
+        :language: python
+        :prepend: import lief
+        :start-after: lief-doc: parse-start
+        :end-before: lief-doc: parse-end
+        :dedent:
 
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/MachO.hpp>
-
-        // Using a file path as a std::string
-        std::unique_ptr<LIEF::MachO::FatBinary> macho = LIEF::MachO::Parser::parse("/bin/ls");
-
-        // Using a vector
-        std::vector<uint8_t> my_raw_macho;
-        std::unique_ptr<LIEF::MachO::FatBinary> macho = LIEF::MachO::Parser::parse(my_raw_macho);
+      .. literalinclude:: ../../../code/cpp/macho.cpp
+        :language: cpp
+        :prepend: #include <LIEF/MachO.hpp>
+        :start-after: lief-doc: parse-start
+        :end-before: lief-doc: parse-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let macho: lief::macho::FatBinary = lief::macho::FatBinary::parse("/bin/ls");
+      .. literalinclude:: ../../../code/rust/src/macho.rs
+        :language: rust
+        :start-after: lief-doc: parse-start
+        :end-before: lief-doc: parse-end
+        :dedent:
 
 
 This |lief-macho-fatbinary| object exposes facilities to either iterate over the
@@ -71,52 +62,27 @@ different |lief-macho-binary| or pick/take a specific one:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        fat: lief.MachO.FatBinary
-
-        # Iterate
-        for macho in fat:
-            print(macho.entrypoint)
-            print(len(macho.commands))
-
-        # Pick one at the specified index
-        macho: lief.MachO.Binary = fat.at(0)
-
-        # Pick one based on the architecture
-        macho: lief.MachO.Binary = fat.take(lief.MachO.Header.CPU_TYPE.ARM64)
+      .. literalinclude:: ../../../code/python/macho.py
+        :language: python
+        :start-after: lief-doc: iterate-start
+        :end-before: lief-doc: iterate-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::MachO::FatBinary> fat;
-
-        // Iterate
-        for (const LIEF::MachO::Binary& macho : *fat) {
-          std::cout << macho.entrypoint() << '\n';
-          std::cout << macho.commands().size() << '\n';
-        }
-
-        // Pick one at the specified index (without taking ownership)
-        const LIEF::MachO::Binary* macho = fat->at(0);
-
-        // Pick one at the specified index and taking ownership
-        const LIEF::MachO::Binary* macho = fat->take(0);
-
-        // Pick one with the given arch and taking ownership
-        const LIEF::MachO::Binary* macho = fat->take(LIEF::MachO::Header::CPU_TYPE::ARM64);
+      .. literalinclude:: ../../../code/cpp/macho.cpp
+        :language: cpp
+        :start-after: lief-doc: iterate-start
+        :end-before: lief-doc: iterate-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let fat: lief::macho::FatBinary;
-
-        // Iterate
-        for macho in fat {
-            println!("{}", macho.entrypoint());
-        }
+      .. literalinclude:: ../../../code/rust/src/macho.rs
+        :language: rust
+        :start-after: lief-doc: iterate-start
+        :end-before: lief-doc: iterate-end
+        :dedent:
 
 After modifying a |lief-macho-binary| or |lief-macho-fatbinary| object, you can
 use either |lief-macho-binary-write| or |lief-macho-fatbinary-write| to write
@@ -126,21 +92,27 @@ it back to a raw Mach-O file.
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        macho: lief.MachO.FatBinary = ...
-
-        macho.at(0).write("fit.macho")
-        macho.write("fat.macho") # write-back the whole FAT binary
+      .. literalinclude:: ../../../code/python/macho.py
+        :language: python
+        :start-after: lief-doc: write-fat-start
+        :end-before: lief-doc: write-fat-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
+      .. literalinclude:: ../../../code/cpp/macho.cpp
+        :language: cpp
+        :start-after: lief-doc: write-fat-start
+        :end-before: lief-doc: write-fat-end
+        :dedent:
 
-        std::unique_ptr<LIEF::MachO::FatBinary> macho;
+  .. tab:: :fa:`brands fa-rust` Rust
 
-        macho->at(LIEF::MachO::Header::CPU_TYPE::ARM64)->write("fit.macho");
-        macho->write("fat.macho");
+      .. literalinclude:: ../../../code/rust/src/macho.rs
+        :language: rust
+        :start-after: lief-doc: write-fat-start
+        :end-before: lief-doc: write-fat-end
+        :dedent:
 
 You can also use |lief-macho-binary-write_to_bytes| to get the new Mach-O binary
 as a buffer of bytes:
@@ -153,23 +125,19 @@ as a buffer of bytes:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        macho: lief.MachO.Binary = ...
-        new_macho: bytes = macho.write_to_bytes()
+      .. literalinclude:: ../../../code/python/macho.py
+        :language: python
+        :start-after: lief-doc: write-bytes-start
+        :end-before: lief-doc: write-bytes-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::MachO::Binary> macho;
-
-        std::ostringstream os;
-        macho->write(os);
-        std::string buffer = os.str();
-
-        const auto* start = reinterpret_cast<const uint8_t*>(buffer.data());
-        size_t size = buffer.size();
+      .. literalinclude:: ../../../code/cpp/macho.cpp
+        :language: cpp
+        :start-after: lief-doc: write-bytes-start
+        :end-before: lief-doc: write-bytes-end
+        :dedent:
 
 
 Advanced Parsing/Writing
@@ -190,31 +158,28 @@ to specify which parts of the Mach-O should be rebuilt.
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        parser_config = lief.MachO.ParserConfig()
-        parser_config.parse_dyld_bindings = False
-
-        macho: lief.MachO.FatBinary = lief.MachO.parse("my.macho", parser_config)
-
-        builder_config = lief.MachO.Builder.config_t()
-        builder_config.linkedit = False
-
-        macho.write("new.macho", builder_config)
+      .. literalinclude:: ../../../code/python/macho.py
+        :language: python
+        :start-after: lief-doc: advanced-start
+        :end-before: lief-doc: advanced-end
+        :dedent:
 
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
+      .. literalinclude:: ../../../code/cpp/macho.cpp
+        :language: cpp
+        :start-after: lief-doc: advanced-start
+        :end-before: lief-doc: advanced-end
+        :dedent:
 
-        LIEF::MachO::ParserConfig parser_config;
-        parser_config.parse_dyld_bindings = false;
+  .. tab:: :fa:`brands fa-rust` Rust
 
-        auto macho = LIEF::MachO::Parser::parse("my.macho", parser_config);
-        LIEF::MachO::Builder::config_t builder_config;
-
-        builder_config.linkedit = false;
-        macho->write("new.macho", builder_config);
+      .. literalinclude:: ../../../code/rust/src/macho.rs
+        :language: rust
+        :start-after: lief-doc: advanced-start
+        :end-before: lief-doc: advanced-end
+        :dedent:
 
 .. seealso::
 
@@ -235,40 +200,27 @@ it returns a |lief-macho-fatbinary|:
 
   .. tab:: :fa:`brands fa-python` Python
 
-    .. code-block:: python
-
-      import lief
-
-      # 0x11e32c000 is the (absolute) address at which the dump was mapped
-      fat: lief.MachO.FatBinary = lief.MachO.parse_from_dump("module.dump", 0x11e32c000)
-      macho: lief.MachO.Binary = fat.at(0)
-
-      for segment in macho.segments:
-          print(segment.name, hex(segment.virtual_address))
+    .. literalinclude:: ../../../code/python/macho.py
+      :language: python
+      :start-after: lief-doc: dump-start
+      :end-before: lief-doc: dump-end
+      :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-    .. code-block:: cpp
-
-      #include <LIEF/MachO.hpp>
-
-      auto fat = LIEF::MachO::Parser::parse_from_dump("module.dump", 0x11e32c000);
-      const LIEF::MachO::Binary* macho = fat->at(0);
-
-      for (const LIEF::MachO::SegmentCommand& segment : macho->segments()) {
-        std::cout << segment.name() << '\n';
-      }
+    .. literalinclude:: ../../../code/cpp/macho.cpp
+      :language: cpp
+      :start-after: lief-doc: dump-start
+      :end-before: lief-doc: dump-end
+      :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-    .. code-block:: rust
-
-      let fat = lief::macho::FatBinary::parse_from_dump("module.dump", 0x1_1e32_c000).unwrap();
-      let macho = fat.iter().next().unwrap();
-
-      for segment in macho.segments() {
-          println!("{} {:#x}", segment.name(), segment.virtual_address());
-      }
+    .. literalinclude:: ../../../code/rust/src/macho.rs
+      :language: rust
+      :start-after: lief-doc: dump-start
+      :end-before: lief-doc: dump-end
+      :dedent:
 
 .. note::
 
@@ -288,46 +240,27 @@ memory of a loaded module (from its imagebase over its virtual size):
 
   .. tab:: :fa:`brands fa-python` Python
 
-    .. code-block:: python
-
-      import lief
-
-      # Find the module to dump in the current process
-      mod = lief.runtime.module_from_name("libsystem_c.dylib")
-
-      # Dump the module's memory into a file (the raw bytes are also returned) ...
-      data: bytes = mod.dump("module.dump")
-
-      # ... and parse it back using the same imagebase:
-      macho = lief.MachO.parse_from_dump(data, mod.imagebase)
+    .. literalinclude:: ../../../code/python/macho.py
+      :language: python
+      :start-after: lief-doc: dump-runtime-start
+      :end-before: lief-doc: dump-runtime-end
+      :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-    .. code-block:: cpp
-
-      #include <LIEF/MachO.hpp>
-      #include <LIEF/runtime.hpp>
-
-      // Find the module to dump in the current process
-      auto mod = LIEF::runtime::module_from_name("libsystem_c.dylib");
-
-      // Dump the module's memory into a file (the raw bytes are also returned)
-      std::vector<uint8_t> data = mod->dump("module.dump");
-
-      auto fat = LIEF::MachO::Parser::parse_from_dump("module.dump", mod->imagebase());
+    .. literalinclude:: ../../../code/cpp/macho.cpp
+      :language: cpp
+      :start-after: lief-doc: dump-runtime-start
+      :end-before: lief-doc: dump-runtime-end
+      :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-    .. code-block:: rust
-
-      use lief::runtime::Module;
-
-      let module = lief::runtime::module_from_name("libsystem_c.dylib").unwrap();
-
-      // Dump the module's memory into a file (the raw bytes are also returned)
-      let data = module.dump_to_file("module.dump");
-
-      let fat = lief::macho::FatBinary::parse_from_dump("module.dump", module.imagebase()).unwrap();
+    .. literalinclude:: ../../../code/rust/src/macho.rs
+      :language: rust
+      :start-after: lief-doc: dump-runtime-start
+      :end-before: lief-doc: dump-runtime-end
+      :dedent:
 
 .. _format-macho-rpath:
 
@@ -354,35 +287,27 @@ One can change the directory of ``libmylib.dylib`` with the following code:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        macho = lief.MachO.parse("hello.bin")
-        lib: lief.MachO.DylibCommand = macho.find_library("libmylib.dylib")
-        lib.name = "/opt/homebrew/my_package/libmylib.dylib"
-
-        macho.write("hello_fixed.bin")
+      .. literalinclude:: ../../../code/python/macho.py
+        :language: python
+        :start-after: lief-doc: rpath-change-lib-start
+        :end-before: lief-doc: rpath-change-lib-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::MachO::Binary> macho = LIEF::MachO::Parser::parse("hello.bin").take(0);
-        LIEF::MachO::DylibCommand* lib = macho->find_library("libmylib.dylib");
-        lib->name("/opt/homebrew/my_package/libmylib.dylib");
-
-        macho->write("hello_fixed.bin");
+      .. literalinclude:: ../../../code/cpp/macho.cpp
+        :language: cpp
+        :start-after: lief-doc: rpath-change-lib-start
+        :end-before: lief-doc: rpath-change-lib-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let fat = lief::macho::FatBinary::parse("hello.bin").unwrap();
-        let mut binary = fat.iter().next().unwrap();
-
-        let mut lib = binary.find_library("libmylib.dylib").unwrap();
-        lib.set_name("/opt/homebrew/my_package/libmylib.dylib");
-
-        binary.write("hello_fixed.bin");
+      .. literalinclude:: ../../../code/rust/src/macho.rs
+        :language: rust
+        :start-after: lief-doc: rpath-change-lib-start
+        :end-before: lief-doc: rpath-change-lib-end
+        :dedent:
 
 .. note::
 
@@ -400,29 +325,27 @@ feature of Mach-O binaries:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        macho = lief.MachO.parse("hello.bin")
-        rpath = lief.MachO.RPathCommand.create("/opt/homebrew/my_package")
-        macho.add(rpath)
+      .. literalinclude:: ../../../code/python/macho.py
+        :language: python
+        :start-after: lief-doc: rpath-add-start
+        :end-before: lief-doc: rpath-add-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::MachO::Binary> macho = LIEF::MachO::Parser::parse("hello.bin").take(0);
-        auto rpath = LIEF::MachO::RPathCommand::create("/opt/homebrew/my_package");
-        macho->add(*rpath);
+      .. literalinclude:: ../../../code/cpp/macho.cpp
+        :language: cpp
+        :start-after: lief-doc: rpath-add-start
+        :end-before: lief-doc: rpath-add-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let fat = lief::macho::FatBinary::parse("hello.bin").unwrap();
-        let mut binary = fat.iter().next().unwrap();
-
-        let rpath = RPath::new("/opt/homebrew/my_package");
-        binary.add_command(rpath);
+      .. literalinclude:: ../../../code/rust/src/macho.rs
+        :language: rust
+        :start-after: lief-doc: rpath-add-start
+        :end-before: lief-doc: rpath-add-end
+        :dedent:
 
 2. Then, we can change the library path of ``libmylib.dylib`` to include the RPath prefix:
 
@@ -430,30 +353,27 @@ feature of Mach-O binaries:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        lib: lief.MachO.DylibCommand = macho.find_library("libmylib.dylib")
-        lib.name = "@rpath/libmylib.dylib"
-
-        macho.write("hello_fixed.bin")
+      .. literalinclude:: ../../../code/python/macho.py
+        :language: python
+        :start-after: lief-doc: rpath-atrpath-start
+        :end-before: lief-doc: rpath-atrpath-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        LIEF::MachO::DylibCommand* lib = macho->find_library("libmylib.dylib");
-        lib->name("@rpath/libmylib.dylib");
-
-        macho->write("hello_fixed.bin");
+      .. literalinclude:: ../../../code/cpp/macho.cpp
+        :language: cpp
+        :start-after: lief-doc: rpath-atrpath-start
+        :end-before: lief-doc: rpath-atrpath-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut lib = binary.find_library("libmylib.dylib").unwrap();
-        lib.set_name("@rpath/libmylib.dylib");
-
-        binary.write("hello_fixed.bin");
+      .. literalinclude:: ../../../code/rust/src/macho.rs
+        :language: rust
+        :start-after: lief-doc: rpath-atrpath-start
+        :end-before: lief-doc: rpath-atrpath-end
+        :dedent:
 
 Objective-C Support
 ********************

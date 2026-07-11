@@ -32,39 +32,30 @@ PE binaries can be parsed using the |lief-pe-parse| function.
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        # Using filepath
-        pe: lief.PE.Binary = lief.PE.parse(r"C:\Users\test.exe")
-
-        # Using a Path from pathlib
-        pe: lief.PE.Binary = lief.PE.parse(pathlib.Path(r"C:\Users\test.exe"))
-
-        # Using an io object
-        with open(r"C:\Users\test.exe", 'rb') as f:
-          pe: lief.PE.Binary = lief.PE.parse(f)
+      .. literalinclude:: ../../../code/python/pe.py
+        :language: python
+        :prepend: import lief
+        :start-after: lief-doc: parse-start
+        :end-before: lief-doc: parse-end
+        :dedent:
 
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        // Using a file path as a std::string
-        std::unique_ptr<LIEF::PE::Binary> pe = LIEF::PE::Parser::parse("some.exe");
-
-        // Using a vector
-        std::vector<uint8_t> my_raw_pe;
-        std::unique_ptr<LIEF::PE::Binary> pe = LIEF::PE::Parser::parse(my_raw_pe);
+      .. literalinclude:: ../../../code/cpp/pe.cpp
+        :language: cpp
+        :prepend: #include <LIEF/PE.hpp>
+        :start-after: lief-doc: parse-start
+        :end-before: lief-doc: parse-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let pe: lief::pe::Binary = lief::pe::Binary::parse("/bin/ls");
+      .. literalinclude:: ../../../code/rust/src/pe.rs
+        :language: rust
+        :start-after: lief-doc: parse-start
+        :end-before: lief-doc: parse-end
+        :dedent:
 
 .. note::
 
@@ -78,42 +69,28 @@ inspect or modify the binary itself.
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        pe: lief.PE.Binary = ...
-
-        print(pe.rich_header)
-        print(pe.authentihash_md5.hex(':'))
-
-        for section in pe.sections:
-            print(section.name, len(section.content))
+      .. literalinclude:: ../../../code/python/pe.py
+        :language: python
+        :start-after: lief-doc: inspect-start
+        :end-before: lief-doc: inspect-end
+        :dedent:
 
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        if (const LIEF::PE::RichHeader* rich = pe->rich_header()) {
-          std::cout << *rich << '\n';
-        }
-
-        for (const LIEF::PE::Section& section : pe->sections()) {
-          std::cout << section.name() << section.content().size() << '\n'
-        }
+      .. literalinclude:: ../../../code/cpp/pe.cpp
+        :language: cpp
+        :start-after: lief-doc: inspect-start
+        :end-before: lief-doc: inspect-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let pe: lief::pe::Binary;
-
-        println!("{:?}", pe.rich_header().expect("Missing Rich header"));
-
-        for section in pe.sections() {
-            println!("{} {}", section.name(), section.content().len());
-        }
+      .. literalinclude:: ../../../code/rust/src/pe.rs
+        :language: rust
+        :start-after: lief-doc: inspect-start
+        :end-before: lief-doc: inspect-end
+        :dedent:
 
 After modifying a |lief-pe-binary| object, you can use |lief-pe-binary-write| to
 write the changes back to a raw PE file.
@@ -122,41 +99,29 @@ write the changes back to a raw PE file.
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        pe: lief.PE.Binary = ...
-
-        section = lief.PE.Section(".hello")
-        section.content = [0xCC] * 0x100
-        pe.add_section(section)
-
-        pe.write("new.exe")
+      .. literalinclude:: ../../../code/python/pe.py
+        :language: python
+        :start-after: lief-doc: add-section-start
+        :end-before: lief-doc: add-section-end
+        :dedent:
 
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        LIEF::PE::Section section(".hello");
-        section.content = std::vector<uint8_t>(0x100, 0xCC);
-        pe->add_section(section);
-
-        pe->write("new.exe");
+      .. literalinclude:: ../../../code/cpp/pe.cpp
+        :language: cpp
+        :start-after: lief-doc: add-section-start
+        :end-before: lief-doc: add-section-end
+        :dedent:
 
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe = lief::pe::Binary::parse("some.exe").unwrap();
-
-        let mut section = lief::pe::Section::new_with_name(".hello");
-        section.set_content(&[0xCC; 0x100]);
-        pe.add_section(section);
-
-        pe.write("new.exe");
+      .. literalinclude:: ../../../code/rust/src/pe.rs
+        :language: rust
+        :start-after: lief-doc: add-section-start
+        :end-before: lief-doc: add-section-end
+        :dedent:
 
 .. seealso::
 
@@ -176,37 +141,27 @@ the dump, using the base address passed as the second parameter:
 
   .. tab:: :fa:`brands fa-python` Python
 
-    .. code-block:: python
-
-      import lief
-
-      # 0x7ffd21b80000 is the (absolute) address at which the dump was mapped
-      pe: lief.PE.Binary = lief.PE.parse_from_dump("module.dump", 0x7ffd21b80000)
-
-      for imp in pe.imports:
-          print(imp.name)
+    .. literalinclude:: ../../../code/python/pe.py
+      :language: python
+      :start-after: lief-doc: dump-start
+      :end-before: lief-doc: dump-end
+      :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-    .. code-block:: cpp
-
-      #include <LIEF/PE.hpp>
-
-      auto pe = LIEF::PE::Parser::parse_from_dump("module.dump", 0x7ffd21b80000);
-
-      for (const LIEF::PE::Import& imp : pe->imports()) {
-        std::cout << imp.name() << '\n';
-      }
+    .. literalinclude:: ../../../code/cpp/pe.cpp
+      :language: cpp
+      :start-after: lief-doc: dump-start
+      :end-before: lief-doc: dump-end
+      :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-    .. code-block:: rust
-
-      let pe = lief::pe::Binary::parse_from_dump("module.dump", 0x7ffd_21b8_0000).unwrap();
-
-      for imp in pe.imports() {
-          println!("{}", imp.name());
-      }
+    .. literalinclude:: ../../../code/rust/src/pe.rs
+      :language: rust
+      :start-after: lief-doc: dump-start
+      :end-before: lief-doc: dump-end
+      :dedent:
 
 .. note::
 
@@ -226,46 +181,27 @@ memory of a loaded module (from its imagebase over its virtual size):
 
   .. tab:: :fa:`brands fa-python` Python
 
-    .. code-block:: python
-
-      import lief
-
-      # Find the module to dump in the current process
-      mod = lief.runtime.module_from_name("target.dll")
-
-      # Dump the module's memory into a file (the raw bytes are also returned) ...
-      data: bytes = mod.dump("module.dump")
-
-      # ... and parse it back using the same imagebase:
-      pe = lief.PE.parse_from_dump(data, mod.imagebase)
+    .. literalinclude:: ../../../code/python/pe.py
+      :language: python
+      :start-after: lief-doc: dump-runtime-start
+      :end-before: lief-doc: dump-runtime-end
+      :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-    .. code-block:: cpp
-
-      #include <LIEF/PE.hpp>
-      #include <LIEF/runtime.hpp>
-
-      // Find the module to dump in the current process
-      auto mod = LIEF::runtime::module_from_name("target.dll");
-
-      // Dump the module's memory into a file (the raw bytes are also returned)
-      std::vector<uint8_t> data = mod->dump("module.dump");
-
-      auto pe = LIEF::PE::Parser::parse_from_dump("module.dump", mod->imagebase());
+    .. literalinclude:: ../../../code/cpp/pe.cpp
+      :language: cpp
+      :start-after: lief-doc: dump-runtime-start
+      :end-before: lief-doc: dump-runtime-end
+      :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-    .. code-block:: rust
-
-      use lief::runtime::Module;
-
-      let module = lief::runtime::module_from_name("target.dll").unwrap();
-
-      // Dump the module's memory into a file (the raw bytes are also returned)
-      let data = module.dump_to_file("module.dump");
-
-      let pe = lief::pe::Binary::parse_from_dump("module.dump", module.imagebase()).unwrap();
+    .. literalinclude:: ../../../code/rust/src/pe.rs
+      :language: rust
+      :start-after: lief-doc: dump-runtime-start
+      :end-before: lief-doc: dump-runtime-end
+      :dedent:
 
 
 Advanced Parsing/Writing
@@ -295,41 +231,28 @@ process.
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        parser_config = lief.PE.ParserConfig()
-        parser_config.parse_signature = False
-
-        pe: lief.PE.Binary = lief.PE.parse("some.exe", parser_config)
-
-        builder_config = lief.PE.Builder.config_t()
-        builder_config.imports = True
-
-        pe.write("new.exe", builder_config)
+      .. literalinclude:: ../../../code/python/pe.py
+        :language: python
+        :start-after: lief-doc: advanced-start
+        :end-before: lief-doc: advanced-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        LIEF::PE::ParserConfig parser_config;
-        parser_config.parse_signature = false;
-
-        auto pe = LIEF::PE::Parser::parse("some.exe", parser_config);
-
-        LIEF::PE::Builder::config_t builder_config;
-        builder_config.imports = true;
-
-        pe->write("new.exe", builder_config);
+      .. literalinclude:: ../../../code/cpp/pe.cpp
+        :language: cpp
+        :start-after: lief-doc: advanced-start
+        :end-before: lief-doc: advanced-end
+        :dedent:
 
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe = ...;
-
-        let config = lief::pe::builder::Config::default();
-        pe.write_with_config("new.exe", config);
+      .. literalinclude:: ../../../code/rust/src/pe.rs
+        :language: rust
+        :start-after: lief-doc: advanced-start
+        :end-before: lief-doc: advanced-end
+        :dedent:
 
 You can also use |lief-pe-binary-write_to_bytes| to get the new PE binary
 as a buffer of bytes:
@@ -342,23 +265,19 @@ as a buffer of bytes:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        pe: lief.PE.Binary = ...
-        new_pe: bytes = pe.write_to_bytes()
+      .. literalinclude:: ../../../code/python/pe.py
+        :language: python
+        :start-after: lief-doc: write-bytes-start
+        :end-before: lief-doc: write-bytes-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        std::ostringstream os;
-        pe->write(os);
-        std::string buffer = os.str();
-
-        const auto* start = reinterpret_cast<const uint8_t*>(buffer.data());
-        size_t size = buffer.size();
+      .. literalinclude:: ../../../code/cpp/pe.cpp
+        :language: cpp
+        :start-after: lief-doc: write-bytes-start
+        :end-before: lief-doc: write-bytes-end
+        :dedent:
 
 PDB Support
 ***********
@@ -390,47 +309,27 @@ be used to verify that a PE binary is correctly signed.
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe = lief.PE.parse("signed.exe")
-        for signature in pe.signatures:
-            for crt in signature.certificates:
-              print(crt)
-
-        assert pe.verify_signature() == lief.PE.Signature.VERIFICATION_FLAGS.OK
+      .. literalinclude:: ../../../code/python/pe.py
+        :language: python
+        :start-after: lief-doc: authenticode-start
+        :end-before: lief-doc: authenticode-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        auto pe = LIEF::PE::Parser::parse("signed.exe");
-
-        for (const LIEF::PE::Signature& sig : pe->signatures()) {
-          for (const LIEF::PE::X509& crt : sig.certificates()) {
-            std::cout << crt << '\n';
-          }
-        }
-
-        std::cout << pe->verify_signature() == LIEF::PE::Signature::VERIFICATION_FLAGS::OK;
+      .. literalinclude:: ../../../code/cpp/pe.cpp
+        :language: cpp
+        :start-after: lief-doc: authenticode-start
+        :end-before: lief-doc: authenticode-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        if let Some(lief::Binary::PE(pe)) = lief::Binary::parse("signed.exe") {
-            for sig in pe.signatures() {
-                for crt in sig.certificates() {
-                    println("{:?}", crt);
-                }
-            }
-
-            assert!(
-              pe.verify_signature(pe::signature::VerificationChecks::DEFAULT) ==
-              lief::pe::signature::VerificationFlags::OK
-            );
-        }
+      .. literalinclude:: ../../../code/rust/src/pe.rs
+        :language: rust
+        :start-after: lief-doc: authenticode-start
+        :end-before: lief-doc: authenticode-end
+        :dedent:
 
 You can find additional details about Authenticode support in this tutorial:
 :ref:`PE Authenticode <pe-authenticode>`

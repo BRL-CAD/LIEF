@@ -117,14 +117,12 @@ Injecting the hook
 The first step is to inject the hook into the binary. To do so, we will add a
 :class:`~lief.ELF.Segment`:
 
-.. code-block:: python
-
-  import lief
-
-  crackme = lief.parse("crackme.bin")
-  hook    = lief.parse("hook")
-
-  segment_added  = crackme.add(hook.segments[0])
+.. literalinclude:: ../../code/python/tuto_elf_plt_got.py
+  :language: python
+  :prepend: import lief
+  :start-after: lief-doc: inject-start
+  :end-before: lief-doc: inject-end
+  :dedent:
 
 All assembly code for the hook is contained in the first
 :attr:`~lief.ELF.Segment.TYPE.LOAD` segment of ``hook``.
@@ -149,22 +147,27 @@ Thus, its virtual address will be:
 
 * ``my_memcmp``: :attr:`~lief.ELF.Symbol.value` + ``segment_added.virtual_address``
 
-.. code-block:: python
-
-  my_memcmp      = hook.get_symbol("my_memcmp")
-  my_memcmp_addr = segment_added.virtual_address + my_memcmp.value
+.. literalinclude:: ../../code/python/tuto_elf_plt_got.py
+  :language: python
+  :start-after: lief-doc: hook-address-start
+  :end-before: lief-doc: hook-address-end
+  :dedent:
 
 Finally, we can patch ``memcmp`` from the crackme with this value:
 
-.. code-block:: python
-
-  crackme.patch_pltgot('memcmp', my_memcmp_addr)
+.. literalinclude:: ../../code/python/tuto_elf_plt_got.py
+  :language: python
+  :start-after: lief-doc: patch-got-start
+  :end-before: lief-doc: patch-got-end
+  :dedent:
 
 And rebuild it:
 
-.. code-block:: python
-
-  crackme.write("crackme.hooked")
+.. literalinclude:: ../../code/python/tuto_elf_plt_got.py
+  :language: python
+  :start-after: lief-doc: rebuild-start
+  :end-before: lief-doc: rebuild-end
+  :dedent:
 
 
 Run

@@ -22,39 +22,30 @@ ELF binaries can be parsed with LIEF using the |lief-elf-parse| function:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        # Using filepath
-        elf: lief.ELF.Binary = lief.ELF.parse("/bin/ls")
-
-        # Using a Path from pathlib
-        elf: lief.ELF.Binary = lief.ELF.parse(pathlib.Path(r"C:\Users\test.elf"))
-
-        # Using a io object
-        with open("/bin/ssh", 'rb') as f:
-          elf: lief.ELF.Binary = lief.ELF.parse(f)
+      .. literalinclude:: ../../../code/python/elf.py
+        :language: python
+        :prepend: import lief
+        :start-after: lief-doc: parse-start
+        :end-before: lief-doc: parse-end
+        :dedent:
 
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/ELF.hpp>
-
-        // Using a file path as a std::string
-        std::unique_ptr<LIEF::ELF::Binary> elf = LIEF::ELF::Parser::parse("/bin/ls");
-
-        // Using a vector
-        std::vector<uint8_t> my_raw_elf;
-        std::unique_ptr<LIEF::ELF::Binary> elf = LIEF::ELF::Parser::parse(my_raw_elf);
+      .. literalinclude:: ../../../code/cpp/elf.cpp
+        :language: cpp
+        :prepend: #include <LIEF/ELF.hpp>
+        :start-after: lief-doc: parse-start
+        :end-before: lief-doc: parse-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let elf: lief::elf::Binary = lief::elf::Binary::parse("/bin/ls");
+      .. literalinclude:: ../../../code/rust/src/elf.rs
+        :language: rust
+        :start-after: lief-doc: parse-start
+        :end-before: lief-doc: parse-end
+        :dedent:
 
 .. note::
 
@@ -68,39 +59,28 @@ inspect or modify the binary itself.
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        elf: lief.ELF.Binary = ...
-
-        print(elf.header.entrypoint)
-
-        for section in elf.sections:
-            print(section.name, len(section.content))
+      .. literalinclude:: ../../../code/python/elf.py
+        :language: python
+        :start-after: lief-doc: inspect-start
+        :end-before: lief-doc: inspect-end
+        :dedent:
 
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::ELF::Binary> elf;
-
-        std::cout << elf->header().entrypoint();
-
-        for (const LIEF::ELF::Section& section : elf->sections()) {
-          std::cout << section.name() << section.content().size() << '\n'
-        }
+      .. literalinclude:: ../../../code/cpp/elf.cpp
+        :language: cpp
+        :start-after: lief-doc: inspect-start
+        :end-before: lief-doc: inspect-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let elf: lief::elf::Binary;
-
-        println!("{}", elf.header().entrypoint());
-
-        for section in elf.sections() {
-            println!("{} {}", section.name(), section.content().len());
-        }
+      .. literalinclude:: ../../../code/rust/src/elf.rs
+        :language: rust
+        :start-after: lief-doc: inspect-start
+        :end-before: lief-doc: inspect-end
+        :dedent:
 
 After modifying a |lief-elf-binary| object, you can use the
 |lief-elf-binary-write| method to write it back to a raw ELF file.
@@ -109,21 +89,28 @@ After modifying a |lief-elf-binary| object, you can use the
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        elf: lief.ELF.Binary = ...
-
-        elf.add_library("libdemo.so")
-        elf.write("new.elf")
+      .. literalinclude:: ../../../code/python/elf.py
+        :language: python
+        :start-after: lief-doc: write-start
+        :end-before: lief-doc: write-end
+        :dedent:
 
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
+      .. literalinclude:: ../../../code/cpp/elf.cpp
+        :language: cpp
+        :start-after: lief-doc: write-start
+        :end-before: lief-doc: write-end
+        :dedent:
 
-        std::unique_ptr<LIEF::ELF::Binary> elf;
-        elf->add_library("libdemo.so");
-        elf->write("new.elf");
+  .. tab:: :fa:`brands fa-rust` Rust
+
+      .. literalinclude:: ../../../code/rust/src/elf.rs
+        :language: rust
+        :start-after: lief-doc: write-start
+        :end-before: lief-doc: write-end
+        :dedent:
 
 .. seealso::
 
@@ -140,23 +127,19 @@ as a buffer of bytes:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        elf: lief.ELF.Binary = ...
-        new_elf: bytes = elf.write_to_bytes()
+      .. literalinclude:: ../../../code/python/elf.py
+        :language: python
+        :start-after: lief-doc: write-bytes-start
+        :end-before: lief-doc: write-bytes-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::ELF::Binary> elf;
-
-        std::ostringstream os;
-        elf->write(os);
-        std::string buffer = os.str();
-
-        const auto* start = reinterpret_cast<const uint8_t*>(buffer.data());
-        size_t size = buffer.size();
+      .. literalinclude:: ../../../code/cpp/elf.cpp
+        :language: cpp
+        :start-after: lief-doc: write-bytes-start
+        :end-before: lief-doc: write-bytes-end
+        :dedent:
 
 .. _format-elf-section-segment:
 
@@ -181,30 +164,27 @@ adding a |lief-elf-segment| is recommended over adding a section:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        elf: lief.ELF.Binary = ...
-
-        segment = lief.ELF.Segment()
-        segment.type = lief.ELF.Segment.TYPES.LOAD
-        segment.content = list(b'Hello World')
-
-        new_segment: lief.ELF.Segment = elf.add(segment)
-
-        elf.write("new.elf")
+      .. literalinclude:: ../../../code/python/elf.py
+        :language: python
+        :start-after: lief-doc: add-segment-start
+        :end-before: lief-doc: add-segment-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
+      .. literalinclude:: ../../../code/cpp/elf.cpp
+        :language: cpp
+        :start-after: lief-doc: add-segment-start
+        :end-before: lief-doc: add-segment-end
+        :dedent:
 
-        std::unique_ptr<LIEF::ELF::Binary> elf;
+  .. tab:: :fa:`brands fa-rust` Rust
 
-        LIEF::ELF::Segment segment;
-        segment.type(LIEF::ELF::Segment::TYPES::LOAD);
-        segment.content({1, 2, 3});
-
-        LIEF::ELF::Segment* new_segment = elf.add(segment);
-        elf.write("new.elf");
+      .. literalinclude:: ../../../code/rust/src/elf.rs
+        :language: rust
+        :start-after: lief-doc: add-segment-start
+        :end-before: lief-doc: add-segment-end
+        :dedent:
 
 Alternatively, you can create a |lief-elf-section|, which will **implicitly**
 create an associated ``PT_LOAD`` segment:
@@ -213,28 +193,19 @@ create an associated ``PT_LOAD`` segment:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        elf: lief.ELF.Binary = ...
-
-        section = lief.ELF.Section(".lief_demo")
-        section.content = list(b'Hello World')
-
-        new_section: lief.ELF.Section = elf.add(section, loaded=True)
-
-        elf.write("new.elf")
+      .. literalinclude:: ../../../code/python/elf.py
+        :language: python
+        :start-after: lief-doc: add-section-loaded-start
+        :end-before: lief-doc: add-section-loaded-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::ELF::Binary> elf;
-
-        LIEF::ELF::Section section(".lief_demo");
-        section.content({1, 2, 3});
-
-        LIEF::ELF::Section* new_section = elf.add(section, /*loaded=*/true);
-        elf.write("new.elf");
+      .. literalinclude:: ../../../code/cpp/elf.cpp
+        :language: cpp
+        :start-after: lief-doc: add-section-loaded-start
+        :end-before: lief-doc: add-section-loaded-end
+        :dedent:
 
 As mentioned above, the segments table is more critical than the sections table
 from a loading perspective. Therefore, it is more appropriate to explicitly add
@@ -248,30 +219,19 @@ the end of the binary, immediately after the data wrapped by the segments:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        elf: lief.ELF.Binary = ...
-
-        section = lief.ELF.Section(".metadata")
-        section.content = list(b'version: 1.2.3')
-
-        # /!\ Note that loaded is set to False here
-        # ------------------------------------------
-        new_section: lief.ELF.Section = elf.add(section, loaded=False)
-
-        elf.write("new.elf")
+      .. literalinclude:: ../../../code/python/elf.py
+        :language: python
+        :start-after: lief-doc: add-section-unloaded-start
+        :end-before: lief-doc: add-section-unloaded-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::ELF::Binary> elf;
-
-        LIEF::ELF::Section section(".metadata");
-        section.content({1, 2, 3});
-
-        LIEF::ELF::Section* new_section = elf.add(section, /*loaded=*/false);
-        elf.write("new.elf");
+      .. literalinclude:: ../../../code/cpp/elf.cpp
+        :language: cpp
+        :start-after: lief-doc: add-section-unloaded-start
+        :end-before: lief-doc: add-section-unloaded-end
+        :dedent:
 
 See: |lief-elf-binary-add| for detailed API information.
 
@@ -289,37 +249,27 @@ the dump, using the base address passed as the second parameter:
 
   .. tab:: :fa:`brands fa-python` Python
 
-    .. code-block:: python
-
-      import lief
-
-      # 0x7f9b98e00000 is the (absolute) address at which the dump was mapped
-      elf: lief.ELF.Binary = lief.ELF.parse_from_dump("module.dump", 0x7f9b98e00000)
-
-      for segment in elf.segments:
-          print(segment.type, hex(segment.virtual_address))
+    .. literalinclude:: ../../../code/python/elf.py
+      :language: python
+      :start-after: lief-doc: dump-start
+      :end-before: lief-doc: dump-end
+      :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-    .. code-block:: cpp
-
-      #include <LIEF/ELF.hpp>
-
-      auto elf = LIEF::ELF::Parser::parse_from_dump("module.dump", 0x7f9b98e00000);
-
-      for (const LIEF::ELF::Segment& segment : elf->segments()) {
-        std::cout << to_string(segment.type()) << '\n';
-      }
+    .. literalinclude:: ../../../code/cpp/elf.cpp
+      :language: cpp
+      :start-after: lief-doc: dump-start
+      :end-before: lief-doc: dump-end
+      :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-    .. code-block:: rust
-
-      let elf = lief::elf::Binary::parse_from_dump("module.dump", 0x7f9b_98e0_0000).unwrap();
-
-      for segment in elf.segments() {
-          println!("{:?} {:#x}", segment.p_type(), segment.virtual_address());
-      }
+    .. literalinclude:: ../../../code/rust/src/elf.rs
+      :language: rust
+      :start-after: lief-doc: dump-start
+      :end-before: lief-doc: dump-end
+      :dedent:
 
 .. note::
 
@@ -348,46 +298,27 @@ memory of a loaded module (from its imagebase over its virtual size):
 
   .. tab:: :fa:`brands fa-python` Python
 
-    .. code-block:: python
-
-      import lief
-
-      # Find the module to dump in the current process
-      mod = lief.runtime.module_from_name("libc.so.6")
-
-      # Dump the module's memory into a file (the raw bytes are also returned)
-      data: bytes = mod.dump("module.dump")
-
-      # and parse it back using the same imagebase:
-      elf = lief.ELF.parse_from_dump(data, mod.imagebase)
+    .. literalinclude:: ../../../code/python/elf.py
+      :language: python
+      :start-after: lief-doc: dump-runtime-start
+      :end-before: lief-doc: dump-runtime-end
+      :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-    .. code-block:: cpp
-
-      #include <LIEF/ELF.hpp>
-      #include <LIEF/runtime.hpp>
-
-      // Find the module to dump in the current process
-      auto mod = LIEF::runtime::module_from_name("libc.so.6");
-
-      // Dump the module's memory into a file (the raw bytes are also returned)
-      std::vector<uint8_t> data = mod->dump("module.dump");
-
-      auto elf = LIEF::ELF::Parser::parse_from_dump("module.dump", mod->imagebase());
+    .. literalinclude:: ../../../code/cpp/elf.cpp
+      :language: cpp
+      :start-after: lief-doc: dump-runtime-start
+      :end-before: lief-doc: dump-runtime-end
+      :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-    .. code-block:: rust
-
-      use lief::runtime::Module;
-
-      let module = lief::runtime::module_from_name("libc.so.6").unwrap();
-
-      // Dump the module's memory into a file (the raw bytes are also returned)
-      let data = module.dump_to_file("module.dump");
-
-      let elf = lief::elf::Binary::parse_from_dump("module.dump", module.imagebase()).unwrap();
+    .. literalinclude:: ../../../code/rust/src/elf.rs
+      :language: rust
+      :start-after: lief-doc: dump-runtime-start
+      :end-before: lief-doc: dump-runtime-end
+      :dedent:
 
 
 Advanced Parsing/Writing
@@ -408,31 +339,28 @@ to specify which parts of the ELF should be rebuilt.
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        parser_config = lief.ELF.ParserConfig()
-        parser_config.parse_overlay = False
-
-        elf: lief.ELF.Binary = lief.ELF.parse("my.elf", parser_config)
-
-        builder_config = lief.ELF.Builder.config_t()
-        builder_config.gnu_hash = False
-
-        elf.write("new.elf", builder_config)
+      .. literalinclude:: ../../../code/python/elf.py
+        :language: python
+        :start-after: lief-doc: advanced-start
+        :end-before: lief-doc: advanced-end
+        :dedent:
 
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
+      .. literalinclude:: ../../../code/cpp/elf.cpp
+        :language: cpp
+        :start-after: lief-doc: advanced-start
+        :end-before: lief-doc: advanced-end
+        :dedent:
 
-        LIEF::ELF::ParserConfig parser_config;
-        parser_config.parse_overlay = false;
+  .. tab:: :fa:`brands fa-rust` Rust
 
-        auto elf = LIEF::ELF::Parser::parse("my.elf", parser_config);
-        LIEF::ELF::Builder::config_t builder_config;
-
-        builder_config.gnu_hash = false;
-        elf->write("new.elf", builder_config);
+    .. literalinclude:: ../../../code/rust/src/elf.rs
+      :language: rust
+      :start-after: lief-doc: advanced-start
+      :end-before: lief-doc: advanced-end
+      :dedent:
 
 DWARF Support
 *************
@@ -478,61 +406,27 @@ The RPATH/RUNPATH modifications supported by LIEF include:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        elf: lief.ELF.Binary = ...
-
-        runpath = lief.ELF.DynamicEntryRunPath("$ORIGIN:/opt/lib64")
-
-        elf.add(runpath)
-
-        other_runpath = lief.ELF.DynamicEntryRunPath([
-          '$ORIGIN', '/opt/lib64'
-        ])
-
-        elf.add(other_runpath)
-
-        elf.write("updated.elf")
+      .. literalinclude:: ../../../code/python/elf.py
+        :language: python
+        :start-after: lief-doc: rpath-add-start
+        :end-before: lief-doc: rpath-add-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::ELF::Binary> elf = ...;
-
-        LIEF::ELF::DynamicEntryRunPath runpath("$ORIGIN:/opt/lib64");
-
-        elf->add(runpath);
-
-        LIEF::ELF::DynamicEntryRunPath other_runpath(
-          std::vector<std::string> {
-            "$ORIGIN", "/opt/lib64"
-          }
-        );
-
-        elf->add(other_runpath);
-
-        elf->write("updated.elf");
+      .. literalinclude:: ../../../code/cpp/elf.cpp
+        :language: cpp
+        :start-after: lief-doc: rpath-add-start
+        :end-before: lief-doc: rpath-add-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut elf: lief::elf::Binary = ...
-
-        let runpath = lief::elf::dynamic::RunPath::new("$ORIGIN:/opt/lib64");
-
-        elf.add_dynamic_entry(&runpath);
-
-        let other_runpath = lief::elf::dynamic::RunPath::with_paths(
-          &vec!["$ORIGIN", "/opt/lib64"]
-        );
-
-        elf.add_dynamic_entry(&other_runpath);
-
-        let output = PathBuf::from("updated.elf");
-
-        elf.write(output.as_path());
+      .. literalinclude:: ../../../code/rust/src/elf.rs
+        :language: rust
+        :start-after: lief-doc: rpath-add-start
+        :end-before: lief-doc: rpath-add-end
+        :dedent:
 
 **Changing an entry**
 
@@ -540,50 +434,27 @@ The RPATH/RUNPATH modifications supported by LIEF include:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        elf: lief.ELF.Binary = ...
-
-        runpath = elf.get(lief.ELF.DynamicEntry.TAG.RUNPATH)
-        assert runpath is not None
-
-        runpath.runpath = "$ORIGIN:/opt/lib64"
-        runpath.append("lib-x86_64-gnu")
-
-        elf.write(output.as_path());
+      .. literalinclude:: ../../../code/python/elf.py
+        :language: python
+        :start-after: lief-doc: rpath-change-start
+        :end-before: lief-doc: rpath-change-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::ELF::Binary> elf = ...;
-
-        LIEF::ELF::DynamicEntryRunPath* runpath =
-          elf->get(LIEF::ELF::DynamicEntry::TAG::RUNPATH);
-
-        assert(runpath != nullptr);
-
-        runpath->runpath("$ORIGIN:/opt/lib64");
-        runpath->append("lib-x86_64-gnu");
-
-        elf->write("updated.elf");
+      .. literalinclude:: ../../../code/cpp/elf.cpp
+        :language: cpp
+        :start-after: lief-doc: rpath-change-start
+        :end-before: lief-doc: rpath-change-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut elf: lief::elf::Binary = ...
-
-        if let Some(dynamic::Entries::RunPath(mut runpath)) =
-            elf.dynamic_entry_by_tag(dynamic::Tag::RUNPATH)
-        {
-          runpath.set_runpath("$ORIGIN:/opt/lib64");
-          runpath.append("lib-x86_64-gnu");
-        }
-
-        let output = PathBuf::from("updated.elf");
-
-        elf.write(output.as_path());
+      .. literalinclude:: ../../../code/rust/src/elf.rs
+        :language: rust
+        :start-after: lief-doc: rpath-change-start
+        :end-before: lief-doc: rpath-change-end
+        :dedent:
 
 **Removing entries**
 
@@ -591,72 +462,28 @@ The RPATH/RUNPATH modifications supported by LIEF include:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        elf: lief.ELF.Binary = ...
-
-        # Remove **all** DT_RUNPATH entries
-        elf.remove(lief.ELF.DynamicEntry.TAG.RUNPATH)
-
-        # Remove all entries that contain '$ORIGIN'
-        to_remove: list[lief.ELF.DynamicEntryRunPath] = []
-        for dt_entry in elf.dynamic_entries:
-            if not isinstance(dt_entry, lief.ELF.DynamicEntryRunPath):
-                continue
-
-            if "$ORIGIN" in dt_entry.runpath:
-                to_remove.append(dt_entry)
-
-        for entry in to_remove:
-            elf.remove(dt_entry)
-
-        elf.write("updated.elf")
+      .. literalinclude:: ../../../code/python/elf.py
+        :language: python
+        :start-after: lief-doc: rpath-remove-start
+        :end-before: lief-doc: rpath-remove-end
+        :dedent:
 
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::ELF::Binary> elf = ...;
-
-        // Remove **all** DT_RUNPATH entries
-        elf->remove(LIEF::ELF::DynamicEntry::TAG::RUNPATH);
-
-        // Remove all entries that contain '$ORIGIN'
-        std::vector<LIEF::ELF::DynamicEntryRunPath*> to_remove;
-        for (DynamicEntry& entry : elf->dynamic_entries()) {
-          if (auto* dt_entry = entry.cast<LIEF::ELF::DynamicEntryRunPath>()) {
-            if (dt_entry->runpath().find("$ORIGIN") != std::string::npos) {
-              to_remove.push_back(dt_entry);
-            }
-          }
-        }
-
-        for (LIEF::ELF::DynamicEntryRunPath* entry : to_remove) {
-          elf->remove(*entry);
-        }
-
-        elf->write("updated.elf");
+      .. literalinclude:: ../../../code/cpp/elf.cpp
+        :language: cpp
+        :start-after: lief-doc: rpath-remove-start
+        :end-before: lief-doc: rpath-remove-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut elf: lief::elf::Binary = ...
-
-        // Remove **all** DT_RUNPATH entries
-        elf.remove_dynamic_entries_by_tag(elf::dynamic::Tag::RUNPATH);
-
-        // Remove all entries that contain '$ORIGIN'
-        elf.remove_dynamic_entry_if(|e| {
-            if let elf::dynamic::Entries::RunPath(runpath) = e {
-                return runpath.runpath().contains("$ORIGIN");
-            }
-            false
-        });
-
-        let output = PathBuf::from("updated.elf");
-        elf.write(output.as_path());
+      .. literalinclude:: ../../../code/rust/src/elf.rs
+        :language: rust
+        :start-after: lief-doc: rpath-remove-start
+        :end-before: lief-doc: rpath-remove-end
+        :dedent:
 
 You can also check the :ref:`lief-patchelf <tools-lief-patchelf>` section for a
 command-line interface.
@@ -702,45 +529,28 @@ by setting the versioning as global (the default setting for imported functions)
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        elf: lief.ELF.Binary = ...
-
-        sym = elf.get_dynamic_symbol("printf")
-
-        sym.symbol_version.as_global()
-
-        elf.write("updated.elf")
+      .. literalinclude:: ../../../code/python/elf.py
+        :language: python
+        :start-after: lief-doc: symver-symbol-start
+        :end-before: lief-doc: symver-symbol-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::ELF::Binary> elf = ...;
-
-        LIEF::ELF::Symbol* sym = elf->get_dynamic_symbol("printf");
-
-        assert(sym != nullptr);
-
-        sym->symbol_version()->as_global();
-
-        elf->write("updated.elf")
+      .. literalinclude:: ../../../code/cpp/elf.cpp
+        :language: cpp
+        :start-after: lief-doc: symver-symbol-start
+        :end-before: lief-doc: symver-symbol-end
+        :dedent:
 
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut elf: lief::elf::Binary = ...
-
-        if let Some(sym) = elf.dynamic_symbol_by_name("printf") {
-            if let Some(mut symver) = dynsym.symbol_version() {
-                symver.as_global();
-            }
-        }
-
-        let output = PathBuf::from("updated.elf");
-        elf.write(output.as_path());
+      .. literalinclude:: ../../../code/rust/src/elf.rs
+        :language: rust
+        :start-after: lief-doc: symver-symbol-start
+        :end-before: lief-doc: symver-symbol-end
+        :dedent:
 
 **Remove all the versions for a specific library**
 
@@ -751,35 +561,28 @@ library (``libm.so.6``):
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        elf: lief.ELF.Binary = ...
-
-        elf.remove_version_requirement("libm.so.6")
-
-        elf.write("updated.elf")
+      .. literalinclude:: ../../../code/python/elf.py
+        :language: python
+        :start-after: lief-doc: symver-library-start
+        :end-before: lief-doc: symver-library-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::ELF::Binary> elf = ...;
-
-        elf->remove_version_requirement("libm.so.6");
-
-        elf->write("updated.elf")
+      .. literalinclude:: ../../../code/cpp/elf.cpp
+        :language: cpp
+        :start-after: lief-doc: symver-library-start
+        :end-before: lief-doc: symver-library-end
+        :dedent:
 
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut elf: lief::elf::Binary = ...
-
-        elf.remove_version_requirement("libm.so.6");
-
-        let output = PathBuf::from("updated.elf");
-        elf.write(output.as_path());
+      .. literalinclude:: ../../../code/rust/src/elf.rs
+        :language: rust
+        :start-after: lief-doc: symver-library-start
+        :end-before: lief-doc: symver-library-end
+        :dedent:
 
 .. tabs::
 

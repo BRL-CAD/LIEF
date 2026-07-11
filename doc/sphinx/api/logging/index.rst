@@ -36,21 +36,14 @@ C++
 Example
 ~~~~~~~
 
-.. code-block:: cpp
-
-  #include <LIEF/logging.hpp>
-
-  // Set global level to ERROR
-  LIEF::logging::set_level(LIEF::logging::LEVEL::ERROR);
-
-  {
-    // Temporarily set global level to DEBUG (RAII)
-    LIEF::logging::Scoped _(LIEF::logging::LEVEL::DEBUG);
-    LIEF::logging::log(LIEF::logging::LEVEL::DEBUG, "This is a debug message");
-  }
+.. literalinclude:: ../../../code/cpp/logging.cpp
+  :language: cpp
+  :start-after: lief-doc: example-start
+  :end-before: lief-doc: example-end
+  :dedent:
 
 Python
-++++++++
+++++++
 
 .. autofunction:: lief.logging.set_level
 
@@ -72,13 +65,30 @@ Python
 Example
 ~~~~~~~
 
-.. code-block:: python
+.. literalinclude:: ../../../code/python/logging.py
+  :language: python
+  :start-after: lief-doc: example-start
+  :end-before: lief-doc: example-end
+  :dedent:
 
-  import lief
 
-  # Set global level to ERROR
-  lief.logging.set_level(lief.logging.LEVEL.ERROR)
+Rust
+++++
 
-  # Temporarily set global level to DEBUG
-  with lief.logging.level_scope(lief.logging.LEVEL.DEBUG):
-      lief.logging.log(lief.logging.LEVEL.DEBUG, "This is a debug message")
+- :rust:func:`lief::logging::disable`
+- :rust:func:`lief::logging::enable`
+- :rust:func:`lief::logging::set_level`
+- :rust:func:`lief::logging::set_path`
+- :rust:func:`lief::logging::log`
+- :rust:func:`lief::logging::reset`
+- :rust:enum:`lief::logging::Level`
+- :rust:struct:`lief::logging::Scoped`
+
+Example
+~~~~~~~
+
+.. literalinclude:: ../../../code/rust/src/logging.rs
+  :language: rust
+  :start-after: lief-doc: example-start
+  :end-before: lief-doc: example-end
+  :dedent:

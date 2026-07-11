@@ -21,37 +21,27 @@ function:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe: lief.PE.Binary = ...
-
-        rsrc: lief.PE.ResourceNode = pe.resources
-
-        print(rsrc)
+      .. literalinclude:: ../../../../code/python/pe_resources.py
+        :language: python
+        :start-after: lief-doc: access-root-start
+        :end-before: lief-doc: access-root-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        LIEF::PE::ResourceNode* rsrc = pe->resources();
-
-        std::cout << *rsrc << '\n';
+      .. literalinclude:: ../../../../code/cpp/pe_resources.cpp
+        :language: cpp
+        :start-after: lief-doc: access-root-start
+        :end-before: lief-doc: access-root-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe: lief::pe::Binary;
-
-        let mut rsrc = pe.resources().unwrap();
-
-        println!("{}", &rsrc as &dyn NodeBase);
+      .. literalinclude:: ../../../../code/rust/src/pe_resources.rs
+        :language: rust
+        :start-after: lief-doc: access-root-start
+        :end-before: lief-doc: access-root-end
+        :dedent:
 
 From this |lief-pe-resource-node| instance, you can use the
 |lief-pe-resource-node-add-child| or |lief-pe-resource-node-remove-child|
@@ -61,43 +51,27 @@ functions to add or delete nodes:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        rsrc: lief.PE.ResourceNode = pe.resources
-
-        dir_node = lief.PE.ResourceDirectory(100)
-        data_node = lief.PE.ResourceData([1, 2, 3])
-
-        rsrc.add_child(dir_node).add_child(data_node)
+      .. literalinclude:: ../../../../code/python/pe_resources.py
+        :language: python
+        :start-after: lief-doc: add-child-start
+        :end-before: lief-doc: add-child-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        LIEF::PE::ResourceNode* root = pe->resources();
-
-        LIEF::PE::ResourceDirectory dir_node(/*id=*/100);
-        LIEF::PE::ResourceData data_node({1, 2, 3});
-
-        (*root)
-          .add_child(dir_node)
-            .add_child(data_node);
-
-        pe->write("new.exe");
+      .. literalinclude:: ../../../../code/cpp/pe_resources.cpp
+        :language: cpp
+        :start-after: lief-doc: add-child-start
+        :end-before: lief-doc: add-child-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut root = pe.resources();
-
-        let mut dir_node = lief::pe::resources::Directory::with_id(100);
-        let mut data_node = lief::pe::resources::Data::with_buffer(&vec![1, 2, 3]);
-
-        dir_node.add_child(&Node::Data(data_node));
-        root.add_child(&Node::Directory(dir_node));
-
-        pe.write("new.exe");
+      .. literalinclude:: ../../../../code/rust/src/pe_resources.rs
+        :language: rust
+        :start-after: lief-doc: add-child-start
+        :end-before: lief-doc: add-child-end
+        :dedent:
 
 This low-level API can be used to modify the tree or change the data of a
 specific node.
@@ -108,11 +82,11 @@ specific node.
   You can also *print* a node to get a formatted representation of the
   resource tree:
 
-  .. code-block:: python
-
-    pe: lief.PE.Binary = ...
-    tree = pe.resources
-    print(tree)
+  .. literalinclude:: ../../../../code/python/pe_resources.py
+    :language: python
+    :start-after: lief-doc: pretty-print-start
+    :end-before: lief-doc: pretty-print-end
+    :dedent:
 
   .. code-block:: text
 
@@ -140,78 +114,27 @@ manifest:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe: lief.PE.Binary = ...
-
-        manager: lief.PE.ResourcesManager = pe.resources_manager
-
-        manager.manifest = """
-        <?xml version="1.0" standalone="yes"?>
-        <assembly xmlns="urn:schemas-microsoft-com:asm.v1"
-                  manifestVersion="1.0">
-          <trustInfo>
-            <security>
-              <requestedPrivileges>
-                 <requestedExecutionLevel level='asInvoker' uiAccess='false'/>
-              </requestedPrivileges>
-            </security>
-          </trustInfo>
-        </assembly>
-        """
-
-        pe.write("new.exe")
+      .. literalinclude:: ../../../../code/python/pe_resources.py
+        :language: python
+        :start-after: lief-doc: manifest-start
+        :end-before: lief-doc: manifest-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        result<ResourcesManager> manager = pe->resources_manager();
-        manager->manifest(R"manifest(
-        <?xml version="1.0" standalone="yes"?>
-        <assembly xmlns="urn:schemas-microsoft-com:asm.v1"
-                  manifestVersion="1.0">
-          <trustInfo>
-            <security>
-              <requestedPrivileges>
-                 <requestedExecutionLevel level='asInvoker' uiAccess='false'/>
-              </requestedPrivileges>
-            </security>
-          </trustInfo>
-        </assembly>
-        )manifest");
-
-        pe->write("new.exe");
+      .. literalinclude:: ../../../../code/cpp/pe_resources.cpp
+        :language: cpp
+        :start-after: lief-doc: manifest-start
+        :end-before: lief-doc: manifest-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe: lief::pe::Binary;
-
-        let mut manager = pe.resources_manager().unwrap();
-
-        manager.set_manifest(r#"
-        <?xml version="1.0" standalone="yes"?>
-        <assembly xmlns="urn:schemas-microsoft-com:asm.v1"
-                  manifestVersion="1.0">
-          <trustInfo>
-            <security>
-              <requestedPrivileges>
-                 <requestedExecutionLevel level='asInvoker' uiAccess='false'/>
-              </requestedPrivileges>
-            </security>
-          </trustInfo>
-        </assembly>
-        "#);
-
-        pe.write("new.exe");
+      .. literalinclude:: ../../../../code/rust/src/pe_resources.rs
+        :language: rust
+        :start-after: lief-doc: manifest-start
+        :end-before: lief-doc: manifest-end
+        :dedent:
 
 Resource Tree Transfer between Binaries
 ***************************************
@@ -224,37 +147,27 @@ function:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        from_pe: lief.PE.Binary = ...
-        to_pe: lief.PE.Binary = ...
-
-        to_pe.set_resources(from_pe.resources)
-        to_pe.write("new.exe")
+      .. literalinclude:: ../../../../code/python/pe_resources.py
+        :language: python
+        :start-after: lief-doc: transfer-start
+        :end-before: lief-doc: transfer-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> from;
-        std::unique_ptr<LIEF::PE::Binary> to;
-
-        to->set_resources(*from->resources());
-
-        to->write("new.exe");
+      .. literalinclude:: ../../../../code/cpp/pe_resources.cpp
+        :language: cpp
+        :start-after: lief-doc: transfer-start
+        :end-before: lief-doc: transfer-end
+        :dedent:
 
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let from_pe: lief::pe::Binary;
-        let to_pe: lief::pe::Binary;
-
-        to_pe.set_resources(&from_pe.resources().unwrap());
+      .. literalinclude:: ../../../../code/rust/src/pe_resources.rs
+        :language: rust
+        :start-after: lief-doc: transfer-start
+        :end-before: lief-doc: transfer-end
+        :dedent:
 
 .. include:: ../../../_cross_api.rst

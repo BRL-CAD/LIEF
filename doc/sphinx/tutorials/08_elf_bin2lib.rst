@@ -141,11 +141,11 @@ In this case, the **check** function is located at address: ``0x72A`` [2]_.
 Now that we have identified the address, we can export it as a named function:
 ``check_found``.
 
-.. code-block:: python
-
-  >>> addr = crackme101.get_function_address("check_found") # 0x72A
-  >>> crackme101.add_exported_function(addr, "check_found")
-  >>> crackme101.write("libcrackme101.so")
+.. literalinclude:: ../../code/python/tuto_elf_bin2lib.py
+  :language: python
+  :start-after: lief-doc: export-start
+  :end-before: lief-doc: export-end
+  :dedent:
 
 And that's all!
 
@@ -241,15 +241,13 @@ to deny ``dlopen`` calls with PIE binaries. This is done by verifying that the
 
 To circumvent this check, LIEF can be used to remove the ``DF_1_PIE`` flag:
 
-.. code-block:: python
+.. literalinclude:: ../../code/python/tuto_elf_bin2lib.py
+  :language: python
+  :prepend: import lief
+  :start-after: lief-doc: remove-pie-start
+  :end-before: lief-doc: remove-pie-end
   :emphasize-lines: 5
-
-  import lief
-  import sys
-  path = sys.argv[1]
-  bin_ = lief.parse(path)
-  bin_[lief.ELF.DynamicEntry.TAG.FLAGS_1].remove(lief.ELF.DynamicEntryFlags.FLAG.PIE)
-  bin_.write(path + ".patched")
+  :dedent:
 
 
 Conclusion

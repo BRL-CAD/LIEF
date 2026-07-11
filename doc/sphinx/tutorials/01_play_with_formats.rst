@@ -20,46 +20,53 @@ functions.
   |lief-abstract-binary| object, whereas |lief-elf-parse|
   will return a |lief-elf-binary| object.
 
-.. code-block:: python
-
-  import lief
-  binary = lief.parse("/bin/ls")
+.. literalinclude:: ../../code/python/tuto_play_formats.py
+  :language: python
+  :prepend: import lief
+  :start-after: lief-doc: elf-parse-start
+  :end-before: lief-doc: elf-parse-end
+  :dedent:
 
 Once the ELF file has been parsed, we can access its :class:`~lief.ELF.Header`:
 
-.. code-block:: python
-
-  header = binary.header
+.. literalinclude:: ../../code/python/tuto_play_formats.py
+  :language: python
+  :start-after: lief-doc: elf-header-start
+  :end-before: lief-doc: elf-header-end
+  :dedent:
 
 To change the entry point and the target architecture (:class:`~lief.ELF.ARCH`):
 
-.. code-block:: python
-
-  header.entrypoint = 0x123
-  header.machine_type = lief.ELF.ARCH.AARCH64
+.. literalinclude:: ../../code/python/tuto_play_formats.py
+  :language: python
+  :start-after: lief-doc: elf-change-header-start
+  :end-before: lief-doc: elf-change-header-end
+  :dedent:
 
 Then, write these changes to a new ELF binary:
 
-.. code-block:: python
-
-  binary.write("ls.modified")
+.. literalinclude:: ../../code/python/tuto_play_formats.py
+  :language: python
+  :start-after: lief-doc: elf-write-start
+  :end-before: lief-doc: elf-write-end
+  :dedent:
 
 We can also iterate over the :class:`~lief.ELF.Section` entries as follows:
 
-.. code-block:: python
-
-  for section in binary.sections:
-    print(section.name) # section name
-    print(section.size) # section size
-    print(len(section.content)) # Should match the previous print
+.. literalinclude:: ../../code/python/tuto_play_formats.py
+  :language: python
+  :start-after: lief-doc: elf-sections-start
+  :end-before: lief-doc: elf-sections-end
+  :dedent:
 
 
 To modify the content of the ``.text`` section:
 
-.. code-block:: python
-
-  text = binary.get_section(".text")
-  text.content = bytes([0x33] * text.size)
+.. literalinclude:: ../../code/python/tuto_play_formats.py
+  :language: python
+  :start-after: lief-doc: elf-text-start
+  :end-before: lief-doc: elf-text-end
+  :dedent:
 
 
 PE
@@ -69,47 +76,42 @@ As with the ``ELF`` section, you can use the |lief-abstract-parse| or
 |lief-pe-parse| functions to create a :class:`.PE.Binary`
 
 
-.. code-block:: python
-
-  import lief
-  binary = lief.parse("C:\\Windows\\explorer.exe")
+.. literalinclude:: ../../code/python/tuto_play_formats.py
+  :language: python
+  :prepend: import lief
+  :start-after: lief-doc: pe-parse-start
+  :end-before: lief-doc: pe-parse-end
+  :dedent:
 
 
 To access the various PE headers (:class:`~lief.PE.DosHeader`,
 :class:`~lief.PE.Header`, and :class:`~lief.PE.OptionalHeader`):
 
-.. code-block:: python
-
-  print(binary.dos_header)
-  print(binary.header)
-  print(binary.optional_header)
+.. literalinclude:: ../../code/python/tuto_play_formats.py
+  :language: python
+  :start-after: lief-doc: pe-headers-start
+  :end-before: lief-doc: pe-headers-end
+  :dedent:
 
 You can also access imported functions in two ways:
 
 1. Using the *abstract* layer
 2. Using the PE definition
 
-.. code-block:: python
-
-  # Using the abstract layer
-  for func in binary.imported_functions:
-    print(func)
-
-  # Using the PE definition
-  for func in binary.imports:
-    print(func)
+.. literalinclude:: ../../code/python/tuto_play_formats.py
+  :language: python
+  :start-after: lief-doc: pe-imports-start
+  :end-before: lief-doc: pe-imports-end
+  :dedent:
 
 For finer granularity regarding the location of imported functions in libraries,
 or to access other fields of the PE imports, we can process the imports as
 follows:
 
-.. code-block:: python
-
-  for imported_library in binary.imports:
-    print("Library name: " + imported_library.name)
-    for func in imported_library.entries:
-      if not func.is_ordinal:
-        print(func.name)
-      print(func.iat_address)
+.. literalinclude:: ../../code/python/tuto_play_formats.py
+  :language: python
+  :start-after: lief-doc: pe-imports-detailed-start
+  :end-before: lief-doc: pe-imports-detailed-end
+  :dedent:
 
 .. include:: ../_cross_api.rst

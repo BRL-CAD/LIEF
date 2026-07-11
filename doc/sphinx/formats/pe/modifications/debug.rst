@@ -20,37 +20,27 @@ changed as follows:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe: lief.PE.Binary = ...
-
-        pe.codeview_pdb.filename = r"C:\A\B\C\path.pdb"
-
-        pe.write("out.dll")
+      .. literalinclude:: ../../../../code/python/pe_debug.py
+        :language: python
+        :start-after: lief-doc: change-name-start
+        :end-before: lief-doc: change-name-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        pe->codeview_pdb("C:\\A\\B\\C\\path.pdb");
-
-        pe->write("out.dll");
+     .. literalinclude:: ../../../../code/cpp/pe_debug.cpp
+        :language: cpp
+        :start-after: lief-doc: change-name-start
+        :end-before: lief-doc: change-name-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe: lief::pe::Binary;
-
-        pe.codeview_pdb().unwrap().set_filename(r#"C:\A\B\C\path.pdb"#);
-
-        pe.write("out.exe");
+      .. literalinclude:: ../../../../code/rust/src/pe_debug.rs
+        :language: rust
+        :start-after: lief-doc: change-name-start
+        :end-before: lief-doc: change-name-end
+        :dedent:
 
 
 The |lief-pe-binary-remove-debug| function can be used to remove a specific
@@ -61,49 +51,27 @@ debug entries:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe: lief.PE.Binary = ...
-
-        # Remove a single CodeViewPDB entry
-        pe.remove_debug(pe.codeview_pdb)
-
-        # Remove all entries
-        pe.clear_debug()
-
-        pe.write("out.dll")
+      .. literalinclude:: ../../../../code/python/pe_debug.py
+        :language: python
+        :start-after: lief-doc: remove-start
+        :end-before: lief-doc: remove-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        // Remove a single CodeViewPDB entry
-        pe->remove_debug(*pe->codeview_pdb());
-
-        // Remove all entries
-        pe->clear_debug();
-
-        pe->write("out.dll");
+      .. literalinclude:: ../../../../code/cpp/pe_debug.cpp
+        :language: cpp
+        :start-after: lief-doc: remove-start
+        :end-before: lief-doc: remove-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe: lief::pe::Binary;
-
-        // Remove a single CodeViewPDB entry
-        pe.remove_debug(pe.codeview_pdb().unwrap());
-
-        // Remove all entries
-        pe.clear_debug();
-
-        pe.write("out.exe");
+      .. literalinclude:: ../../../../code/rust/src/pe_debug.rs
+        :language: rust
+        :start-after: lief-doc: remove-start
+        :end-before: lief-doc: remove-end
+        :dedent:
 
 Finally, |lief-pe-binary-add-debug-info| can be used to add a crafted debug
 entry to an existing PE.
@@ -114,42 +82,27 @@ For example, a custom |lief-pe-codeviewpdb| can be created as follows:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe: lief.PE.Binary = ...
-
-        cv = lief.PE.CodeViewPDB("MyCustom.pdb")
-
-        pe.add_debug_info(cv)
-
-        pe.write("out.dll")
+      .. literalinclude:: ../../../../code/python/pe_debug.py
+        :language: python
+        :start-after: lief-doc: add-start
+        :end-before: lief-doc: add-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        LIEF::PE::CodeViewPDB cv("MyCustom.pdb");
-        pe->add_debug_info(cv);
-
-        pe->write("out.dll");
+      .. literalinclude:: ../../../../code/cpp/pe_debug.cpp
+        :language: cpp
+        :start-after: lief-doc: add-start
+        :end-before: lief-doc: add-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe: lief::pe::Binary;
-
-        let cv = lief::pe::debug::CodeViewPDB::with_filename("MyCustom.pdb");
-
-        pe.add_debug_info(&cv);
-
-        pe.write("out.exe");
+      .. literalinclude:: ../../../../code/rust/src/pe_debug.rs
+        :language: rust
+        :start-after: lief-doc: add-start
+        :end-before: lief-doc: add-end
+        :dedent:
 
 
 .. include:: ../../../_cross_api.rst

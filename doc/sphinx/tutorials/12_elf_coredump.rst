@@ -34,29 +34,30 @@ Coredump Analysis
 Since core files are effectively ELF files, they can be opened using the
 |lief-abstract-parse| function:
 
-.. code-block:: python
-
-   import lief
-
-   core = lief.parse("ELF64_AArch64_core_hello.core")
+.. literalinclude:: ../../code/python/tuto_coredump.py
+   :language: python
+   :prepend: import lief
+   :start-after: lief-doc: parse-core-start
+   :end-before: lief-doc: parse-core-end
+   :dedent:
 
 We can iterate over the :class:`~lief.ELF.Segment` objects to inspect the
 memory state of the program:
 
-.. code-block:: python
-
-   segments = core.segments
-   print("Number of segments {}".format(len(segments)))
-
-   for segment in segments:
-      print(hex(segment.virtual_address))
+.. literalinclude:: ../../code/python/tuto_coredump.py
+   :language: python
+   :start-after: lief-doc: segments-start
+   :end-before: lief-doc: segments-end
+   :dedent:
 
 To resolve the relationship between libraries and segments, we can examine the
 special note :class:`lief.ELF.CoreFile`:
 
-.. code-block:: python
-
-   nt_core_file = core.get(lief.ELF.Note.TYPE.CORE_FILE)
+.. literalinclude:: ../../code/python/tuto_coredump.py
+   :language: python
+   :start-after: lief-doc: get-corefile-start
+   :end-before: lief-doc: get-corefile-end
+   :dedent:
 
 ELF notes are represented via the main :class:`lief.ELF.Note` interface. Some
 notes, such as :class:`lief.ELF.CoreFile`, expose additional APIs by extending
@@ -74,31 +75,30 @@ the original :class:`lief.ELF.Note`.
 
     Specifically, in C++, we must downcast using the `classof` function:
 
-    .. code-block:: cpp
-
-      for (const Note& note : binary->notes()) {
-        if (CoreFile::classof(&note)) {
-          const auto& nt_core_file = static_cast<const CoreFile&>(note);
-        }
-      }
+    .. literalinclude:: ../../code/cpp/tuto_coredump.cpp
+      :language: cpp
+      :start-after: lief-doc: corefile-downcast-start
+      :end-before: lief-doc: corefile-downcast-end
+      :dedent:
 
     This is roughly equivalent in Python to:
 
-    .. code-block:: python
-
-      for note in binary.notes:
-          if isinstance(note, lief.ELF.CoreFile):
-              print("This is a CoreFile note")
+    .. literalinclude:: ../../code/python/tuto_coredump.py
+      :language: python
+      :start-after: lief-doc: corefile-check-start
+      :end-before: lief-doc: corefile-check-end
+      :dedent:
 
 
 We can use the :attr:`lief.ELF.CoreFile.files` attribute or iterate directly
 over the :class:`lief.ELF.CoreFile` object. Both provide access to
 :class:`lief.ELF.CoreFileEntry` objects:
 
-.. code-block:: python
-
-   for file_entry in nt_core_file:
-      print(file_entry)
+.. literalinclude:: ../../code/python/tuto_coredump.py
+   :language: python
+   :start-after: lief-doc: iter-files-start
+   :end-before: lief-doc: iter-files-end
+   :dedent:
 
 .. code-block:: text
 
@@ -132,16 +132,11 @@ main executable (``/data/local/tmp/hello-exe``) are mapped from address
 The register state can also be accessed by looking for the
 :class:`lief.ELF.CorePrStatus` note:
 
-.. code-block:: python
-
-   for note in core.notes:
-      if not isinstance(note, lief.ELF.CorePrStatus):
-          continue
-
-      # Both are equivalent
-      print(note.pc)
-      reg_values = note.register_values
-      print(reg_values[lief.ELF.CorePrStatus.Registers.AARCH64.PC.value])
+.. literalinclude:: ../../code/python/tuto_coredump.py
+   :language: python
+   :start-after: lief-doc: registers-start
+   :end-before: lief-doc: registers-end
+   :dedent:
 
 .. code-block:: text
 
@@ -155,12 +150,11 @@ Coredump Manipulation
 To a certain extent, LIEF enables the modification of coredumps. For instance,
 we can update register values as follows:
 
-.. code-block:: python
-
-   prstatus = core.get(lief.ELF.Note.TYPE.CORE_PRSTATUS)
-   prstatus.set(lief.ELF.CorePrStatus.Registers.AARCH64.PC, 0xDEADC0DE)
-
-   core.write("/tmp/new.core")
+.. literalinclude:: ../../code/python/tuto_coredump.py
+   :language: python
+   :start-after: lief-doc: set-register-start
+   :end-before: lief-doc: set-register-end
+   :dedent:
 
 When opening ``/tmp/new.core`` in GDB, we can observe the modification:
 

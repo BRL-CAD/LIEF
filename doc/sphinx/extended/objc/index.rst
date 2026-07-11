@@ -26,33 +26,27 @@ If a Mach-O binary embeds Objective-C metadata, it can be accessed through
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        macho: lief.MachO.Binary = ...
-        metadata: lief.objc.Metadata = macho.objc_metadata
-        if metadata is not None:
-            print("Objective-C metadata found")
+      .. literalinclude:: ../../../code/python/objc.py
+        :language: python
+        :start-after: lief-doc: check-start
+        :end-before: lief-doc: check-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::MachO::Binary> macho;
-        std::unique_ptr<LIEF::objc::Metadata> metadata = macho->objc_metadata();
-
-        if (metadata != nullptr) {
-          std::cout << "Objective metadata found\n";
-        }
+      .. literalinclude:: ../../../code/cpp/objc.cpp
+        :language: cpp
+        :start-after: lief-doc: check-start
+        :end-before: lief-doc: check-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let macho: lief::macho::Binary;
-
-        if let Some(metadata) = macho.objc_metadata() {
-            println!("Objective-C metadata found");
-        }
+      .. literalinclude:: ../../../code/rust/src/objc.rs
+        :language: rust
+        :start-after: lief-doc: check-start
+        :end-before: lief-doc: check-end
+        :dedent:
 
 At this point, one can use the API exposed by the |lief-objc-metadata| class
 to inspect the Objective-C metadata.
@@ -64,49 +58,27 @@ a header-like output of all the Objective-C metadata found in the binary.
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        macho: lief.MachO.Binary = lief.parse("some_macho")
-        metadata: lief.objc.Metadata = macho.objc_metadata
-        for clazz in metadata.classes:
-            print(f"name={clazz.name}")
-            for meth in clazz.methods:
-                print(f"  method.name={meth.name}")
-        print(metadata.to_decl())
+      .. literalinclude:: ../../../code/python/objc.py
+        :language: python
+        :start-after: lief-doc: inspect-start
+        :end-before: lief-doc: inspect-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::MachO::FatBinary> fat = LIEF::MachO::Parser::parse(argv[1]);
-        LIEF::MachO::Binary* bin = fat->at(0);
-
-        std::unique_ptr<LIEF::objc::Metadata> metadata = bin->objc_metadata();
-
-        for (const LIEF::objc::Class& clazz : metadata->classes()) {
-          log(LOG_LVL, "name={}", clazz.name());
-          for (const LIEF::objc::Method& meth : clazz.methods()) {
-            log(LOG_LVL, "  method.name={}", meth.name());
-          }
-        }
-
-        log(LOG_LVL, metadata->to_decl());
+      .. literalinclude:: ../../../code/cpp/objc.cpp
+        :language: cpp
+        :start-after: lief-doc: inspect-start
+        :end-before: lief-doc: inspect-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-    .. code-block:: rust
-
-        let Some(lief::Binary::MachO(fat)) = lief::Binary::parse(&path) else { process::exit(1); };
-        let Some(bin) = fat.iter().next() else { process::exit(1); };
-        let Some(metadata) = bin.objc_metadata() else { process::exit(1); };
-
-        for class in metadata.classes() {
-            println!("name={}", class.name());
-            for method in class.methods() {
-                println!("  method.name={}", method.name());
-            }
-        }
-        println!("{}", metadata.to_decl());
+    .. literalinclude:: ../../../code/rust/src/objc.rs
+      :language: rust
+      :start-after: lief-doc: inspect-start
+      :end-before: lief-doc: inspect-end
+      :dedent:
 
 Class Dump
 **********
@@ -131,14 +103,11 @@ the LLVM printer visitor to it.
 
   .. tab:: :fa:`brands fa-rust` Code
 
-    .. code-block:: rust
-
-      fn classdump(macho: &lief::macho::Binary) {
-        let metadata = macho.objc_metadata().expect("Missing Objective-C info");
-        for class in metadata.classes() {
-          println!("{}", class.to_decl());
-        }
-      }
+    .. literalinclude:: ../../../code/rust/src/objc.rs
+      :language: rust
+      :start-after: lief-doc: classdump-start
+      :end-before: lief-doc: classdump-end
+      :dedent:
 
   .. tab:: :fa:`solid fa-terminal` Result
 
@@ -188,17 +157,11 @@ The |lief-objc-declopt| can be used to customize the generated output. For
 example, we can remove the commented addresses associated with Objective-C
 methods using this option:
 
-.. code-block:: python
-
-  def print_without_address(macho: lief.MachO.Binary):
-
-      metadata = macho.objc_metadata
-
-      config = lief.objc.DeclOpt()
-      config.show_annotations = False
-
-      for cls in metadata.classes:
-          print(cls.to_decl(config))
+.. literalinclude:: ../../../code/python/objc.py
+  :language: python
+  :start-after: lief-doc: no-address-start
+  :end-before: lief-doc: no-address-end
+  :dedent:
 
 :fa:`solid fa-book-open-reader` References
 *******************************************

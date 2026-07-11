@@ -19,63 +19,27 @@ can adjust the TLS callbacks by removing, reordering, or adding addresses:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe: lief.PE.Binary = ...
-
-        callbacks: list[int] = pe.tls.callbacks
-
-        # Remove the last entry
-        callbacks.pop()
-
-        # Add an address
-        callbacks.append(0x140001010)
-
-        tls.callbacks = callbacks
-
-        pe.write("tls_modified.exe")
+      .. literalinclude:: ../../../../code/python/pe_tls.py
+        :language: python
+        :start-after: lief-doc: modify-callbacks-start
+        :end-before: lief-doc: modify-callbacks-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        std::vector<uint64_t> callbacks = pe->callbacks();
-
-        // Remove the last entry
-        callbacks.pop_back();
-
-        // Add an address
-        callbacks.push_back(0x140001010);
-
-        tls->callbacks(std::move(callbacks));
-
-        pe->write("tls_modified.exe");
+      .. literalinclude:: ../../../../code/cpp/pe_tls.cpp
+        :language: cpp
+        :start-after: lief-doc: modify-callbacks-start
+        :end-before: lief-doc: modify-callbacks-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe: lief::pe::Binary;
-
-        let mut tls = pe.tls().unwrap();
-
-        let mut callbacks: Vec<u64> = tls.callbacks();
-
-        // Remove the last entry
-        callbacks.pop();
-
-        // Add an address
-        callbacks.push(0x140001010);
-
-        tls.set_callbacks(callbacks);
-
-        pe.write("tls_modified.exe");
+      .. literalinclude:: ../../../../code/rust/src/pe_tls.rs
+        :language: rust
+        :start-after: lief-doc: modify-callbacks-start
+        :end-before: lief-doc: modify-callbacks-end
+        :dedent:
 
 
 .. admonition:: Relocations
@@ -96,42 +60,27 @@ First, we can create and initialize a TLS instance:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        tls = lief.PE.TLS()
-
-        tls.callbacks = [
-            0x140001000,
-            0x140001010,
-        ]
+      .. literalinclude:: ../../../../code/python/pe_tls.py
+        :language: python
+        :start-after: lief-doc: create-tls-start
+        :end-before: lief-doc: create-tls-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        LIEF::PE::TLS tls;
-
-        tls.callbacks(std::vector<uint64_t> {
-            0x140001000,
-            0x140001010,
-        });
+      .. literalinclude:: ../../../../code/cpp/pe_tls.cpp
+        :language: cpp
+        :start-after: lief-doc: create-tls-start
+        :end-before: lief-doc: create-tls-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        use lief;
-
-        let mut tls = lief::pe::TLS::new();
-
-        tls.set_callbacks(vec![
-          0x140001000,
-          0x140001010,
-        ]);
+      .. literalinclude:: ../../../../code/rust/src/pe_tls.rs
+        :language: rust
+        :start-after: lief-doc: create-tls-start
+        :end-before: lief-doc: create-tls-end
+        :dedent:
 
 And then, we can add this instance to a |lief-pe-binary|:
 
@@ -139,33 +88,27 @@ And then, we can add this instance to a |lief-pe-binary|:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        pe: lief.PE.Binary = ...
-
-        pe.tls = tls # `tls` defined previously
-
-        pe.write("tls_demo.exe")
+      .. literalinclude:: ../../../../code/python/pe_tls.py
+        :language: python
+        :start-after: lief-doc: add-tls-start
+        :end-before: lief-doc: add-tls-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        pe->tls(tls); // `tls` defined previously
-
-        pe->write("tls_demo.exe");
+      .. literalinclude:: ../../../../code/cpp/pe_tls.cpp
+        :language: cpp
+        :start-after: lief-doc: add-tls-start
+        :end-before: lief-doc: add-tls-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe: lief::pe::Binary;
-
-        pe.set_tls(&tls); // `tls` defined previously
-
-        pe.write("tls_demo.exe");
+      .. literalinclude:: ../../../../code/rust/src/pe_tls.rs
+        :language: rust
+        :start-after: lief-doc: add-tls-start
+        :end-before: lief-doc: add-tls-end
+        :dedent:
 
 .. admonition:: Relocations
   :class: tip

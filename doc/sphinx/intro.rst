@@ -14,73 +14,31 @@ As a result, you can use LIEF through an idiomatic API in these languages:
 
   .. tab:: :fa:`brands fa-python` Python
 
-    .. code-block:: python
-
-      import lief
-
-      elf: lief.ELF.Binary = lief.ELF.parse("libc.so")
-
-      for symbol in elf.symbols:
-          print(symbol.address, symbol.name)
-
-      print(elf.header)
-
-      for entry in elf.dynamic_entries:
-
-        if isinstance(entry, lief.ELF.DynamicEntryLibrary):
-            entry.name = "libhello.so"
-
-      elf.write("modified.elf")
+    .. literalinclude:: ../code/python/intro.py
+      :language: python
+      :prepend: import lief
+      :start-after: lief-doc: intro-start
+      :end-before: lief-doc: intro-end
+      :dedent:
 
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-    .. code-block:: cpp
-
-      #include <LIEF/LIEF.hpp>
-
-      std::unique_ptr<LIEF::MachO::FatBinary> fat =
-        LIEF::MachO::Parser::parse("libobjc.dylib");
-
-      for (const LIEF::MachO::Binary& macho : fat) {
-        for (const LIEF::MachO::BindingInfo& binding : macho.bindings()) {
-          std::cout << binding.address() << ' ' << binding.symbol()->name() << '\n';
-        }
-
-        if (macho.is_ios()) {
-          if (const LIEF::MachO::EncryptionInfo* info = macho.encryption_info())
-          {
-            std::cout << info->crypt_id() << '\n';
-          }
-        }
-      }
+      .. literalinclude:: ../code/cpp/intro.cpp
+        :language: cpp
+        :prepend: #include <LIEF/LIEF.hpp>
+        :start-after: lief-doc: intro-start
+        :end-before: lief-doc: intro-end
+        :dedent:
 
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-    .. code-block:: rust
-
-      let mut file = std::fs::File::open(path).expect("Can't open the file");
-
-      if let Some(lief::Binary::PE(pe)) = lief::Binary::from(&mut file) {
-          let rich_header = pe.rich_header().unwrap_or_else(|| {
-              println!("Rich header not found!");
-              process::exit(0);
-          });
-
-          println!("Rich header key: 0x{:x}", rich_header.key());
-          for entry in rich_header.entries() {
-              println!("id: 0x{:04x} build_id: 0x{:04x} count: #{}",
-                       entry.id(), entry.build_id(), entry.count());
-          }
-
-          let result = pe.verify_signature(pe::signature::VerificationChecks::DEFAULT);
-          if result.is_ok() {
-              println!("Valid signature!");
-          } else {
-              println!("Signature not valid: {}", result);
-          }
-      }
+    .. literalinclude:: ../code/rust/src/intro.rs
+      :language: rust
+      :start-after: lief-doc: intro-start
+      :end-before: lief-doc: intro-end
+      :dedent:
 
 The project is also dedicated to providing comprehensive documentation and
 maintaining strong development standards, including:

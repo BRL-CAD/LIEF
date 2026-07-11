@@ -148,11 +148,12 @@ To determine which addresses must be relocated, we must interpret the bytecode.
 The :attr:`lief.MachO.DyldInfo.show_rebases_opcodes` attribute returns the
 bytecode as *pseudo-code*:
 
-.. code-block:: python
-
-  import lief
-  app = lief.parse("MachO64_x86-64_binary_id.bin")
-  print(app.dyld_info.show_rebases_opcodes)
+.. literalinclude:: ../../code/python/tuto_macho_mod.py
+  :language: python
+  :prepend: import lief
+  :start-after: lief-doc: rebase-opcodes-start
+  :end-before: lief-doc: rebase-opcodes-end
+  :dedent:
 
 .. code-block:: text
 
@@ -189,10 +190,11 @@ The :attr:`lief.MachO.Binary.relocations` attribute returns an iterator over
 :class:`lief.MachO.Relocation` objects that **model** a relocation, similar to
 :class:`lief.ELF.Relocation` and :class:`lief.PE.Relocation`.
 
-.. code-block:: python
-
-  for relocation in app.relocations:
-    print(relocation)
+.. literalinclude:: ../../code/python/tuto_macho_mod.py
+  :language: python
+  :start-after: lief-doc: relocations-start
+  :end-before: lief-doc: relocations-end
+  :dedent:
 
 .. code-block:: text
 
@@ -228,9 +230,11 @@ The bytecode can be pretty-printed with :attr:`~lief.MachO.DyldInfo.show_bind_op
 :attr:`~lief.MachO.DyldInfo.show_weak_bind_opcodes`, and
 :attr:`~lief.MachO.DyldInfo.show_lazy_bind_opcodes`:
 
-.. code-block:: python
-
-  print(app.dyld_info.show_bind_opcodes)
+.. literalinclude:: ../../code/python/tuto_macho_mod.py
+  :language: python
+  :start-after: lief-doc: bind-opcodes-start
+  :end-before: lief-doc: bind-opcodes-end
+  :dedent:
 
 .. code-block:: text
 
@@ -262,10 +266,11 @@ Once parsed, trie entries are represented via the :class:`~lief.MachO.ExportInfo
 object and can be retrieved using the :attr:`~lief.MachO.Symbol.export_info`
 attribute.
 
-.. code-block:: python
-
-  app = lief.parse("FAT_MachO_x86_x86-64_library_libdyld.dylib")
-  print(app.dyld_info.show_export_trie)
+.. literalinclude:: ../../code/python/tuto_macho_mod.py
+  :language: python
+  :start-after: lief-doc: export-trie-start
+  :end-before: lief-doc: export-trie-end
+  :dedent:
 
 .. code-block:: text
 
@@ -278,11 +283,11 @@ attribute.
                     _NSInstallLinkEditErrorHandlers{addr: 0x126b, flags: 0}
     ...
 
-.. code-block:: python
-
-  for s in app.symbols:
-    if s.has_export_info:
-      print(s.export_info)
+.. literalinclude:: ../../code/python/tuto_macho_mod.py
+  :language: python
+  :start-after: lief-doc: export-info-start
+  :end-before: lief-doc: export-info-end
+  :dedent:
 
 .. code-block:: text
 
@@ -319,13 +324,11 @@ finished.
 LIEF provides the :meth:`lief.MachO.Binary.remove_signature` function to
 remove this command:
 
-.. code-block:: python
-
-  ssh = lief.parse("/usr/bin/ssh")
-
-  ssh.remove_signature()
-
-  ssh.write("ssh.nosigned")
+.. literalinclude:: ../../code/python/tuto_macho_mod.py
+  :language: python
+  :start-after: lief-doc: remove-signature-start
+  :end-before: lief-doc: remove-signature-end
+  :dedent:
 
 Code Injection with Shared Libraries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -362,14 +365,11 @@ This is compiled with:
 Then, we add a new :attr:`~lief.MachO.LoadCommand.TYPE.LOAD_DYLIB` using the
 :meth:`lief.MachO.Binary.add_library` function:
 
-.. code-block:: python
-
-  import lief
-  clang = lief.parse("/usr/bin/clang")
-
-  clang.add_library("/Users/romain/libexample.dylib")
-
-  clang.write("/tmp/clang.new")
+.. literalinclude:: ../../code/python/tuto_macho_mod.py
+  :language: python
+  :start-after: lief-doc: add-library-start
+  :end-before: lief-doc: add-library-end
+  :dedent:
 
 Finally, we run ``clang.new`` and observe that ``Hello World`` is printed
 before the main execution of ``clang``:
@@ -426,35 +426,28 @@ The process described above is implemented via the
 
 In this example, we will inject assembly code that executes ``/bin/sh``:
 
-.. code-block:: python
-
-
-  app = lief.parse("MachO64_x86-64_binary_id.bin")
-
-  raw_shell = [...] # Assembly code
-  section = lief.MachO.Section("__shell", raw_shell)
-
-  section.alignment = 2
-  section += lief.MachO.Section.FLAGS.SOME_INSTRUCTIONS
-  section += lief.MachO.Section.FLAGS.PURE_INSTRUCTIONS
-
-  section = app.add_section(section)
-  print(section)
+.. literalinclude:: ../../code/python/tuto_macho_mod.py
+  :language: python
+  :start-after: lief-doc: add-section-start
+  :end-before: lief-doc: add-section-end
+  :dedent:
 
 We can then change the entry point by setting the
 :attr:`lief.MachO.MainCommand.entrypoint` attribute:
 
-.. code-block:: python
-
-  __TEXT = app.get_segment("__TEXT")
-  app.main_command.entrypoint = section.virtual_address - __TEXT.virtual_address
+.. literalinclude:: ../../code/python/tuto_macho_mod.py
+  :language: python
+  :start-after: lief-doc: set-entrypoint-start
+  :end-before: lief-doc: set-entrypoint-end
+  :dedent:
 
 Finally, we remove the signature and reconstruct the binary:
 
-.. code-block:: python
-
-  app.remove_signature()
-  app.write("./id.modified")
+.. literalinclude:: ../../code/python/tuto_macho_mod.py
+  :language: python
+  :start-after: lief-doc: remove-sig-write-start
+  :end-before: lief-doc: remove-sig-write-end
+  :dedent:
 
 The execution of ``id.modified`` should yield a similar output:
 

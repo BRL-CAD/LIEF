@@ -33,13 +33,11 @@ The LIEF API exposes most internal components of the PKCS #7 container
 associated with Authenticode. First, we can access the PE signatures through
 the |lief-pe-binary-signatures| attribute [#]_:
 
-.. code-block:: python
-
-   import lief
-   pe = lief.parse("avast_free_antivirus_setup_online.exe")
-   print(len(pe.signatures))
-
-   signature = pe.signatures[0]
+.. literalinclude:: ../../code/python/tuto_authenticode.py
+   :language: python
+   :start-after: lief-doc: signatures-start
+   :end-before: lief-doc: signatures-end
+   :dedent:
 
 Although we usually find only **one** signature, PE executables can embed
 multiple signatures using the ``/as`` command of ``signtool.exe``. This is why
@@ -64,17 +62,11 @@ Within this object, we can access the following attributes:
 The ``__str__()`` methods of these objects are overloaded to facilitate
 pretty-printing their content:
 
-.. code-block:: python
-
-   # Print certificate information
-   for crt in signature.certificates:
-     print(crt)
-
-   # Print the authentihash value embedded in the signature
-   print(signature.content_info.digest.hex())
-
-   # Print signer information
-   print(signature.signers[0])
+.. literalinclude:: ../../code/python/tuto_authenticode.py
+   :language: python
+   :start-after: lief-doc: signature-info-start
+   :end-before: lief-doc: signature-info-end
+   :dedent:
 
 .. code-block:: text
 
@@ -112,9 +104,11 @@ For PE files, the authentihash is computed using the
 For instance, to compute the SHA-256 authentihash, pass
 :attr:`lief.PE.ALGORITHMS.SHA_256`:
 
-.. code-block:: python
-
-   print(pe.authentihash(lief.PE.ALGORITHMS.SHA_256).hex())
+.. literalinclude:: ../../code/python/tuto_authenticode.py
+   :language: python
+   :start-after: lief-doc: authentihash-start
+   :end-before: lief-doc: authentihash-end
+   :dedent:
 
 .. code-block:: text
 
@@ -145,11 +139,11 @@ LIEF also exposes the original raw signature blob via the
 :attr:`lief.PE.Signature.raw_der` property, which allows for exporting the
 signature:
 
-.. code-block:: python
-
-  from pathlib import Path
-
-  Path("/tmp/extracted.p7b").write_bytes(signature.raw_der)
+.. literalinclude:: ../../code/python/tuto_authenticode.py
+   :language: python
+   :start-after: lief-doc: raw-der-start
+   :end-before: lief-doc: raw-der-end
+   :dedent:
 
 Then, you can use ``openssl`` to process its content:
 
@@ -260,22 +254,22 @@ integrity of the authentihash using the
 another enum value if it is invalid (see:
 :attr:`lief.PE.Signature.VERIFICATION_FLAGS`):
 
-.. code-block:: python
-
-   pe = lief.parse("avast_free_antivirus_setup_online.exe")
-   print(pe.verify_signature()) # lief.PE.Signature.VERIFICATION_FLAGS.OK
+.. literalinclude:: ../../code/python/tuto_authenticode.py
+   :language: python
+   :start-after: lief-doc: verify-start
+   :end-before: lief-doc: verify-end
+   :dedent:
 
 You can also verify a PE binary with a **detached signature** by providing a
 :class:`signature <lief.PE.Signature>` object to
 :meth:`~lief.PE.Binary.verify_signature`:
 
-.. code-block:: python
-   :emphasize-lines: 3,4
-
-   pe = lief.parse("avast_free_antivirus_setup_online.exe")
-
-   detached_sig = lief.PE.Signature.parse("/tmp/detached.p7b")
-   print(pe.verify_signature(detached_sig))
+.. literalinclude:: ../../code/python/tuto_authenticode.py
+   :language: python
+   :start-after: lief-doc: verify-detached-start
+   :end-before: lief-doc: verify-detached-end
+   :emphasize-lines: 1,4
+   :dedent:
 
 The verification process does not rely on external components (i.e., neither
 OpenSSL nor the WinTrust API). Instead, we attempt to reproduce the same checks
@@ -313,9 +307,11 @@ behavior:
     only performs step ``B)`` (i.e., checks the authentihash values regardless
     of signature integrity).
 
-    .. code-block:: python
-
-      pe.verify_signature(lief.PE.Signature.VERIFICATION_CHECKS.HASH_ONLY)
+    .. literalinclude:: ../../code/python/tuto_authenticode.py
+      :language: python
+      :start-after: lief-doc: verify-hash-only-start
+      :end-before: lief-doc: verify-hash-only-end
+      :dedent:
 
 
 :Lifetime Signing:
@@ -324,10 +320,11 @@ behavior:
     allows timestamped signatures to expire if their certificate has expired.
     This corresponds to `WTD_LIFETIME_SIGNING_FLAG <https://docs.microsoft.com/en-us/windows/win32/api/wintrust/ns-wintrust-wintrust_data#WTD_LIFETIME_SIGNING_FLAG>`_.
 
-    .. code-block:: python
-
-      pe.verify_signature(lief.PE.Signature.VERIFICATION_CHECKS.LIFETIME_SIGNING)
-      signature.check(lief.PE.Signature.VERIFICATION_CHECKS.LIFETIME_SIGNING)
+    .. literalinclude:: ../../code/python/tuto_authenticode.py
+      :language: python
+      :start-after: lief-doc: verify-lifetime-start
+      :end-before: lief-doc: verify-lifetime-end
+      :dedent:
 
 
 :Skip Certificate Time Check:
@@ -335,12 +332,11 @@ behavior:
     Using :attr:`VERIFICATION_CHECKS.SKIP_CERT_TIME <lief.PE.Signature.VERIFICATION_CHECKS.SKIP_CERT_TIME>`
     prevents LIEF from raising an error if certificates have expired.
 
-    .. code-block:: python
-
-      # Returns lief.PE.Signature.VERIFICATION_FLAGS.OK even if
-      # the certificates have expired
-      pe.verify_signature(lief.PE.Signature.VERIFICATION_CHECKS.SKIP_CERT_TIME)
-      signature.check(lief.PE.Signature.VERIFICATION_CHECKS.SKIP_CERT_TIME)
+    .. literalinclude:: ../../code/python/tuto_authenticode.py
+      :language: python
+      :start-after: lief-doc: verify-skip-cert-time-start
+      :end-before: lief-doc: verify-skip-cert-time-end
+      :dedent:
 
 .. note::
 
@@ -364,18 +360,17 @@ Alternatively, :meth:`~lief.PE.x509.is_trusted_by` checks whether a given
 :class:`~lief.PE.x509` certificate can be verified against a **list of
 certificates**:
 
-.. code-block:: python
+.. literalinclude:: ../../code/python/tuto_authenticode.py
+   :language: python
+   :start-after: lief-doc: is-trusted-bundle-start
+   :end-before: lief-doc: is-trusted-bundle-end
+   :dedent:
 
-  CA_BUNDLE = lief.PE.x509.parse("ms_bundle.pem")
-  signer = signature.signers[0]
-  print(signer.cert.is_trusted_by(CA_BUNDLE))
-
-.. code-block:: python
-
-  cert1 = lief.PE.x509.parse("ca1.crt")
-  cert2 = lief.PE.x509.parse("ca2.crt")
-
-  print(signer.cert.is_trusted_by([cert1, cert2]))
+.. literalinclude:: ../../code/python/tuto_authenticode.py
+   :language: python
+   :start-after: lief-doc: is-trusted-list-start
+   :end-before: lief-doc: is-trusted-list-end
+   :dedent:
 
 
 Limitations
@@ -416,19 +411,11 @@ primitives used by LIEF:
 
 A small C++ snippet can also be cross-compiled for iOS:
 
-.. code-block:: cpp
-
-   #include <LIEF/PE.hpp>
-
-   int main(int argc, char** argv) {
-     std::unique_ptr<LIEF::PE::Binary> pe = LIEF::PE::Parser::parse(argv[1])
-     if (pe->verify_signature() == LIEF::PE::Signature::VERIFICATION_FLAGS.OK) {
-       std::cout << "Signature ok!" << "\n";
-       return 0;
-     }
-     std::cout << "Error!" << "\n";
-     return 1;
-   }
+.. literalinclude:: ../../code/cpp/tuto_authenticode.cpp
+   :language: cpp
+   :start-after: lief-doc: ios-main-start
+   :end-before: lief-doc: ios-main-end
+   :dedent:
 
 This allows for verifying the integrity of a PE executable on an iPhone:
 

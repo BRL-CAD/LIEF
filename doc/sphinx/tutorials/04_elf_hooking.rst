@@ -48,27 +48,20 @@ To inject this hook into the library, we use the :meth:`~lief.ELF.Binary.add` (s
 
 First, we find the code for our hook function and add it to the library:
 
-.. code-block:: python
-
-  import lief
-
-  libm = lief.parse("/usr/lib/libm.so.6")
-  hook = lief.parse("hook")
-
-  exp_symbol  = libm.get_symbol("exp")
-  hook_symbol = hook.get_symbol("hook")
-
-  code_segment = hook.segment_from_virtual_address(hook_symbol.value)
-  segment_added = libm.add(code_segment)
+.. literalinclude:: ../../code/python/tuto_elf_hooking.py
+  :language: python
+  :start-after: lief-doc: inject-start
+  :end-before: lief-doc: inject-end
+  :dedent:
 
 Once the stub is injected, we must calculate the new address for the ``exp``
 symbol and update it:
 
-.. code-block:: python
-
-  new_address = segment_added.virtual_address + hook_symbol.value - code_segment.virtual_address
-  exp_symbol.value = new_address
-  exp_symbol.type  = lief.ELF.Symbol.TYPE.FUNC  # it might have been GNU_IFUNC
+.. literalinclude:: ../../code/python/tuto_elf_hooking.py
+  :language: python
+  :start-after: lief-doc: update-start
+  :end-before: lief-doc: update-end
+  :dedent:
 
 Note that we must update the symbol type to a regular `FUNC` because, on many
 distributions, `libm.so` is built with automatic hardware detection and exposes
@@ -79,9 +72,11 @@ __ https://sourceware.org/glibc/wiki/GNU_IFUNC
 
 Finally, we write the patched library to a file in the current directory:
 
-.. code-block:: python
-
-  libm.write("libm.so.6")
+.. literalinclude:: ../../code/python/tuto_elf_hooking.py
+  :language: python
+  :start-after: lief-doc: write-start
+  :end-before: lief-doc: write-end
+  :dedent:
 
 To test the patched library:
 

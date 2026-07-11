@@ -54,7 +54,7 @@ def _get_vc_env(vc_arch: str) -> dict[str, str]:
     try:
         from setuptools import distutils  # type: ignore
 
-        return distutils._msvccompiler._get_vc_env(vc_arch)
+        return distutils._msvccompiler._get_vc_env(vc_arch)  #  type: ignore
     except AttributeError:
         from setuptools._distutils import _msvccompiler  # type: ignore
 

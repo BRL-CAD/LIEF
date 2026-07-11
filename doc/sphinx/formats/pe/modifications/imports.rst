@@ -188,46 +188,27 @@ function, or remove all libraries with |lief-pe-binary-remove-all-import|:
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe: lief.PE.Binary = ...
-
-        pe.remove_import("kernel32.dll")
-
-        config = lief.PE.Builder.config_t()
-        config.imports = True
-
-        pe.write("new.exe", config)
+      .. literalinclude:: ../../../../code/python/pe_imports.py
+        :language: python
+        :start-after: lief-doc: remove-import-start
+        :end-before: lief-doc: remove-import-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        pe->remove_import("kernel32.dll");
-
-        LIEF::PE::Builder::config_t config;
-        config.imports = true;
-
-        pe->write("new.exe", config);
+      .. literalinclude:: ../../../../code/cpp/pe_imports.cpp
+        :language: cpp
+        :start-after: lief-doc: remove-import-start
+        :end-before: lief-doc: remove-import-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe: lief::pe::Binary;
-
-        pe.remove_import("kernel32.dll");
-
-        let config = lief::pe::builder::Config::default();
-        config.imports = true;
-
-        pe.write_with_config("new.exe", config);
+      .. literalinclude:: ../../../../code/rust/src/pe_imports.rs
+        :language: rust
+        :start-after: lief-doc: remove-import-start
+        :end-before: lief-doc: remove-import-end
+        :dedent:
 
 
 .. _ref-remove-import-entry:
@@ -242,50 +223,27 @@ To remove an imported function, use |lief-pe-import-remove-entry| on an
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe: lief.PE.Binary = ...
-
-        kernel32 = pe.get_import("kernel32.dll")
-        kernel32.remove_entry("IsDebuggerPresent")
-
-        config = lief.PE.Builder.config_t()
-        config.imports = True
-
-        pe.write("new.exe", config)
+      .. literalinclude:: ../../../../code/python/pe_imports.py
+        :language: python
+        :start-after: lief-doc: remove-import-entry-start
+        :end-before: lief-doc: remove-import-entry-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        LIEF::PE::Import* kernel32 = pe->get_import("kernel32.dll");
-        kernel32->remove_entry("IsDebuggerPresent");
-
-        LIEF::PE::Builder::config_t config;
-        config.imports = true;
-
-        pe->write("new.exe", config);
+      .. literalinclude:: ../../../../code/cpp/pe_imports.cpp
+        :language: cpp
+        :start-after: lief-doc: remove-import-entry-start
+        :end-before: lief-doc: remove-import-entry-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe: lief::pe::Binary;
-
-        if let Some(mut kernel32) = pe.import_by_name("kernel32.dll") {
-          kernel32.remove_entry_by_name("IsDebuggerPresent");
-        }
-
-        let config = lief::pe::builder::Config::default();
-        config.imports = true;
-
-        pe.write_with_config("new.exe", config);
+      .. literalinclude:: ../../../../code/rust/src/pe_imports.rs
+        :language: rust
+        :start-after: lief-doc: remove-import-entry-start
+        :end-before: lief-doc: remove-import-entry-end
+        :dedent:
 
 Since this operation removes an entry from the IAT, and we cannot shrink the
 table without patching the assembly (or using trampolines), the workaround
@@ -341,49 +299,27 @@ LIEF allows you to create and add new imports using the
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe: lief.PE.Binary = ...
-
-        stdio = pe.add_import("api-ms-win-crt-stdio-l1-1-0.dll")
-        stdio.add_entry("puts")
-
-        config = lief.PE.Builder.config_t()
-        config.imports = True
-
-        pe.write("new.exe", config)
+      .. literalinclude:: ../../../../code/python/pe_imports.py
+        :language: python
+        :start-after: lief-doc: add-import-start
+        :end-before: lief-doc: add-import-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        LIEF::PE::Import& stdio = pe->add_import("api-ms-win-crt-stdio-l1-1-0.dll");
-        LIEF::PE::ImportEntry& _puts = stdio.add_entry("puts");
-
-        LIEF::PE::Builder::config_t config;
-        config.imports = true;
-
-        pe->write("new.exe", config);
+      .. literalinclude:: ../../../../code/cpp/pe_imports.cpp
+        :language: cpp
+        :start-after: lief-doc: add-import-start
+        :end-before: lief-doc: add-import-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe: lief::pe::Binary;
-
-        let mut stdio = pe.add_import("api-ms-win-crt-stdio-l1-1-0.dll");
-        let _puts = stdio.add_entry_by_name("puts");
-
-        let config = lief::pe::builder::Config::default();
-        config.imports = true;
-
-        pe.write_with_config("new.exe", config);
+      .. literalinclude:: ../../../../code/rust/src/pe_imports.rs
+        :language: rust
+        :start-after: lief-doc: add-import-start
+        :end-before: lief-doc: add-import-end
+        :dedent:
 
 As shown in Figure :ref:`fig-lief-import-table-relocation`, this modification
 introduces a new IAT located near the relocated import table. This new IAT
@@ -407,50 +343,21 @@ created, |lief-pe-builder-config| accepts a callback via its
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-        :emphasize-lines: 3-6,15
-
-        import lief
-
-        def iat_resolution_cbk(pe: lief.PE.Binary, imp: lief.PE.Import, entry:
-                               lief.PE.ImportEntry, rva: int):
-            # Process
-            return
-
-        pe: lief.PE.Binary = ...
-
-        stdio = pe.add_import("api-ms-win-crt-stdio-l1-1-0.dll")
-        stdio.add_entry("puts")
-
-        config = lief.PE.Builder.config_t()
-        config.imports = True
-        config.resolved_iat_cbk = iat_resolution_cbk
-
-        pe.write("new.exe", config)
+      .. literalinclude:: ../../../../code/python/pe_imports.py
+        :language: python
+        :emphasize-lines: 1-4,11
+        :start-after: lief-doc: add-import-cbk-start
+        :end-before: lief-doc: add-import-cbk-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-        :emphasize-lines: 10-16
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        LIEF::PE::Import& stdio = pe->add_import("api-ms-win-crt-stdio-l1-1-0.dll");
-        LIEF::PE::ImportEntry& _puts = stdio.add_entry("puts");
-
-        LIEF::PE::Builder::config_t config;
-        config.imports = true;
-        config.resolved_iat_cbk =
-          [] (LIEF::PE::Binary& pe, LIEF::PE::Import& imp,
-              LIEF::PE::ImportEntry& entry, uint64_t RVA) -> void
-          {
-            // Process
-            return;
-          }
-
-        pe->write("new.exe", config);
+      .. literalinclude:: ../../../../code/cpp/pe_imports.cpp
+        :language: cpp
+        :emphasize-lines: 6-12
+        :start-after: lief-doc: add-import-cbk-start
+        :end-before: lief-doc: add-import-cbk-end
+        :dedent:
 
 .. admonition:: Rust Bindings
   :class: warning
@@ -465,7 +372,7 @@ created, |lief-pe-builder-config| accepts a callback via its
   :py:func:`lief.disable_leak_warning`.
 
 
-The fourth parameter of this callback, ``uint64_t RVA``, is the address in the
+The fourth parameter of this callback, ``uint32_t RVA``, is the address in the
 IAT where the address of the resolved function (|lief-pe-importentry|) will be
 stored by the loader.
 
@@ -541,51 +448,27 @@ The code is very similar to that in :ref:`ref-add-imp`.
 
   .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        pe: lief.PE.Binary = ...
-
-        kernel32 = pe.add_import("kernel32.dll")
-        kernel32.add_entry("GetStartupInfoW")
-
-        config = lief.PE.Builder.config_t()
-        config.imports = True
-        config.resolved_iat_cbk = ...
-
-        pe.write("new.exe", config)
+      .. literalinclude:: ../../../../code/python/pe_imports.py
+        :language: python
+        :start-after: lief-doc: add-import-func-start
+        :end-before: lief-doc: add-import-func-end
+        :dedent:
 
   .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/PE.hpp>
-
-        std::unique_ptr<LIEF::PE::Binary> pe;
-
-        LIEF::PE::Import& kernel32 = pe->add_import("kernel32.dll");
-        LIEF::PE::ImportEntry& _GetStartupInfoW = kernel32.add_entry("GetStartupInfoW");
-
-        LIEF::PE::Builder::config_t config;
-        config.imports = true;
-        config.resolved_iat_cbk = ...;
-
-        pe->write("new.exe", config);
+      .. literalinclude:: ../../../../code/cpp/pe_imports.cpp
+        :language: cpp
+        :start-after: lief-doc: add-import-func-start
+        :end-before: lief-doc: add-import-func-end
+        :dedent:
 
   .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut pe: lief::pe::Binary;
-
-        let mut kernel32 = pe.add_import("kernel32.dll");
-        let _GetStartupInfoW = kernel32.add_entry_by_name("GetStartupInfoW");
-
-        let mut config = lief::pe::builder::Config::default();
-        config.imports = true;
-
-        pe.write_with_config("new.exe", config);
+      .. literalinclude:: ../../../../code/rust/src/pe_imports.rs
+        :language: rust
+        :start-after: lief-doc: add-import-func-start
+        :end-before: lief-doc: add-import-func-end
+        :dedent:
 
 
 .. include:: ../../../_cross_api.rst

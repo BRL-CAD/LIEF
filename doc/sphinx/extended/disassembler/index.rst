@@ -27,37 +27,27 @@ function, which is exposed in the abstraction layer:
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        elf = lief.ELF.parse("/bin/hello")
-
-        inst: lief.assembly.Instruction = ...
-
-        for inst in elf.disassemble(0x400120):
-            print(inst)
+      .. literalinclude:: ../../../code/python/disassembler.py
+        :language: python
+        :start-after: lief-doc: disassemble-start
+        :end-before: lief-doc: disassemble-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        auto pe = LIEF::PE::Parser::parse("cmd.exe");
-
-        std::unique_ptr<LIEF::assembly::Instruction> inst;
-
-        for (const auto& inst : pe->disassemble("_WinRT")) {
-          std::cout << inst->to_string() << '\n';
-        }
+      .. literalinclude:: ../../../code/cpp/disassembler.cpp
+        :language: cpp
+        :start-after: lief-doc: disassemble-start
+        :end-before: lief-doc: disassemble-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let elf = lief::elf::Binary::parse("/bin/ls");
-        for inst in elf.disassemble_address(0x400) {
-            println!("{}", inst.to_string());
-        }
+      .. literalinclude:: ../../../code/rust/src/disassembler.rs
+        :language: rust
+        :start-after: lief-doc: disassemble-start
+        :end-before: lief-doc: disassemble-end
+        :dedent:
 
 From a design perspective, the disassembler returns a *lazy* iterator,
 yielding a |lief-asm-instruction| instance as it evaluates the
@@ -80,35 +70,29 @@ which is extended by architecture-specific objects:
 In Python, you can check the effective type of
 a :class:`lief.assembly.Instruction` with ``isinstance(...)``:
 
-.. code-block:: python
-
-   inst: lief.assembly.Instruction = ...
-
-   if isinstance(inst, lief.assembly.riscv.Instruction):
-      opcode: lief.assemble.riscv.OPCODE = inst.opcode
+.. literalinclude:: ../../../code/python/disassembler.py
+  :language: python
+  :start-after: lief-doc: downcast-start
+  :end-before: lief-doc: downcast-end
+  :dedent:
 
 In C++, downcasting is performed using the function:
 :cpp:func:`LIEF::assembly::Instruction::as`:
 
-.. code-block:: cpp
-
-  std::unique_ptr<LIEF::assembly::Instruction> inst = ...;
-
-  if (const auto* riscv_inst = inst->as<LIEF::assembly::riscv::Instruction>())
-  {
-    LIEF::assembly::riscv::OPCODE opcode = riscv_inst->opcode();
-  }
+.. literalinclude:: ../../../code/cpp/disassembler.cpp
+  :language: cpp
+  :start-after: lief-doc: downcast-start
+  :end-before: lief-doc: downcast-end
+  :dedent:
 
 In Rust, instructions are represented by the enum :rust:enum:`lief::assembly::Instructions`.
 Thus, you can write:
 
-.. code-block:: rust
-
-  fn check_opcode(inst: &lief::assembly::Instructions) {
-    if let lief::assembly::Instructions::RiscV(riscv) = inst {
-      println!("{:?}", riscv.opcode());
-    }
-  }
+.. literalinclude:: ../../../code/rust/src/disassembler.rs
+  :language: rust
+  :start-after: lief-doc: downcast-start
+  :end-before: lief-doc: downcast-end
+  :dedent:
 
 .. note::
 
@@ -121,51 +105,21 @@ over an instruction's operands:
 
    .. tab:: :fa:`solid fa-microchip` AArch64
 
-      .. code-block:: python
-
-        import lief
-
-        inst: lief.assembly.aarch64.Instruction
-
-        for inst in macho.disassemble(0x400120):
-            print(inst)
-            # Check inst properties
-            if inst.is_branch:
-                print(f"Resolved: {inst.branch_target}")
-
-            for idx, operand in enumerate(inst.operands):
-                if isinstance(operand, lief.assembly.aarch64.operands.Register):
-                    print(f"op[{idx}]: REG - {operand.value}")
-                if isinstance(operand, lief.assembly.aarch64.operands.Memory):
-                    print(f"op[{idx}]: MEM - {operand.base}")
-                if isinstance(operand, lief.assembly.aarch64.operands.PCRelative):
-                    print(f"op[{idx}]: PCR - {operand.value}")
-                if isinstance(operand, lief.assembly.aarch64.operands.Immediate):
-                    print(f"op[{idx}]: IMM - {operand.value}")
+      .. literalinclude:: ../../../code/python/disassembler.py
+        :language: python
+        :prepend: import lief
+        :start-after: lief-doc: operands-aarch64-start
+        :end-before: lief-doc: operands-aarch64-end
+        :dedent:
 
    .. tab:: :fa:`solid fa-microchip` x86/x86-64
 
-      .. code-block:: python
-
-        import lief
-
-        inst: lief.assembly.x86.Instruction
-
-        for inst in elf.disassemble(0x1000200):
-            print(inst)
-            # Check inst properties
-            if inst.is_branch:
-                print(f"Resolved: {inst.branch_target}")
-
-            for idx, operand in enumerate(inst.operands):
-                if isinstance(operand, lief.assembly.x86.operands.Register):
-                    print(f"op[{idx}]: REG - {operand.value}")
-                if isinstance(operand, lief.assembly.x86.operands.Memory):
-                    print(f"op[{idx}]: MEM - {operand.base}")
-                if isinstance(operand, lief.assembly.x86.operands.PCRelative):
-                    print(f"op[{idx}]: PCR - {operand.value}")
-                if isinstance(operand, lief.assembly.x86.operands.Immediate):
-                    print(f"op[{idx}]: IMM - {operand.value}")
+      .. literalinclude:: ../../../code/python/disassembler.py
+        :language: python
+        :prepend: import lief
+        :start-after: lief-doc: operands-x86-start
+        :end-before: lief-doc: operands-x86-end
+        :dedent:
 
 You can check the documentation of these architectures for more details about
 the exposed API.
@@ -191,44 +145,29 @@ function.
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        elf = lief.ELF.parse("/bin/hello")
-
-        main = elf.debug_info.find_function("main")
-
-        for inst in .instructions:
-            print(inst)
+      .. literalinclude:: ../../../code/python/disassembler.py
+        :language: python
+        :prepend: import lief
+        :start-after: lief-doc: dwarf-func-start
+        :end-before: lief-doc: dwarf-func-end
+        :dedent:
 
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        auto elf = LIEF::ELF::Parser::parse("/bin/hello");
-
-        if (const auto* dwarf = elf->debug_info()->as<LIEF::dwarf::DebugInfo>())
-        {
-          std::unique_ptr<LIEF::dwarf::Function> _main = dwarf->find_function("main");
-          for (const auto& inst : _main->instructions()) {
-            std::cout << inst->to_string() << '\n';
-          }
-        }
+      .. literalinclude:: ../../../code/cpp/disassembler.cpp
+        :language: cpp
+        :start-after: lief-doc: dwarf-func-start
+        :end-before: lief-doc: dwarf-func-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let elf = lief::elf::Binary::parse("/bin/ls");
-        if let Some(lief::DebugInfo::Dwarf(dwarf)) = elf.debug_info() {
-            if Some(func) = dwarf.find_function("main") {
-                for inst in func.instructions() {
-                    println!("{}", inst.to_string());
-                }
-            }
-        }
+      .. literalinclude:: ../../../code/rust/src/disassembler.rs
+        :language: rust
+        :start-after: lief-doc: dwarf-func-start
+        :end-before: lief-doc: dwarf-func-end
+        :dedent:
 
 Dyld Shared Cache
 ~~~~~~~~~~~~~~~~~
@@ -240,36 +179,27 @@ via |lief-dsc-dyldsharedcache-disassemble|:
 
     .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        dyld_cache: lief.dsc.DylibSharedCache = lief.dsc.load("macos-15.0.1/")
-
-        for inst in dyld_cache.disassemble(0x1886f4a44):
-            print(inst)
+      .. literalinclude:: ../../../code/python/disassembler.py
+        :language: python
+        :start-after: lief-doc: dsc-disassemble-start
+        :end-before: lief-doc: dsc-disassemble-end
+        :dedent:
 
     .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        #include <LIEF/DyldSharedCache.hpp>
-
-        std::unique_ptr<LIEF::dsc::DyldSharedCache> dyld_cache = LIEF::dsc::load("macos-15.0.1/")
-
-        for (const auto& inst : dyld_cache->disassemble(0x1886f4a44)) {
-          std::cout << inst->to_string() << '\n';
-        }
+      .. literalinclude:: ../../../code/cpp/disassembler.cpp
+        :language: cpp
+        :start-after: lief-doc: dsc-disassemble-start
+        :end-before: lief-doc: dsc-disassemble-end
+        :dedent:
 
     .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let dyld_cache = lief::dsc::load_from_path("macos-15.0.1/", "");
-
-        for inst in dyld_cache.disassemble(0x1886f4a44) {
-            println!("{}", inst.to_string());
-        }
+      .. literalinclude:: ../../../code/rust/src/disassembler.rs
+        :language: rust
+        :start-after: lief-doc: dsc-disassemble-start
+        :end-before: lief-doc: dsc-disassemble-end
+        :dedent:
 
 COFF Support
 ~~~~~~~~~~~~

@@ -24,63 +24,27 @@ code with custom assembly. This functionality is available through the
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        elf = lief.ELF.parse("/bin/hello")
-
-        syscall_addresses = [
-          inst.address for inst in elf.disassemble(0x400090) if inst.is_syscall
-        ]
-
-        for syscall_addr in syscall_addresses:
-            elf.assemble(syscall_addr, """
-            mov x1, x0;
-            str x1, [x2, #8];
-            """)
+      .. literalinclude:: ../../../code/python/assembler.py
+        :language: python
+        :start-after: lief-doc: disassemble-assemble-start
+        :end-before: lief-doc: disassemble-assemble-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        auto elf = LIEF::ELF::Parser::parse("/bin/hello");
-
-        std::vector<uint64_t> syscall_addresses =
-            elf->disassemble(0x400090)
-          | std::view::filter([] (const std::unique_ptr<LIEF::assembly::Instruction> I) {
-              return I->is_syscall();
-            })
-          | std::view::transform([] (const std::unique_ptr<LIEF::assembly::Instruction> I) {
-              return I->address();
-            })
-          | std::ranges::to<std::vector>();
-
-        for (uint64_t addr : syscall_addresses) {
-          elf->assemble(addr, R"asm(
-            mov x1, x0;
-            str x1, [x2, #8];
-          )asm");
-        }
+      .. literalinclude:: ../../../code/cpp/assembler.cpp
+        :language: cpp
+        :start-after: lief-doc: disassemble-assemble-start
+        :end-before: lief-doc: disassemble-assemble-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut elf = lief::elf::Binary::parse("/bin/hello");
-
-        let syscall_addresses =
-            elf.disassemble(0x400090)
-               .filter(|I| I.is_syscall())
-               .transform(|I| I.address())
-               .collect::<Vec<u64>>();
-
-        for addr in syscall_addresses {
-            elf.assemble(addr, r#"
-              mov x1, x0;
-              str x1, [x2, #8];
-            "#);
-        }
+      .. literalinclude:: ../../../code/rust/src/assembler.rs
+        :language: rust
+        :start-after: lief-doc: disassemble-assemble-start
+        :end-before: lief-doc: disassemble-assemble-end
+        :dedent:
 
 .. warning::
 
@@ -114,38 +78,27 @@ For example, consider the following patch:
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-
-        import lief
-
-        elf = lief.ELF.parse("/bin/ssh")
-
-        elf.assemble(elf.entrypoint, """
-          mov rdi, rax;
-          call a_custom_function
-        """)
+      .. literalinclude:: ../../../code/python/assembler.py
+        :language: python
+        :start-after: lief-doc: context-error-start
+        :end-before: lief-doc: context-error-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-
-        auto elf = LIEF::ELF::Parser::parse("/bin/ssh");
-
-        elf->assemble(elf->entrypoint(), R"asm(
-          mov rdi, rax;
-          call a_custom_function;
-        )asm");
+      .. literalinclude:: ../../../code/cpp/assembler.cpp
+        :language: cpp
+        :start-after: lief-doc: context-error-start
+        :end-before: lief-doc: context-error-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-
-        let mut elf = lief::elf::Binary::parse("/bin/ssh");
-
-        elf.assemble(addr, r#"
-          mov rdi, rax;
-          call a_custom_function;
-        "#);
+      .. literalinclude:: ../../../code/rust/src/assembler.rs
+        :language: rust
+        :start-after: lief-doc: context-error-start
+        :end-before: lief-doc: context-error-end
+        :dedent:
 
 In this example, ``a_custom_function`` is undefined, so the assembler engine
 cannot resolve it and raises the following error:
@@ -163,74 +116,30 @@ listing:
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-        :emphasize-lines: 3-11,18
-
-        import lief
-
-        class MyConfig(lief.assembly.AssemblerConfig):
-            def __init__(self):
-                super().__init__() # Important!
-
-            @override
-            def resolve_symbol(self, name: str) -> int | None:
-                if name == "a_custom_function":
-                    return 0x1000
-                return None
-
-        elf = lief.ELF.parse("/bin/ssh")
-
-        elf.assemble(elf.entrypoint, """
-          mov rdi, rax;
-          call a_custom_function
-        """, MyConfig())
+      .. literalinclude:: ../../../code/python/assembler.py
+        :language: python
+        :emphasize-lines: 1-9,19
+        :start-after: lief-doc: config-resolver-start
+        :end-before: lief-doc: config-resolver-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-        :emphasize-lines: 1-9,13,18
-
-        class MyConfig : public LIEF::assembly::AssemblerConfig {
-          public:
-          LIEF::optional<uint64_t> resolve_symbol(const std::string& name) const override {
-            if (name == "a_custom_function") {
-              return 0x1000;
-            }
-            return LIEF::nullopt();
-          }
-        };
-
-        auto elf = LIEF::ELF::Parser::parse("/bin/ssh");
-
-        MyConfig myconfig;
-
-        elf->assemble(elf->entrypoint(), R"asm(
-          mov rdi, rax;
-          call a_custom_function;
-        )asm", myconfig);
+      .. literalinclude:: ../../../code/cpp/assembler.cpp
+        :language: cpp
+        :emphasize-lines: 1-9,11,19
+        :start-after: lief-doc: config-resolver-start
+        :end-before: lief-doc: config-resolver-end
+        :dedent:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-        :emphasize-lines: 3-10,17
-
-        let mut elf = lief::elf::Binary::parse("/bin/ssh");
-
-        let mut config = lief::assembly::AssemblerConfig::default();
-
-        let resolver = Arc::new(move |symbol: &str| {
-            if symbol == "a_custom_function" {
-                return Some(0x1000);
-            }
-            None
-        });
-
-        config.symbol_resolver = Some(resolver);
-
-        elf.assemble(addr, r#"
-          mov rdi, rax;
-          call a_custom_function;
-        "#, &config);
+      .. literalinclude:: ../../../code/rust/src/assembler.rs
+        :language: rust
+        :emphasize-lines: 3-12,20
+        :start-after: lief-doc: config-resolver-start
+        :end-before: lief-doc: config-resolver-end
+        :dedent:
 
 This interface can be used to wrap a context, such as a generic
 |lief-abstract-binary|:
@@ -239,68 +148,22 @@ This interface can be used to wrap a context, such as a generic
 
    .. tab:: :fa:`brands fa-python` Python
 
-      .. code-block:: python
-        :emphasize-lines: 7,11-14,18
-
-        import lief
-
-        class MyConfig(lief.assembly.AssemblerConfig):
-            def __init__(self, target: lief.Binary):
-                super().__init__() # Important!
-
-                self._target = target
-
-            @override
-            def resolve_symbol(self, name: str) -> int | None:
-                addr = self._target.get_function_address(name)
-                if isinstance(addr, lief.lief_errors):
-                    return None
-                return addr
-
-        elf = lief.ELF.parse("/bin/ssh")
-
-        config = MyConfig(elf)
-
-        elf.assemble(elf.entrypoint, """
-          mov rdi, rax;
-          call a_custom_function
-        """, config)
+      .. literalinclude:: ../../../code/python/assembler.py
+        :language: python
+        :prepend: import lief
+        :emphasize-lines: 6,10-13,16
+        :start-after: lief-doc: config-target-start
+        :end-before: lief-doc: config-target-end
+        :dedent:
 
    .. tab:: :fa:`regular fa-file-code` C++
 
-      .. code-block:: cpp
-        :emphasize-lines: 4-8,11-13,25
-
-        class MyConfig : public LIEF::assembly::AssemblerConfig {
-          public:
-          MyConfig() = delete;
-          MyConfig(LIEF::Binary& target) :
-            LIEF::assembly::AssemblerConfig()
-          {
-            target_ = &target;
-          }
-
-          LIEF::optional<uint64_t> resolve_symbol(const std::string& name) const override {
-            if (auto addr = target_->get_function_address(name)) {
-              return *addr;
-            }
-            return LIEF::nullopt();
-          }
-
-          ~MyConfig() override = default;
-
-          private:
-          LIEF::Binary* target_ = nullptr;
-        };
-
-        auto elf = LIEF::ELF::Parser::parse("/bin/ssh");
-
-        MyConfig myconfig(*elf);
-
-        elf->assemble(elf->entrypoint(), R"asm(
-          mov rdi, rax;
-          call a_custom_function;
-        )asm", myconfig);
+      .. literalinclude:: ../../../code/cpp/assembler.cpp
+        :language: cpp
+        :emphasize-lines: 4-6,9-12,22
+        :start-after: lief-doc: config-target-start
+        :end-before: lief-doc: config-target-end
+        :dedent:
 
 The Rust bindings do not offer the same flexibility to capture the
 |lief-abstract-binary|. Nevertheless, the closure associated with the
@@ -311,29 +174,62 @@ can capture most of its context:
 
    .. tab:: :fa:`brands fa-rust` Rust
 
-      .. code-block:: rust
-        :emphasize-lines: 5-13
+      .. literalinclude:: ../../../code/rust/src/assembler.rs
+        :language: rust
+        :emphasize-lines: 5-12
+        :start-after: lief-doc: config-target-start
+        :end-before: lief-doc: config-target-end
+        :dedent:
 
-        let mut elf = lief::elf::Binary::parse("/bin/ssh");
 
-        let mut config = lief::assembly::AssemblerConfig::default();
+Use Cases
+*********
 
-        let mut sym_map = HashMap::new();
+Patching code with the assembler is a fast alternative to editing raw bytes by
+hand: it is useful for bypassing a check while reverse engineering,
+hot-patching a bug in a shipped executable, or inserting instrumentation.
 
-        for sym in ls.exported_symbols() {
-            sym_map.insert(sym.name(), sym.value());
-        }
 
-        let resolver = Arc::new(move |symbol: &str| {
-            sym_map.get(symbol).copied()
-        });
+Disabling an Instruction
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        config.symbol_resolver = Some(resolver);
+To strip a single instruction like a call to a telemetry or anti-debugging
+routine *without* shifting the rest of the
+function we can overwrite it with as many ``nop`` bytes as it occupied. Pairing the
+:ref:`disassembler <extended-disassembler>` with |lief-assemble| lets you
+do this:
 
-        elf.assemble(addr, r#"
-          mov rdi, rax;
-          call a_custom_function;
-        "#, &config);
+.. tabs::
+
+   .. tab:: :fa:`brands fa-python` Python
+
+      .. literalinclude:: ../../../code/python/assembler.py
+        :language: python
+        :start-after: lief-doc: nop-out-start
+        :end-before: lief-doc: nop-out-end
+        :dedent:
+
+   .. tab:: :fa:`regular fa-file-code` C++
+
+      .. literalinclude:: ../../../code/cpp/assembler.cpp
+        :language: cpp
+        :start-after: lief-doc: nop-out-start
+        :end-before: lief-doc: nop-out-end
+        :dedent:
+
+   .. tab:: :fa:`brands fa-rust` Rust
+
+      .. literalinclude:: ../../../code/rust/src/assembler.rs
+        :language: rust
+        :start-after: lief-doc: nop-out-start
+        :end-before: lief-doc: nop-out-end
+        :dedent:
+
+.. note::
+
+  The snippets above assume ``x86/x86-64``, where a ``nop`` is a single byte,
+  so ``inst.size`` of them fill the slot exactly. On fixed-width instruction set such as
+  ``AArch64`` every instruction is 4 bytes, so we would emit ``inst.size / 4`` instead.
 
 
 In-Memory Assembler

@@ -55,13 +55,11 @@ OAT format.
 
 Basically, the associated ELF exports a few symbols:
 
-.. code-block:: python
-
-  import lief
-
-  oat = lief.OAT.parse("SomeOAT")
-  for s in oat.dynamic_symbols:
-    print(s)
+.. literalinclude:: ../../code/python/tuto_android.py
+  :language: python
+  :start-after: lief-doc: oat-symbols-start
+  :end-before: lief-doc: oat-symbols-end
+  :dedent:
 
 
 .. code-block:: text
@@ -261,12 +259,11 @@ methods:
 If the OAT targets Android Marshmallow or Nougat (6 or 7), DEX files can be
 retrieved via the :attr:`lief.OAT.Binary.dex_files` attribute:
 
-.. code-block:: python
-
-  >>> len(oat.dex_files) # > 1 if multi-dex
-  1
-  >>> dex = oat.dex_files[0]
-  >>> dex.save("/tmp/classes.dex")
+.. literalinclude:: ../../code/python/tuto_android.py
+  :language: python
+  :start-after: lief-doc: oat-extract-dex-start
+  :end-before: lief-doc: oat-extract-dex-end
+  :dedent:
 
 In the code above, the :class:`lief.DEX.File` has been extracted to
 ``/tmp/classes.dex`` (with de-optimization).
@@ -362,13 +359,13 @@ object can be generated using:
 Once created, strings can be accessed via the :attr:`lief.DEX.File.strings`
 attribute:
 
-.. code-block:: python
+.. literalinclude:: ../../code/python/tuto_android.py
+  :language: python
+  :start-after: lief-doc: dex-strings-start
+  :end-before: lief-doc: dex-strings-end
+  :dedent:
 
-  >>> len(dex.strings)
-  23529
-  >>> for s in dex.strings:
-  ...   if "http" in s:
-  ...     print(s)
+.. code-block:: text
 
   https://analytics.mopub.com/i/jot/exchange_client_event
   https://app-measurement.com/a
@@ -383,11 +380,11 @@ attribute:
 Similarly, methods and classes are available via the
 :attr:`lief.DEX.File.classes` and :attr:`lief.DEX.File.methods` attributes:
 
-.. code-block:: python
-
-  for cls in dex.classes:
-    if cls.source_filename:
-      print(cls)
+.. literalinclude:: ../../code/python/tuto_android.py
+  :language: python
+  :start-after: lief-doc: dex-source-files-start
+  :end-before: lief-doc: dex-source-files-end
+  :dedent:
 
 .. code-block:: text
 
@@ -405,11 +402,11 @@ often be recovered using:
   * :attr:`lief.DEX.Class.source_filename`
   * :attr:`lief.DEX.Class.pretty_name`
 
-.. code-block:: python
-
-  for cls in dex.classes:
-    if cls.source_filename:
-      print(cls.pretty_name + ": ---> " + cls.source_filename)
+.. literalinclude:: ../../code/python/tuto_android.py
+  :language: python
+  :start-after: lief-doc: dex-deobfuscate-start
+  :end-before: lief-doc: dex-deobfuscate-end
+  :dedent:
 
 .. code-block:: text
 
@@ -452,10 +449,11 @@ LIEF 0.9 provides basic support for this format and exposes the ART
 :class:`lief.ART.Header`. The primary API is available in the
 :class:`lief.ART.File` object.
 
-.. code-block:: python
-
-  art = lief.ART.parse("boot.art")
-  print(art.header)
+.. literalinclude:: ../../code/python/tuto_android.py
+  :language: python
+  :start-after: lief-doc: art-header-start
+  :end-before: lief-doc: art-header-end
+  :dedent:
 
 .. code-block:: text
 
