@@ -2588,8 +2588,8 @@ LIEF::Binary::functions_t Binary::eh_frame_functions() const {
           LIEF_WARN("Unexpected CIE ID ({:d}), expected 0", *cie_id);
         }
 
-        if (*version != 1) {
-          LIEF_WARN("Unexpected CIE version ({:d}), expected 1", *version);
+        if (*version != 1 && *version != 3 && *version != 4) {
+          LIEF_WARN("Unexpected CIE version ({:d}), expected 1, 3 or 4", *version);
         }
 
         LIEF_DEBUG("cie_length: {:#x}", cie_length);
@@ -2613,9 +2613,18 @@ LIEF::Binary::functions_t Binary::eh_frame_functions() const {
           }
         }
 
+        if (*version >= 4) {
+          /* uint8_t address_size          = */ vs.read<uint8_t>();
+          /* uint8_t segment_selector_size = */ vs.read<uint8_t>();
+        }
+
         /* uint64_t code_alignment         = */ vs.read_uleb128();
         /* int64_t  data_alignment         = */ vs.read_sleb128();
-        /* uint64_t return_address_register = */ vs.read_uleb128();
+        if (*version == 1) {
+          /* uint8_t return_address_register = */ vs.read<uint8_t>();
+        } else {
+          /* uint64_t return_address_register = */ vs.read_uleb128();
+        }
         if (cie_augmentation_string.find('z') != std::string::npos) {
           /* int64_t  augmentation_length    = */ vs.read_uleb128();
         }
