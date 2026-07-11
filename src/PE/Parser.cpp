@@ -225,7 +225,7 @@ ok_error_t Parser::read_section_content(const details::pe_section& raw_sec,
   if (peek_target < stream_->size() &&
       (peek_target + size_to_read) > stream_->size())
   {
-    size_to_read = (uint32_t)stream_->size() - peek_target;
+    size_to_read = static_cast<uint32_t>(stream_->size() - peek_target);
   }
 
   if (size_to_read > Parser::MAX_DATA_SIZE) {
@@ -239,7 +239,12 @@ ok_error_t Parser::read_section_content(const details::pe_section& raw_sec,
     LIEF_ERR("Corrupted section #{:d} ({})", index, section.name());
   }
 
-  const uint64_t padding_size = section.size() - size_to_read;
+  uint64_t padding_size = 0;
+  if (size_to_read <= section.size()) {
+    padding_size = section.size() - size_to_read;
+  }
+
+  const uint64_t padding_offset = (uint64_t)offset + size_to_read;
 
   // Treat content between two sections (that is not wrapped in a section) as
   // 'padding'
@@ -253,8 +258,8 @@ ok_error_t Parser::read_section_content(const details::pe_section& raw_sec,
     } else {
       const details::pe_section& next_section = *res_next_section;
       const uint64_t sec_offset = next_section.PointerToRawData;
-      if (offset + size_to_read + padding_size < sec_offset) {
-        hole_size = sec_offset - (offset + size_to_read + padding_size);
+      if (padding_offset + padding_size < sec_offset) {
+        hole_size = sec_offset - (padding_offset + padding_size);
       }
     }
   }
@@ -271,9 +276,7 @@ ok_error_t Parser::read_section_content(const details::pe_section& raw_sec,
     padding_to_read = 0;
   }
 
-  if (!stream_->peek_data(section.padding_, offset + size_to_read,
-                          padding_to_read))
-  {
+  if (!stream_->peek_data(section.padding_, padding_offset, padding_to_read)) {
     LIEF_ERR("Failed to read padding of section '{}'", section.name());
   }
 

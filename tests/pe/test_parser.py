@@ -1190,3 +1190,13 @@ def test_section_padding_no_content():
     before = pe.sections[0].pointerto_raw_data
     assert pe.add_section(lief.PE.Section(".lief")) is not None
     assert pe.sections[0].pointerto_raw_data > before
+
+
+@pytest.mark.private
+def test_section_content_offset_wrap():
+    sample = get_sample("private/PE/section_content_offset_wrap.pe")
+    mal = lief.PE.parse(sample)
+    assert mal is not None
+    assert mal.sections[-1].pointerto_raw_data == 0xFFFFFF00
+
+    assert len(mal.sections[-1].padding) == 0
