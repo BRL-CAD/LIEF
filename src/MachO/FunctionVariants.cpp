@@ -161,7 +161,13 @@ std::vector<FunctionVariants::RuntimeTable>
     return result;
   }
 
+  int64_t max_entries = stream.size() / sizeof(details::runtime_table_entry_t);
+
   for (size_t i = 0; i < *tableCount; ++i) {
+    if (max_entries <= 0) {
+      break;
+    }
+
     auto tableOffset = stream.read<uint32_t>();
     if (!tableOffset) {
       LIEF_DEBUG("Failed to read FunctionVariants.OnDiskFormat.tableOffsets[{}]",
@@ -171,7 +177,8 @@ std::vector<FunctionVariants::RuntimeTable>
 
     {
       ScopedStream runtime_table_strm(stream, *tableOffset);
-      if (auto entry = parse_entry(*runtime_table_strm)) {
+      if (auto entry = parse_entry(*runtime_table_strm, max_entries)) {
+        max_entries -= entry->entries().size();
         result.push_back(std::move(*entry));
       } else {
         LIEF_DEBUG("Failed to parse entry #{} at offset: {:#08x}", i,
@@ -183,7 +190,7 @@ std::vector<FunctionVariants::RuntimeTable>
 }
 
 result<FunctionVariants::RuntimeTable>
-    FunctionVariants::parse_entry(BinaryStream& stream) {
+    FunctionVariants::parse_entry(BinaryStream& stream, uint64_t max_entries) {
   auto kind = stream.read<uint32_t>();
 
   if (!kind) {
@@ -201,6 +208,10 @@ result<FunctionVariants::RuntimeTable>
   }
 
   for (size_t i = 0; i < *count; ++i) {
+    if (i > max_entries) {
+      LIEF_WARN("Too many FunctionVariants. Stopping");
+      return runtime_table;
+    }
     auto raw_entry = stream.read<details::runtime_table_entry_t>();
     if (!raw_entry) {
       LIEF_DEBUG("Failed to read FunctionVariantsRuntimeTable.entries[{}]", i);

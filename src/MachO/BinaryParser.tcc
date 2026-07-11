@@ -256,6 +256,8 @@ ok_error_t BinaryParser::parse_load_commands() {
   std::set<LoadCommand::TYPE> not_parsed;
   int64_t imagebase = -1;
 
+  uint64_t twolevel_cnt_hint = stream_->size() / sizeof(details::twolevel_hint);
+
   for (size_t i = 0; i < nbcmds; ++i) {
     const auto command = stream_->peek<details::load_command>(loadcommands_offset);
     if (!command) {
@@ -756,7 +758,21 @@ ok_error_t BinaryParser::parse_load_commands() {
 
         load_command = std::make_unique<BuildVersion>(*cmd);
         auto* build_version = load_command->as<BuildVersion>();
-        for (size_t i = 0; i < cmd->ntools; ++i) {
+        uint64_t ntools = cmd->ntools;
+        uint64_t max_tools = 0;
+
+        if (cmd->cmdsize >= sizeof(details::build_version_command)) {
+          max_tools = (cmd->cmdsize - sizeof(details::build_version_command)) /
+                      sizeof(details::build_tool_version);
+        }
+
+        if (ntools > max_tools) {
+          LIEF_WARN("LC_BUILD_VERSION.ntools ({}) does not fit in the command "
+                    "size: clamping to {}",
+                    ntools, max_tools);
+          ntools = max_tools;
+        }
+        for (size_t i = 0; i < ntools; ++i) {
           const uint64_t cmd_offset = loadcommands_offset +
                                       sizeof(details::build_version_command) +
                                       i * sizeof(details::build_tool_version);
@@ -1148,10 +1164,15 @@ ok_error_t BinaryParser::parse_load_commands() {
         {
           load_command = std::make_unique<TwoLevelHints>(*cmd);
           auto* two = load_command->as<TwoLevelHints>();
+
+          const uint64_t nhints =
+              std::min<uint64_t>(cmd->nhints, twolevel_cnt_hint);
+
+          twolevel_cnt_hint -= nhints;
           {
             ScopedStream scoped(*stream_, cmd->offset);
-            two->hints_.reserve(std::min<size_t>(0x1000, cmd->nhints));
-            for (size_t i = 0; i < cmd->nhints; ++i) {
+            two->hints_.reserve(std::min<size_t>(0x1000, nhints));
+            for (size_t i = 0; i < nhints; ++i) {
               if (auto res = stream_->read<details::twolevel_hint>()) {
                 uint32_t raw = 0;
                 memcpy(&raw, &*res, sizeof(raw));

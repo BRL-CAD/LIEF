@@ -342,7 +342,8 @@ class LIEF_API FunctionVariants : public LoadCommand {
   }
 
   LIEF_LOCAL static std::vector<RuntimeTable> parse_payload(SpanStream& stream);
-  LIEF_LOCAL static result<RuntimeTable> parse_entry(BinaryStream& stream);
+  LIEF_LOCAL static result<RuntimeTable> parse_entry(BinaryStream& stream,
+                                                     uint64_t max_entries);
 
   private:
   uint32_t data_offset_ = 0;

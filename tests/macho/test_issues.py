@@ -244,6 +244,75 @@ def test_symtab_uncapped_alloc():
 
 
 @pytest.mark.private
+def test_build_version_ntools():
+    sample = get_sample("private/MachO/ntools.macho")
+    subprocess.check_call(
+        [
+            sys.executable,
+            "-c",
+            dedent(f"""\
+            import lief
+            fat = lief.MachO.parse(r"{sample}")
+            assert fat is not None
+            b = fat.at(0)
+            assert b is not None
+            tools = sum(len(c.tools) for c in b.commands
+                        if isinstance(c, lief.MachO.BuildVersion))
+            assert tools == 0, tools"""),
+        ],
+        timeout=30.0,
+        preexec_fn=address_space_limiter(),
+    )
+
+
+@pytest.mark.private
+def test_twolevel_hints():
+    sample = get_sample("private/MachO/nhints.macho")
+    subprocess.check_call(
+        [
+            sys.executable,
+            "-c",
+            dedent(f"""\
+            import lief
+            fat = lief.MachO.parse(r"{sample}")
+            assert fat is not None
+            b = fat.at(0)
+            assert b is not None
+            hints = sum(len(list(c.hints)) for c in b.commands
+                        if isinstance(c, lief.MachO.TwoLevelHints))
+            # bounded by file_size / sizeof(twolevel_hint)
+            import os
+            assert hints <= os.path.getsize(r"{sample}") // 4, hints"""),
+        ],
+        timeout=30.0,
+        preexec_fn=address_space_limiter(),
+    )
+
+
+@pytest.mark.private
+def test_function_variants_overflow():
+    sample = get_sample("private/MachO/func_variants.macho")
+    subprocess.check_call(
+        [
+            sys.executable,
+            "-c",
+            dedent(f"""\
+            import lief
+            fat = lief.MachO.parse(r"{sample}")
+            assert fat is not None
+            b = fat.at(0)
+            assert b is not None
+            fv = b.function_variants
+            assert fv is not None
+            entries = sum(len(list(t.entries)) for t in fv.runtime_table)
+            assert entries <= 0x10000, entries"""),
+        ],
+        timeout=30.0,
+        preexec_fn=address_space_limiter(),
+    )
+
+
+@pytest.mark.private
 def test_nsects_bound_checks():
     sample = get_sample("private/MachO/nsects_quadratic.macho")
     subprocess.check_call(
