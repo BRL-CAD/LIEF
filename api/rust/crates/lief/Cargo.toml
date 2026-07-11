@@ -30,3 +30,6 @@ tempfile = { workspace = true }
 [features]
 default = ["rustls-tls"]
 rustls-tls = ["lief-ffi/rustls-tls"]
+
+[lints.clippy]
+needless_doctest_main = "allow"
