@@ -17,8 +17,8 @@ modify and abstract ELF, PE and MachO formats.
 
 **Main features**:
 
-  * **Parsing**: LIEF can parse [ELF](https://lief.re/doc/latest/formats/elf/index.html), [PE](https://lief.re/doc/latest/formats/pe/index.html), [MachO](https://lief.re/doc/latest/formats/macho/index.html), [COFF](https://lief.re/doc/latest/formats/coff/index.html), OAT, DEX, VDEX, ART and provides an user-friendly API to access to internals.
-  * **Modify**: LIEF can use to modify some parts of these formats (adding a section, changing a symbol's name, ...)
+  * **Parsing**: LIEF can parse [ELF](https://lief.re/doc/latest/formats/elf/index.html), [PE](https://lief.re/doc/latest/formats/pe/index.html), [MachO](https://lief.re/doc/latest/formats/macho/index.html), [COFF](https://lief.re/doc/latest/formats/coff/index.html), OAT, DEX, VDEX, ART and provides a user-friendly API to access their internals.
+  * **Modify**: LIEF can be used to modify some parts of these formats (adding a section, changing a symbol's name, ...)
   * **Abstract**: Three formats have common features like sections, symbols, entry point... LIEF factors them.
   * **API**: You can use LIEF via [C++](https://lief.re/doc/latest/doxygen/), Python, [Rust](https://lief-rs.s3.fr-par.scw.cloud/doc/latest/lief/index.html), C and
     [Node.js](https://github.com/Piebald-AI/node-lief) (unofficial, AI-generated)
@@ -30,7 +30,7 @@ modify and abstract ELF, PE and MachO formats.
   * [**Objective-C** Metadata](https://lief.re/doc/latest/extended/objc/index.html)
   * [**Dyld Shared Cache**](https://lief.re/doc/latest/extended/dsc/index.html) with support for extracting Dylib
   * [**Disassembler**](https://lief.re/doc/latest/extended/disassembler/index.html): AArch64, x86/x86-64, ARM, RISC-V, Mips, PowerPC, eBPF
-  * [**Assembler**](https://lief.re/doc/latest/extended/assembler/index.html): AArch64, x86/x86-64
+  * [**Assembler**](https://lief.re/doc/latest/extended/assembler/index.html): AArch64, x86/x86-64, RISC-V
 
 **Plugins**:
 
@@ -49,7 +49,7 @@ modify and abstract ELF, PE and MachO formats.
 # Content
 
 - [About](#about)
-- [Download / Install](#downloads--install)
+- [Downloads / Install](#downloads--install)
 - [Getting started](#getting-started)
 - [Blog](https://lief.re/blog/)
 - [Documentation](#documentation)
@@ -67,21 +67,21 @@ modify and abstract ELF, PE and MachO formats.
     - [ELF Coredump](https://lief.re/doc/latest/tutorials/12_elf_coredump.html)
     - [PE Authenticode](https://lief.re/doc/latest/tutorials/13_pe_authenticode.html)
 - [Contact](#contact)
-- [About](#about)
+- [About](#about-1)
   - [Authors](#authors)
   - [License](#license)
   - [Bibtex](#bibtex)
 
 ## Downloads / Install
 
-## C++
+### C++
 
 ```cmake
 find_package(LIEF REQUIRED)
 target_link_libraries(my-project LIEF::LIEF)
 ```
 
-## Rust
+### Rust
 
 ```toml
 [package]
@@ -93,13 +93,13 @@ edition = "2021"
 lief = "0.17.6"
 ```
 
-## Homebrew
+### Homebrew
 
 ```console
 brew install lief
 ```
 
-## Python
+### Python
 
 To install the latest **version** (release):
 
@@ -141,15 +141,14 @@ for section in binary.sections:
     print(section.name, section.virtual_address)
 
 # PE
-binary = lief.parse("C:\\Windows\\explorer.exe")
-
-if rheader := pe.rich_header:
+binary = lief.parse(r"C:\Windows\explorer.exe")
+if (rheader := binary.rich_header) is not None:
     print(rheader.key)
 
 # Mach-O
 binary = lief.parse("/usr/bin/ls")
-for fixup in binary.dyld_chained_fixups:
-    print(fixup)
+if (fixups := binary.dyld_chained_fixups) is not None:
+    print(fixups)
 ```
 
 ### Rust
@@ -170,52 +169,36 @@ if let Some(Binary::PE(pe)) = Binary::parse(path.as_str()) {
 ### C++
 
 ```cpp
+#include <iostream>
 #include <LIEF/LIEF.hpp>
 
 int main(int argc, char** argv) {
   // ELF
   if (std::unique_ptr<const LIEF::ELF::Binary> elf = LIEF::ELF::Parser::parse("/bin/ls")) {
     for (const LIEF::ELF::Section& section : elf->sections()) {
-      std::cout << section->name() << ' ' << section->virtual_address() << '\n';
+      std::cout << section.name() << ' ' << section.virtual_address() << '\n';
     }
   }
 
   // PE
   if (std::unique_ptr<const LIEF::PE::Binary> pe = LIEF::PE::Parser::parse("C:\\Windows\\explorer.exe")) {
-    if (const LIEF::PE::RichHeader* rheader : pe->rich_header()) {
+    if (const LIEF::PE::RichHeader* rheader = pe->rich_header()) {
       std::cout << rheader->key() << '\n';
     }
   }
 
   // Mach-O
   if (std::unique_ptr<LIEF::MachO::FatBinary> macho = LIEF::MachO::Parser::parse("/bin/ls")) {
-    for (const LIEF::MachO::DyldChainedFixups& fixup : macho->dyld_chained_fixups()) {
-      std::cout << fixup << '\n';
+    for (const LIEF::MachO::Binary& bin : *macho) {
+      if (const LIEF::MachO::DyldChainedFixups* fixups = bin.dyld_chained_fixups()) {
+        std::cout << *fixups << '\n';
+      }
     }
   }
 
   return 0;
 }
 
-```
-
-### C (Limited API)
-
-```cpp
-#include <LIEF/LIEF.h>
-
-int main(int argc, char** argv) {
-  Elf_Binary_t* elf = elf_parse("/usr/bin/ls");
-
-  Elf_Section_t** sections = elf->sections;
-
-  for (size_t i = 0; sections[i] != NULL; ++i) {
-    printf("%s\n", sections[i]->name);
-  }
-
-  elf_binary_destroy(elf);
-  return 0;
-}
 ```
 
 ## Documentation

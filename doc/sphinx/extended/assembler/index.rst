@@ -48,8 +48,8 @@ code with custom assembly. This functionality is available through the
 
 .. warning::
 
-  The assembler works well for ``AArch64/ARM64E`` and ``x86/x86-64``, but
-  support for other architectures is currently limited.
+  The assembler works well for ``AArch64/ARM64E``, ``x86/x86-64``, and ``RISC-V``
+  but support for other architectures is currently limited.
 
 Technical Details
 *****************
