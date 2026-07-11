@@ -97,7 +97,7 @@ def test_remove_all_version(tmp_path: Path):
 
     for req in elf.symbols_version_requirement:
         for version in to_delete:
-            req.remove_aux_requirement(version)
+            req.remove_aux_requirement(str(version))
 
     out = tmp_path / "out.elf"
     elf.write(out)
