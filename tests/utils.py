@@ -574,6 +574,9 @@ def address_space_limiter(maxsize: int = 2 * 1024 * 1024 * 1024):
     except ImportError:
         return None
 
+    if sys.platform != "linux":
+        return None
+
     def _limit():
         resource.setrlimit(resource.RLIMIT_AS, (maxsize, maxsize))
 
