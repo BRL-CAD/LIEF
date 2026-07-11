@@ -39,12 +39,11 @@ static_assert(sizeof(Thunk32) == 12);
 template<class T>
 optional<ThreadLocalVariables::Thunk> get_impl(size_t idx,
                                                span<const uint8_t> buffer) {
-  const uint64_t offset = idx * sizeof(T);
-
-  if (offset >= buffer.size() && (offset + sizeof(T)) > buffer.size()) {
+  if (idx >= buffer.size() / sizeof(T)) {
     return nullopt();
   }
 
+  const uint64_t offset = idx * sizeof(T);
   const auto* raw = reinterpret_cast<const T*>(buffer.data() + offset);
   return ThreadLocalVariables::Thunk{raw->func, raw->key, raw->offset};
 }
@@ -53,12 +52,12 @@ template<class T>
 bool set_impl(size_t idx, const ThreadLocalVariables::Thunk& thunk,
               span<uint8_t> buffer) {
   using ptr_t = typename T::ptr_t;
-  const uint64_t offset = idx * sizeof(T);
 
-  if (offset >= buffer.size() && (offset + sizeof(T)) > buffer.size()) {
+  if (idx >= buffer.size() / sizeof(T)) {
     return false;
   }
 
+  const uint64_t offset = idx * sizeof(T);
   auto* raw = reinterpret_cast<T*>(buffer.data() + offset);
   raw->func = (ptr_t)thunk.func;
   raw->key = (ptr_t)thunk.key;

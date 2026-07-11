@@ -90,7 +90,7 @@ class LIEF_API SpanStream : public BinaryStream {
   }
 
   result<SpanStream> slice(size_t offset, size_t size) const {
-    if (offset > data_.size() || (offset + size) > data_.size()) {
+    if (offset > data_.size() || size > data_.size() - offset) {
       return make_error_code(lief_errors::read_out_of_bound);
     }
     return data_.subspan(offset, size);
@@ -114,7 +114,7 @@ class LIEF_API SpanStream : public BinaryStream {
   result<const void*> read_at(uint64_t offset, uint64_t size,
                               uint64_t /*va*/) const override {
     const uint64_t stream_size = this->size();
-    if (offset > stream_size || (offset + size) > stream_size) {
+    if (offset > stream_size || size > stream_size - offset) {
       return make_error_code(lief_errors::read_error);
     }
     return data_.data() + offset;

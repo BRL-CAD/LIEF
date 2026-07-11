@@ -141,9 +141,20 @@ void foreach_segment_impl(BinaryStream& stream, const segment_callback_t& cbk) {
   }
   const auto& hdr = *res_hdr;
 
+  const uint64_t cmds_start = stream.pos(); // right after the header
+  const uint64_t cmds_end = cmds_start + hdr.sizeofcmds;
+
   for (size_t i = 0; i < hdr.ncmds; ++i) {
+    if ((stream.pos() + sizeof(details::load_command)) > cmds_end) {
+      break;
+    }
     const auto raw_cmd = stream.peek<details::load_command>();
     if (!raw_cmd) {
+      break;
+    }
+    if (raw_cmd->cmdsize < sizeof(details::load_command) ||
+        (stream.pos() + raw_cmd->cmdsize) > cmds_end)
+    {
       break;
     }
     const auto cmd = LoadCommand::TYPE(raw_cmd->cmd);
