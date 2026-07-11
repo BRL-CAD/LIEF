@@ -15,7 +15,7 @@
 #ifndef LIEF_ASM_ARM_OPCODE_H
 #define LIEF_ASM_ARM_OPCODE_H
 
-/* Generated from LLVM: 22.1.6 */
+/* Generated from LLVM: 22.1.8 */
 
 namespace LIEF {
 namespace assembly {

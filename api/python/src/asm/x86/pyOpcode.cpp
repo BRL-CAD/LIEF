@@ -1718,7 +1718,7 @@ void create<LIEF::assembly::x86::OPCODE>(nb::module_& m) {
   .value("FRNDINT", LIEF::assembly::x86::OPCODE::FRNDINT)
   .value("FRSTORm", LIEF::assembly::x86::OPCODE::FRSTORm)
   .value("FSAVEm", LIEF::assembly::x86::OPCODE::FSAVEm)
-  .value("FSCALE", LIEF::assembly::x86::OPCODE::FSCALE)
+  .value("FSCALE_", LIEF::assembly::x86::OPCODE::FSCALE_)
   .value("FSIN", LIEF::assembly::x86::OPCODE::FSIN)
   .value("FSINCOS", LIEF::assembly::x86::OPCODE::FSINCOS)
   .value("FSTENVm", LIEF::assembly::x86::OPCODE::FSTENVm)

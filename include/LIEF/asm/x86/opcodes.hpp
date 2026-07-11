@@ -15,7 +15,7 @@
 #ifndef LIEF_ASM_X86_OPCODE_H
 #define LIEF_ASM_X86_OPCODE_H
 
-/* Generated from LLVM: 22.1.6 */
+/* Generated from LLVM: 22.1.8 */
 
 namespace LIEF {
 namespace assembly {
@@ -1733,7 +1733,7 @@ enum class OPCODE {
   FRNDINT = 1709,
   FRSTORm = 1710,
   FSAVEm = 1711,
-  FSCALE = 1712,
+  FSCALE_ = 1712,
   FSIN = 1713,
   FSINCOS = 1714,
   FSTENVm = 1715,

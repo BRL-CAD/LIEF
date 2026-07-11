@@ -3430,7 +3430,7 @@ class OPCODE(enum.Enum):
 
     FSAVEm = 1711
 
-    FSCALE = 1712
+    FSCALE_ = 1712
 
     FSIN = 1713
 
