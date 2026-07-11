@@ -224,4 +224,4 @@ LIEF_ENDIAN_SUPPORT(MachO::details::ppc_thread_state_t);
 
 }
 
-#endif // LIEF_CONVERT_H
+#endif

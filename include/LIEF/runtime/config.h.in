@@ -43,7 +43,7 @@ static constexpr bool arch_riscv64 = @LIEF_RUNTIME_ARCH_RISCV64@;
 
 }
 }
-#endif // __cplusplus
+#endif
 
 // clang-format on
 

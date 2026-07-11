@@ -275,4 +275,4 @@ LIEF_API const char* to_string(Symbol::TYPE type);
 LIEF_API const char* to_string(Symbol::VISIBILITY viz);
 }
 }
-#endif /* _ELF_SYMBOL_H */
+#endif

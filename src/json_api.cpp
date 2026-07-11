@@ -48,7 +48,7 @@
   #endif
 #else
   #include "logging.hpp"
-#endif // LIEF_JSON_SUPPORT
+#endif
 
 namespace LIEF {
 

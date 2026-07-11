@@ -132,4 +132,4 @@ class LIEF_API ImportEntry : public LIEF::Symbol {
 }
 }
 
-#endif /* IMPORTENTRY_H */
+#endif

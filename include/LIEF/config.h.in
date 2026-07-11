@@ -76,6 +76,6 @@ static constexpr bool lief_logging_debug   = @LIEF_LOGGING_DEBUG_SUPPORT@;
 static constexpr bool lief_frozen_enabled  = @LIEF_FROZEN_ENABLED@;
 
 
-#endif // __cplusplus
+#endif
 
 #endif

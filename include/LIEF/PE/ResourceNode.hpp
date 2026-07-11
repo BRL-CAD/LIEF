@@ -257,4 +257,4 @@ class LIEF_API ResourceNode : public Object {
 };
 }
 }
-#endif /* RESOURCENODE_H */
+#endif

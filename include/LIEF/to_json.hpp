@@ -35,6 +35,6 @@
   #include "LIEF/ELF.hpp"
   #include "LIEF/PE.hpp"
 
-#endif // LIEF_JSON_SUPPORT
+#endif
 
 #endif

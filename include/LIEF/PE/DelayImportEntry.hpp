@@ -108,4 +108,4 @@ class LIEF_API DelayImportEntry : public LIEF::Symbol {
 }
 }
 
-#endif /* LIEF_PE_DELAY_IMPORT_ENTRY_H */
+#endif

@@ -117,4 +117,4 @@ class LIEF_API Relocation : public Object {
 
 }
 }
-#endif /* RELOCATION_H */
+#endif

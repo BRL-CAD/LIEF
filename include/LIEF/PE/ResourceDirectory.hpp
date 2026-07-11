@@ -128,4 +128,4 @@ class LIEF_API ResourceDirectory : public ResourceNode {
 };
 }
 }
-#endif /* RESOURCEDIRECTORY_H */
+#endif

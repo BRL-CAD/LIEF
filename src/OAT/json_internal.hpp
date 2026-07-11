@@ -37,4 +37,4 @@ class JsonVisitor : public LIEF::JsonVisitor {
 
 }
 
-#endif // LIEF_JSON_SUPPORT
+#endif

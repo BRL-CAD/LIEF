@@ -239,4 +239,4 @@ class LIEF_API Export : public Object {
 }
 }
 
-#endif /* PE_EXPORT_H */
+#endif

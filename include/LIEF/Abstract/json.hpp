@@ -26,4 +26,4 @@ LIEF_API std::string to_json_from_abstract(const Object& v);
 
 }
 
-#endif // LIEF_JSON_SUPPORT
+#endif

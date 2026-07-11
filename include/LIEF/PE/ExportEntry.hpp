@@ -155,4 +155,4 @@ class LIEF_API ExportEntry : public LIEF::Symbol {
 }
 }
 
-#endif /* PE_EXPORTENTRY_H */
+#endif
