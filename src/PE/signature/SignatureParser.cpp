@@ -266,6 +266,9 @@ result<Signature> SignatureParser::parse_signature(BinaryStream& stream) {
         content_info_stream.setpos(0);
         ASN1Reader asn1r(content_info_stream);
         auto content_type = asn1r.read_oid();
+        if (!content_type) {
+          return make_error_code(content_type.error());
+        }
         const std::string& ctype_str = content_type.value();
         LIEF_WARN("Expecting SPC_INDIRECT_DATA at {:d} but got {}", stream.pos(),
                   oid_to_string(ctype_str));
