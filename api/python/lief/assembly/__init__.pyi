@@ -116,6 +116,6 @@ class AssemblerConfig:
     @staticmethod
     def default_config() -> AssemblerConfig: ...
 
-    dialect: AssemblerConfig.DIALECT
+    dialect: DIALECT
 
     def resolve_symbol(self, name: str) -> int | None: ...

@@ -31,3 +31,6 @@ def test_invalid_enum():
         lief.ELF.Header.VERSION.from_value(2)
 
     assert lief.ELF.Header.VERSION.from_value(0) == lief.ELF.Header.VERSION.NONE
+
+    with pytest.raises(ValueError):
+        lief.ELF.Segment.FLAGS(7000000000000000)

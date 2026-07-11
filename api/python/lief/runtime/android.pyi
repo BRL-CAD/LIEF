@@ -1,13 +1,5 @@
 import os
-from typing import (
-    Any,
-    ClassVar,
-    Final,
-    Iterator,
-    Optional,
-    Union,
-    overload
-)
+from typing import Any, Final, Iterator, Optional, Union, overload
 
 import lief.ELF
 import lief.runtime
@@ -37,7 +29,7 @@ class Module(lief.runtime.Module):
 def dlopen(name: Union[str, os.PathLike]) -> Optional[Module]: ...
 
 class Host:
-    sdk_version: ClassVar[Final[int | None]] = ...
+    sdk_version: Final[int | None] = ...
 
 class Property:
     @property
@@ -52,9 +44,9 @@ class Property:
     def __str__(self) -> str: ...
 
 class Process(lief.runtime.Process):
-    cmdline: ClassVar[Final[str]] = ...
+    cmdline: Final[str] = ...
 
     @staticmethod
     def get_system_property(name: str) -> Property | None: ...
 
-    properties: ClassVar[Final[list[Property]]] = ...
+    properties: Final[list[Property]] = ...

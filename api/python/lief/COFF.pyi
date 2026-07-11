@@ -1,14 +1,7 @@
 import enum
 import io
 import os
-from typing import (
-    ClassVar,
-    Final,
-    Iterator,
-    Optional,
-    Union,
-    overload
-)
+from typing import Final, Iterator, Optional, Union, overload
 
 import lief
 import lief.PE
@@ -142,9 +135,9 @@ class Binary:
 class ParserConfig:
     def __init__(self) -> None: ...
 
-    default_conf: ClassVar[Final[ParserConfig]] = ...
+    default_conf: Final[ParserConfig] = ...
 
-    all: ClassVar[Final[ParserConfig]] = ...
+    all: Final[ParserConfig] = ...
 
 def parse(obj: Union[str | io.IOBase | os.PathLike | bytes | list[int]], config: ParserConfig = ...) -> Optional[Binary]: ...
 

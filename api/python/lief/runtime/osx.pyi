@@ -1,13 +1,5 @@
 import os
-from typing import (
-    Any,
-    ClassVar,
-    Final,
-    Iterator,
-    Optional,
-    Union,
-    overload
-)
+from typing import Any, Final, Iterator, Optional, Union, overload
 
 import lief.MachO
 import lief.runtime
@@ -78,11 +70,11 @@ class Host:
 
         def __str__(self) -> str: ...
 
-    os_version_name: ClassVar[Final[str]] = ...
+    os_version_name: Final[str] = ...
 
-    os_version: ClassVar[Final[Host.version_t]] = ...
+    os_version: Final[version_t] = ...
 
-    is_sip_enabled: ClassVar[Final[bool]] = ...
+    is_sip_enabled: Final[bool] = ...
 
 class Process(lief.runtime.Process):
-    dyld_version: ClassVar[Final[str]] = ...
+    dyld_version: Final[str] = ...

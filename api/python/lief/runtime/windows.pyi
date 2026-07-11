@@ -1,14 +1,6 @@
 from collections.abc import Mapping
 import os
-from typing import (
-    Any,
-    ClassVar,
-    Final,
-    Iterator,
-    Optional,
-    Union,
-    overload
-)
+from typing import Any, Final, Iterator, Optional, Union, overload
 
 import lief
 import lief.PE
@@ -68,7 +60,7 @@ class Host:
 
         def __str__(self) -> str: ...
 
-    version: ClassVar[Final[Host.version_t]] = ...
+    version: Final[version_t] = ...
 
 class LdrDataTableEntry:
     @property
@@ -177,7 +169,7 @@ class PEB:
     def entries(self) -> Iterator[Optional[LdrDataTableEntry]]: ...
 
 class Process(lief.runtime.Process):
-    peb: ClassVar[Final[Optional[PEB]]] = ...
+    peb: Final[Optional[PEB]] = ...
 
 class injection_context_t:
     def __init__(self) -> None: ...

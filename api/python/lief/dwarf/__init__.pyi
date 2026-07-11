@@ -214,7 +214,7 @@ class Parameter:
         @property
         def type(self) -> Parameter.Location.Type: ...
 
-    class RegisterLoc(Parameter.Location):
+    class RegisterLoc(Location):
         @property
         def id(self) -> int: ...
 
@@ -261,7 +261,7 @@ class CompilationUnit:
 
             COBOL = 10
 
-        lang: CompilationUnit.Language.LANG
+        lang: LANG
 
         version: int
 
@@ -356,7 +356,7 @@ class Editor:
     def from_binary(bin: lief.Binary) -> Optional[Editor]: ...
 
     @staticmethod
-    def create(fmt: Editor.FORMAT, arch: Editor.ARCH) -> Optional[Editor]: ...
+    def create(fmt: FORMAT, arch: ARCH) -> Optional[Editor]: ...
 
     def create_compilation_unit(self) -> Optional[editor.CompilationUnit]: ...
 
