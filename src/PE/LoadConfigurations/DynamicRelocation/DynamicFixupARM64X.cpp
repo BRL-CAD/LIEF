@@ -67,6 +67,11 @@ std::unique_ptr<DynamicFixupARM64X> DynamicFixupARM64X::parse(Parser& ctx,
       continue;
     }
 
+    if (*BlockSize < 8) {
+      LIEF_WARN("Unexpected BlockSize");
+      break;
+    }
+
     auto block_strm = strm.slice(strm.pos(), (*BlockSize - 8));
     if (!block_strm) {
       LIEF_DEBUG("Error: {}:{}", __FUNCTION__, __LINE__);

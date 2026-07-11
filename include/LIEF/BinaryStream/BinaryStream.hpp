@@ -267,7 +267,7 @@ class LIEF_API BinaryStream {
 
   bool can_read(int64_t offset, int64_t size) const {
     return offset < (int64_t)this->size() &&
-           (offset + size) < (int64_t)this->size();
+           size < ((int64_t)this->size() - offset);
   }
 
   size_t align(size_t align_on) const;

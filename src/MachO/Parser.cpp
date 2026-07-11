@@ -239,10 +239,11 @@ ok_error_t Parser::parse() {
   const size_t original_size = stream_->size();
   std::unique_ptr<Binary> bin =
       BinaryParser::parse(std::move(stream_), 0, config_);
-  bin->original_size_ = original_size;
   if (bin == nullptr) {
     return make_error_code(lief_errors::parsing_error);
   }
+
+  bin->original_size_ = original_size;
   binaries_.push_back(std::move(bin));
 
   return ok();

@@ -200,6 +200,8 @@ ok_error_t Parser::parse_relocations(Section& section) {
     bin_->relocations_.push_back(std::move(reloc));
   }
 
+  nb_relocations = std::min<size_t>(nb_relocations,
+                                    stream_->size() / sizeof(details::relocation));
 
   for (size_t i = 0; i < nb_relocations; ++i) {
     std::unique_ptr<Relocation> reloc =
