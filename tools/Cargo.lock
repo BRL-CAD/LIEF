@@ -262,6 +262,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "common"
+version = "1.0.0"
+dependencies = [
+ "lief",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -893,6 +900,7 @@ dependencies = [
  "clap",
  "clap_complete",
  "clap_mangen",
+ "common",
  "indoc",
  "lief",
  "thiserror",

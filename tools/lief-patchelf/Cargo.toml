@@ -11,6 +11,7 @@ homepage.workspace     = true
 repository.workspace   = true
 
 [dependencies]
+common        = { workspace = true }
 lief          = { workspace = true }
 anyhow        = { workspace = true }
 clap          = { workspace = true }

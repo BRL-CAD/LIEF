@@ -15,6 +15,8 @@ use std::path::Path;
 use std::path::PathBuf;
 use thiserror::Error;
 
+use common::version::get_lief_version;
+
 #[derive(Debug, Clone)]
 struct NeededLibrary {
     pub name: String,
@@ -650,24 +652,6 @@ fn resolve_args(arg: &str) -> Result<String> {
     let mut output = String::new();
     reader.read_to_string(&mut output)?;
     Ok(output)
-}
-
-fn get_lief_version() -> &'static str {
-    // Command::version takes an "IntoResettable" string whose simplest form is
-    // a 'static str.
-    //
-    // Ideally we should use
-    //
-    // ```
-    // static LIEF_VERSION: LazyLock<String> = LazyLock::new(|| format!("{}", lief::version()));
-    // Command::new("...)
-    //     .version(&**LIEF_VERSION)
-    // ```
-    //
-    // but `LazyLock` requires a more recent version of `rustc` compared to the LIEF's min rust
-    // version. Therefore, we workaround with this leak.
-    //
-    Box::leak(format!("{}", lief::version()).into_boxed_str())
 }
 
 fn build_cli() -> Command {
