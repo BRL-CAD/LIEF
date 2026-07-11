@@ -33,6 +33,8 @@ class Symbol;
 
 class Parser {
   public:
+  static constexpr size_t MAX_NB_SECTIONS = 1 << 20;
+
   /// Parse the COFF binary referenced by the `stream` argument with the
   /// given config
   static LIEF_API std::unique_ptr<Binary>

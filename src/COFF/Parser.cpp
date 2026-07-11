@@ -130,7 +130,12 @@ ok_error_t Parser::parse_optional_header() {
 }
 
 ok_error_t Parser::parse_sections() {
-  const size_t nb_sections = bin_->header().nb_sections();
+  size_t nb_sections = bin_->header().nb_sections();
+  if (nb_sections > MAX_NB_SECTIONS) {
+    LIEF_WARN("COFF number of sections ({}) exceeds the limit ({})", nb_sections,
+              MAX_NB_SECTIONS);
+    nb_sections = MAX_NB_SECTIONS;
+  }
   LIEF_DEBUG("Parsing {} sections (offset={:#010x})", nb_sections,
              (uint32_t)stream_->pos());
   for (size_t i = 0; i < nb_sections; ++i) {
