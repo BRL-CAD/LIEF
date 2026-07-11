@@ -89,8 +89,12 @@ void Parser::parse_dex_files() {
     if (DEX::is_dex(data_v)) {
       std::unique_ptr<DEX::File> dexfile =
           DEX::Parser::parse(std::move(data_v), name);
-      dexfile->name(name);
-      file_->dex_files_.push_back(std::move(dexfile));
+      if (dexfile != nullptr) {
+        dexfile->name(name);
+        file_->dex_files_.push_back(std::move(dexfile));
+      } else {
+        LIEF_WARN("File #{:d} could not be parsed as a DEX file", i);
+      }
     } else {
       LIEF_WARN("File #{:d} is not a DEX file", i);
     }
