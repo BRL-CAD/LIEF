@@ -182,6 +182,12 @@ result<uint32_t> GnuHash::nb_symbols(SpanStream& strm) {
     return 0;
   }
 
+  if (max_bucket < symndx) {
+    LIEF_WARN("GNU hash: symbol index ({}) is larger than the max bucket ({})",
+              symndx, max_bucket);
+    return 0;
+  }
+
   // Skip to the contents of the bucket with the largest symbol index
   strm.increment_pos(sizeof(uint32_t) * (max_bucket - symndx));
 
