@@ -1,5 +1,4 @@
 import hashlib
-import struct
 import subprocess
 import sys
 from hashlib import md5
@@ -1200,3 +1199,11 @@ def test_section_content_offset_wrap():
     assert mal.sections[-1].pointerto_raw_data == 0xFFFFFF00
 
     assert len(mal.sections[-1].padding) == 0
+
+
+@pytest.mark.private
+def test_coff_string_table_offset_overflow():
+    sample = get_sample("private/PE/coff_string_table_offset_overflow.pe")
+    pe = lief.PE.parse(sample)
+    assert pe is not None
+    assert len(pe.coff_string_table) == 0

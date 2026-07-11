@@ -478,8 +478,15 @@ ok_error_t Parser::parse_string_table() {
   }
   LIEF_DEBUG("Parsing string table");
 
-  const uint32_t string_tbl_offset =
-      hdr.pointerto_symbol_table() + hdr.numberof_symbols() * SYMBOL16_SZ;
+  const uint64_t string_tbl_offset =
+      static_cast<uint64_t>(hdr.pointerto_symbol_table()) +
+      static_cast<uint64_t>(hdr.numberof_symbols()) * SYMBOL16_SZ;
+
+  if (string_tbl_offset + sizeof(uint32_t) > stream_->size()) {
+    LIEF_DEBUG("COFF string table offset ({:#x}) is out of bounds",
+               string_tbl_offset);
+    return ok();
+  }
 
   LIEF_DEBUG("String table offset: {:#010x}", string_tbl_offset);
   stream_->setpos(string_tbl_offset);
