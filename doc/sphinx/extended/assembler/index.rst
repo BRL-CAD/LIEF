@@ -336,6 +336,14 @@ can capture most of its context:
         "#, &config);
 
 
+In-Memory Assembler
+*******************
+
+In addition to patching binaries on disk or within standard file formats, the
+assembly engine is also available for JIT compilation and in-memory operations.
+This is exposed through the runtime API |lief-runtime-assemble|, as detailed in the
+:ref:`Runtime Memory <runtime_memory>` documentation.
+
 :fa:`brands fa-python` :doc:`Python API <python>`
 
 :fa:`regular fa-file-code` :doc:`C++ API <cpp>`

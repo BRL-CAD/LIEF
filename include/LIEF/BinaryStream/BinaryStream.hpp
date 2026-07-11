@@ -29,6 +29,7 @@
 
 namespace LIEF {
 class ASN1Reader;
+class Binary;
 
 /// Class that is used to a read stream of data from different sources
 class LIEF_API BinaryStream {
@@ -41,6 +42,7 @@ class LIEF_API BinaryStream {
     MEMORY,
     SPAN,
     FILE,
+    DUMP,
 
     ELF_DATA_HANDLER,
   };
@@ -56,6 +58,14 @@ class LIEF_API BinaryStream {
 
   bool is_memory_stream() const {
     return type() == STREAM_TYPE::MEMORY;
+  }
+
+  bool is_dump_stream() const {
+    return type() == STREAM_TYPE::DUMP;
+  }
+
+  bool is_memory_view() const {
+    return is_memory_stream() || is_dump_stream();
   }
 
   result<uint64_t> read_uleb128(size_t* size = nullptr) const;
@@ -304,11 +314,10 @@ class LIEF_API BinaryStream {
                                       uint64_t virtual_address = 0) const = 0;
   virtual ok_error_t peek_in(void* dst, uint64_t offset, uint64_t size,
                              uint64_t virtual_address = 0) const {
+    if (dst == nullptr) {
+      return make_error_code(lief_errors::read_error);
+    }
     if (auto raw = read_at(offset, size, virtual_address)) {
-      if (dst == nullptr) {
-        return make_error_code(lief_errors::read_error);
-      }
-
       const void* ptr = *raw;
 
       if (ptr == nullptr) {
@@ -334,6 +343,10 @@ class LIEF_API BinaryStream {
   template<class T>
   T* cast() {
     return const_cast<T*>(static_cast<const BinaryStream*>(this)->cast<T>());
+  }
+
+  virtual bool bind_binary(Binary& /*bin*/) {
+    return false;
   }
 
   protected:

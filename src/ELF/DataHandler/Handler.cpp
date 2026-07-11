@@ -19,6 +19,7 @@
 #include "logging.hpp"
 
 #include "LIEF/BinaryStream/MemoryStream.hpp"
+#include "LIEF/BinaryStream/DumpStream.hpp"
 #include "LIEF/BinaryStream/VectorStream.hpp"
 #include "LIEF/BinaryStream/SpanStream.hpp"
 #include "LIEF/BinaryStream/FileStream.hpp"
@@ -58,9 +59,6 @@ std::unique_ptr<Handler>
   if (auto* vs = stream->cast<VectorStream>()) {
     hdl->data_ = std::move(vs->move_content());
     const uint64_t pos = vs->pos();
-    // Build the replacement stream in a local, position it, then move it into
-    // the reference parameter. Mutating `stream` (reset/assign) and then
-    // dereferencing it trips Clang's strict lifetime-safety analysis.
     auto new_stream = std::make_unique<DataHandlerStream>(hdl->data_);
     new_stream->setpos(pos);
     stream = std::move(new_stream);
@@ -81,8 +79,23 @@ std::unique_ptr<Handler>
     return hdl;
   }
 
-  if (MemoryStream::classof(*stream)) {
-    return nullptr;
+  if (auto* memstream = stream->cast<MemoryStream>()) {
+    const uint8_t* start = memstream->start();
+    hdl->data_.assign(start, start + memstream->size());
+    const uint64_t pos = memstream->pos();
+    auto new_stream = std::make_unique<DataHandlerStream>(hdl->data_);
+    new_stream->setpos(pos);
+    stream = std::move(new_stream);
+    return hdl;
+  }
+
+  if (auto* dump = stream->cast<DumpStream>()) {
+    hdl->data_ = dump->content();
+    const uint64_t pos = dump->pos();
+    auto new_stream = std::make_unique<DataHandlerStream>(hdl->data_);
+    new_stream->setpos(pos);
+    stream = std::move(new_stream);
+    return hdl;
   }
 
   LIEF_ERR("Unknown stream type for Handler");

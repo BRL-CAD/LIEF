@@ -15,6 +15,8 @@
 #ifndef LIEF_RUNTIME_CONFIG_H
 #define LIEF_RUNTIME_CONFIG_H
 
+// clang-format off
+
 #cmakedefine LIEF_RUNTIME_PLATFORM_LINUX @LIEF_RUNTIME_PLATFORM_LINUX@
 #cmakedefine LIEF_RUNTIME_PLATFORM_WINDOWS @LIEF_RUNTIME_PLATFORM_WINDOWS@
 #cmakedefine LIEF_RUNTIME_PLATFORM_ANDROID @LIEF_RUNTIME_PLATFORM_ANDROID@
@@ -23,6 +25,7 @@
 
 #cmakedefine LIEF_RUNTIME_ARCH_ARM64 @LIEF_RUNTIME_ARCH_ARM64@
 #cmakedefine LIEF_RUNTIME_ARCH_X86_64 @LIEF_RUNTIME_ARCH_X86_64@
+#cmakedefine LIEF_RUNTIME_ARCH_RISCV64 @LIEF_RUNTIME_ARCH_RISCV64@
 
 
 #ifdef __cplusplus
@@ -36,9 +39,12 @@ static constexpr bool platform_ios = @LIEF_RUNTIME_PLATFORM_IOS@;
 
 static constexpr bool arch_arm64 = @LIEF_RUNTIME_ARCH_ARM64@;
 static constexpr bool arch_x86_64 = @LIEF_RUNTIME_ARCH_X86_64@;
+static constexpr bool arch_riscv64 = @LIEF_RUNTIME_ARCH_RISCV64@;
 
 }
 }
 #endif // __cplusplus
+
+// clang-format on
 
 #endif

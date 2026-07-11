@@ -72,6 +72,19 @@ class MachO_FatBinary : public Mirror<LIEF::MachO::FatBinary> {
     );
   }
 
+  static auto parse_from_dump(const std::string& path, uint64_t addr) {
+    return details::try_unique<MachO_FatBinary>(
+        LIEF::MachO::Parser::parse_from_dump(path, addr)
+    );
+  }
+
+  static auto parse_from_dump_with_config(const std::string& path, uint64_t addr,
+                                          const MachO_ParserConfig& config) {
+    return details::try_unique<MachO_FatBinary>(
+        LIEF::MachO::Parser::parse_from_dump(path, addr, config.conf())
+    );
+  }
+
   uint32_t size() const {
     return get().size();
   }

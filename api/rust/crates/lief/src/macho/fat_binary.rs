@@ -62,6 +62,32 @@ impl FatBinary {
         Some(FatBinary::from_ffi(ffi))
     }
 
+    /// Parse a Mach-O binary from a memory dump located at `path` that was
+    /// mapped at the virtual address `addr`
+    pub fn parse_from_dump<P: AsRef<Path>>(path: P, addr: u64) -> Option<Self> {
+        cxx::let_cxx_string!(__cxx_s = path.as_ref().to_str().unwrap());
+        let ffi = ffi::MachO_FatBinary::parse_from_dump(&__cxx_s, addr);
+        if ffi.is_null() {
+            return None;
+        }
+        Some(FatBinary::from_ffi(ffi))
+    }
+
+    /// Same as [`FatBinary::parse_from_dump`] but with a provided configuration
+    pub fn parse_from_dump_with_config<P: AsRef<Path>>(
+        path: P,
+        addr: u64,
+        config: &super::parser_config::Config,
+    ) -> Option<Self> {
+        let ffi_config = config.to_ffi();
+        cxx::let_cxx_string!(__cxx_s = path.as_ref().to_str().unwrap());
+        let ffi = ffi::MachO_FatBinary::parse_from_dump_with_config(&__cxx_s, addr, &ffi_config);
+        if ffi.is_null() {
+            return None;
+        }
+        Some(FatBinary::from_ffi(ffi))
+    }
+
     /// Gets the [`Binary`] that matches the given architecture
     pub fn with_cpu(&self, cpu: CpuType) -> Option<Binary> {
         into_optional(self.ptr.binary_from_arch(cpu.into()))

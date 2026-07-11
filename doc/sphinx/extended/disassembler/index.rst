@@ -279,6 +279,14 @@ but it also exposes an API to disassemble code in COFF object files: |lief-coff-
 
 For more details, please check the :ref:`COFF Disassembler <format-coff-disassembler>` section
 
+In-Memory Disassembler
+~~~~~~~~~~~~~~~~~~~~~~
+
+The disassembler is also available for analyzing code directly in the memory of
+the running process. This functionality is exposed through the runtime API
+|lief-runtime-disassemble|, as detailed in the :ref:`Runtime Memory <runtime_memory>`
+documentation.
+
 Technical Details
 *****************
 

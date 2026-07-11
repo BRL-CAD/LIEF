@@ -99,6 +99,20 @@ class MachO_Binary : public AbstractBinary {
     }
   };
 
+  class it_exported_symbols
+    : public Iterator<MachO_Symbol,
+                      LIEF::MachO::Binary::it_const_exported_symbols> {
+    public:
+    it_exported_symbols(const MachO_Binary::lief_t& src) :
+      Iterator(src.exported_symbols()) {}
+    auto next() {
+      return Iterator::next();
+    }
+    auto size() const {
+      return Iterator::size();
+    }
+  };
+
   class it_sections
     : public Iterator<MachO_Section, LIEF::MachO::Binary::it_const_sections> {
     public:
@@ -260,6 +274,9 @@ class MachO_Binary : public AbstractBinary {
   }
   auto symbols() const {
     return std::make_unique<it_symbols>(impl());
+  }
+  auto exported_symbols() const {
+    return std::make_unique<it_exported_symbols>(impl());
   }
   auto sections() const {
     return std::make_unique<it_sections>(impl());
@@ -644,6 +661,7 @@ class MachO_Binary : public AbstractBinary {
 
 using MachO_Binary_it_commands = MachO_Binary::it_commands;
 using MachO_Binary_it_symbols = MachO_Binary::it_symbols;
+using MachO_Binary_it_exported_symbols = MachO_Binary::it_exported_symbols;
 using MachO_Binary_it_sections = MachO_Binary::it_sections;
 using MachO_Binary_it_segments = MachO_Binary::it_segments;
 using MachO_Binary_it_libraries = MachO_Binary::it_libraries;

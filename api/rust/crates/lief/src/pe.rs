@@ -92,7 +92,7 @@ pub use tls::TLS;
 #[doc(inline)]
 pub use volatile_metadata::VolatileMetadata;
 
-use crate::common::AsFFI;
+use crate::common::{into_optional, AsFFI};
 
 /// PE type: 32-bit or 64-bit
 #[allow(non_camel_case_types)]
@@ -224,6 +224,35 @@ pub fn check_layout(binary: &Binary) -> Result<(), String> {
         }
     }
     Err(error.to_string())
+}
+
+/// Parse the PE binary at the given memory address
+pub fn parse_from_memory(addr: u64) -> Option<Binary> {
+    into_optional(ffi::PE_Binary::parse_from_memory(addr))
+}
+
+/// Parse the PE binary at the given memory address
+pub fn parse_from_memory_with_config(addr: u64, config: &ParserConfig) -> Option<Binary> {
+    let ffi_config = config.to_ffi();
+    into_optional(ffi::PE_Binary::parse_from_memory_with_config(
+        addr,
+        &ffi_config,
+    ))
+}
+
+/// Parse the PE binary from a memory dump located at `path` that was mapped at
+/// the virtual address `addr`
+pub fn parse_from_dump<P: AsRef<Path>>(path: P, addr: u64) -> Option<Binary> {
+    Binary::parse_from_dump(path, addr)
+}
+
+/// Same as [`parse_from_dump`] but with a provided configuration
+pub fn parse_from_dump_with_config<P: AsRef<Path>>(
+    path: P,
+    addr: u64,
+    config: &ParserConfig,
+) -> Option<Binary> {
+    Binary::parse_from_dump_with_config(path, addr, config)
 }
 
 /// Determine the PE type (PE32 or PE32+) of the given file

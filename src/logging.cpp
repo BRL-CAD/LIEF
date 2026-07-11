@@ -58,7 +58,8 @@ static std::shared_ptr<spdlog::logger>
   std::shared_ptr<spdlog::logger> sink;
   if constexpr (current_platform() == PLATFORMS::PLAT_ANDROID) {
 #if defined(__ANDROID__)
-    sink = spdlog::android_logger_mt(name, logcat_tag);
+    sink =
+        spdlog::android_logger_mt(name, !logcat_tag.empty() ? logcat_tag : name);
 #endif
   } else if (current_platform() == PLATFORMS::PLAT_IOS) {
     sink = create_basic_logger_mt(name, filepath, truncate);

@@ -154,6 +154,21 @@ pub fn parse_with_config<P: AsRef<Path>>(path: P, config: &ParserConfig) -> Opti
     Binary::parse_with_config(path, config)
 }
 
+/// Parse an ELF binary from a memory dump located at `path` that was mapped at
+/// the virtual address `addr`
+pub fn parse_from_dump<P: AsRef<Path>>(path: P, addr: u64) -> Option<Binary> {
+    Binary::parse_from_dump(path, addr)
+}
+
+/// Same as [`parse_from_dump`] but with a provided configuration
+pub fn parse_from_dump_with_config<P: AsRef<Path>>(
+    path: P,
+    addr: u64,
+    config: &ParserConfig,
+) -> Option<Binary> {
+    Binary::parse_from_dump_with_config(path, addr, config)
+}
+
 /// Check that the layout of the given binary is correct
 pub fn check_layout(binary: &Binary) -> Result<(), String> {
     cxx::let_cxx_string!(error = "");

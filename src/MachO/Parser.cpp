@@ -17,9 +17,9 @@
 
 #include "logging.hpp"
 
-
 #include "LIEF/BinaryStream/VectorStream.hpp"
 #include "LIEF/BinaryStream/MemoryStream.hpp"
+#include "LIEF/BinaryStream/DumpStream.hpp"
 
 #include "LIEF/MachO/FatBinary.hpp"
 #include "LIEF/MachO/Binary.hpp"
@@ -31,6 +31,9 @@
 #include "LIEF/MachO/Relocation.hpp"
 #include "LIEF/MachO/RelocationFixup.hpp"
 #include "LIEF/MachO/RelocationDyld.hpp"
+#include "LIEF/MachO/Section.hpp"
+#include "LIEF/MachO/SegmentCommand.hpp"
+#include "LIEF/MachO/ThreadLocalVariables.hpp"
 #include "MachO/Structures.hpp"
 
 
@@ -133,14 +136,42 @@ std::unique_ptr<FatBinary> Parser::parse_from_memory(uintptr_t address,
 
   if (parser.config_.fix_from_memory) {
     parser.undo_reloc_bindings(address);
+    parser.unpack_tlv();
   }
   return std::unique_ptr<FatBinary>(new FatBinary{std::move(parser.binaries_)});
 }
 
 std::unique_ptr<FatBinary> Parser::parse_from_memory(uintptr_t address,
                                                      const ParserConfig& conf) {
-  static constexpr size_t MAX_SIZE = std::numeric_limits<size_t>::max() << 2;
+  static constexpr size_t MAX_SIZE = std::numeric_limits<size_t>::max() >> 2;
   return parse_from_memory(address, MAX_SIZE, conf);
+}
+
+
+std::unique_ptr<FatBinary> Parser::parse_from_dump(const std::string& filepath,
+                                                   uint64_t addr,
+                                                   const ParserConfig& conf) {
+  auto stream = VectorStream::from_file(filepath);
+  if (!stream) {
+    return nullptr;
+  }
+  return parse_from_dump(std::make_unique<VectorStream>(std::move(*stream)), addr,
+                         conf);
+}
+
+std::unique_ptr<FatBinary> Parser::parse_from_dump(BinaryStream& stream,
+                                                   uint64_t addr,
+                                                   const ParserConfig& conf) {
+  return parse(std::make_unique<DumpStream>(addr, stream), conf);
+}
+
+std::unique_ptr<FatBinary>
+    Parser::parse_from_dump(std::unique_ptr<BinaryStream> stream, uint64_t addr,
+                            const ParserConfig& conf) {
+  if (stream == nullptr) {
+    return nullptr;
+  }
+  return parse(std::make_unique<DumpStream>(addr, std::move(stream)), conf);
 }
 
 ok_error_t Parser::parse_fat() {
@@ -217,17 +248,68 @@ ok_error_t Parser::parse() {
   return ok();
 }
 
+ok_error_t Parser::unpack_tlv() {
+  using Thunk = ThreadLocalVariables::Thunk;
+  // Since dyld-1285.19 the TLV thunk are packed at runtime:
+  //
+  // On-Disk:                 | In Memory
+  // {                        | {
+  //    uintptr_t func;       |   uintptr_t func;
+  //    size_t    key;        |   uint32_t  key;
+  //                          |   uint32_t  offset;
+  //    size_t    offset;     |   int32_t   initialContentDelta;
+  //                          |   uint32_t  initialContentSize;
+  // }                        | }
+  //
+  // The heuristic to detect whether thunks are packed or not is to compare
+  // the `initialContentSize` with Binary::tlv_initial_content_range
+  if (!config_.fix_from_memory) {
+    return ok();
+  }
+
+  for (std::unique_ptr<Binary>& bin : binaries_) {
+    if (!bin->header().is_64bit()) {
+      continue;
+    }
+    const Binary::range_t& initial_content = bin->tlv_initial_content_range();
+    for (Section& S : bin->sections()) {
+      auto* tlv_sec = S.cast<ThreadLocalVariables>();
+      if (tlv_sec == nullptr) {
+        continue;
+      }
+
+      auto thunks = tlv_sec->thunks();
+
+      for (auto i = 0; i < thunks.size(); ++i) {
+        Thunk T = thunks[i];
+        const auto initialContentSize = (uint32_t)(T.offset >> 32);
+        if (!initial_content.empty() &&
+            initial_content.size() == initialContentSize)
+        {
+          LIEF_DEBUG("fixing thunk #{}. offset: {:#06x} -> {:#06x}", i, T.offset,
+                     T.key >> 32);
+          T.offset = T.key >> 32;
+          T.key = 0;
+          tlv_sec->set(i, T);
+        }
+      }
+    }
+  }
+
+  return ok();
+}
+
 ok_error_t Parser::undo_reloc_bindings(uintptr_t base_address) {
   if (!config_.fix_from_memory) {
     return ok();
   }
   for (std::unique_ptr<Binary>& bin : binaries_) {
     for (Relocation& reloc : bin->relocations()) {
-      if (RelocationFixup::classof(reloc)) {
-        /* TODO(romain): We should support fixup
-         * auto& fixup = static_cast<RelocationFixup&>(reloc);
-         */
-      } else if (RelocationDyld::classof(reloc)) {
+      if ([[maybe_unused]] const auto* fixup = reloc.cast<RelocationFixup>()) {
+        // TODO(romain): add support for this fixup
+      } else if ([[maybe_unused]] const auto* dyld_reloc =
+                     reloc.cast<RelocationDyld>())
+      {
         span<const uint8_t> content =
             bin->get_content_from_virtual_address(reloc.address(),
                                                   sizeof(uintptr_t));

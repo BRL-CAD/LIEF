@@ -72,6 +72,7 @@ pub mod ffi {
         fn header(self: &MachO_Binary) -> UniquePtr<MachO_Header>;
         fn commands(self: &MachO_Binary) -> UniquePtr<MachO_Binary_it_commands>;
         fn symbols(self: &MachO_Binary) -> UniquePtr<MachO_Binary_it_symbols>;
+        fn exported_symbols(self: &MachO_Binary) -> UniquePtr<MachO_Binary_it_exported_symbols>;
         fn sections(self: &MachO_Binary) -> UniquePtr<MachO_Binary_it_sections>;
         fn segments(self: &MachO_Binary) -> UniquePtr<MachO_Binary_it_segments>;
         fn libraries(self: &MachO_Binary) -> UniquePtr<MachO_Binary_it_libraries>;
@@ -266,6 +267,11 @@ pub mod ffi {
 
         fn next(self: Pin<&mut MachO_Binary_it_symbols>) -> UniquePtr<MachO_Symbol>;
         fn size(self: &MachO_Binary_it_symbols) -> u64;
+
+        type MachO_Binary_it_exported_symbols;
+
+        fn next(self: Pin<&mut MachO_Binary_it_exported_symbols>) -> UniquePtr<MachO_Symbol>;
+        fn size(self: &MachO_Binary_it_exported_symbols) -> u64;
     }
     impl UniquePtr<MachO_Binary> {}
     impl UniquePtr<MachO_Binary_write_config_t> {}
@@ -282,4 +288,5 @@ pub mod ffi {
     impl UniquePtr<MachO_Binary_it_stubs> {}
     impl UniquePtr<MachO_Binary_it_sub_clients> {}
     impl UniquePtr<MachO_Binary_it_symbols> {}
+    impl UniquePtr<MachO_Binary_it_exported_symbols> {}
 }

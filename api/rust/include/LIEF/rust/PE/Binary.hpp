@@ -151,6 +151,14 @@ class PE_ParserConfig {
     config_.parse_arm64x_binary = value;
   }
 
+  void set_rebase(uint64_t value) {
+    config_.rebase = value;
+  }
+
+  void clear_rebase() {
+    config_.rebase.reset();
+  }
+
   private:
   LIEF::PE::ParserConfig config_;
 };
@@ -295,6 +303,31 @@ class PE_Binary : public AbstractBinary {
 
   PE_Binary(std::unique_ptr<LIEF::Binary> bin) :
     AbstractBinary(std::move(bin)) {}
+
+  static auto parse_from_memory(uint64_t addr) {
+    return details::try_unique<PE_Binary>(
+        LIEF::PE::Parser::parse_from_memory(addr)
+    );
+  }
+
+  static auto parse_from_memory_with_config(uint64_t addr,
+                                            const PE_ParserConfig& config) {
+    return details::try_unique<PE_Binary>(
+        LIEF::PE::Parser::parse_from_memory(addr, config.conf())
+    );
+  }
+
+  static auto parse_from_dump(const std::string& path, uint64_t addr) {
+    return details::try_unique<PE_Binary>(LIEF::PE::Parser::parse_from_dump(path,
+                                                                            addr));
+  }
+
+  static auto parse_from_dump_with_config(const std::string& path, uint64_t addr,
+                                          const PE_ParserConfig& config) {
+    return details::try_unique<PE_Binary>(
+        LIEF::PE::Parser::parse_from_dump(path, addr, config.conf())
+    );
+  }
 
   static auto parse(const std::string& path) {
     return details::try_unique<PE_Binary>(LIEF::PE::Parser::parse(path));

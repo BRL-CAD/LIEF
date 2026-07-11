@@ -34,6 +34,8 @@ You can find the differences between the two versions in this table:
 +---------------------------------------------+-------------------+-------------------+----------------------------------------------------+
 | :ref:`ART <format-art>`                     | :fa-check:`check` | :fa-check:`check` |                                                    |
 +---------------------------------------------+-------------------+-------------------+----------------------------------------------------+
+| :ref:`Runtime <runtime-intro>`              | :fa-check:`check` | :fa-check:`check` | Only enabled in LIEF extended wheels               |
++---------------------------------------------+-------------------+-------------------+----------------------------------------------------+
 | :ref:`PDB <extended-pdb>`                   | :xmark:`mark`     | :fa-check:`check` | Support based on LLVM :ref:`[1] <extended-llvm>`   |
 +---------------------------------------------+-------------------+-------------------+----------------------------------------------------+
 | :ref:`DWARF <extended-dwarf>`               | :xmark:`mark`     | :fa-check:`check` | Support based on LLVM :ref:`[1] <extended-llvm>`   |

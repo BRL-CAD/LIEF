@@ -17,6 +17,7 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "lief_extended: the test needs the extended version."
     )
+    config.addinivalue_line("markers", "runtime: this test target the runtime API.")
 
 
 def pytest_addoption(parser):
@@ -24,6 +25,12 @@ def pytest_addoption(parser):
         "--skip-slow",
         action="store_true",
         help="Skip slow tests",
+    )
+
+    parser.addoption(
+        "--skip-runtime",
+        action="store_true",
+        help="Skip runtime tests",
     )
 
     parser.addoption(
@@ -77,3 +84,7 @@ def pytest_runtest_setup(item: pytest.Function):
     if item.config.getoption("--only-extended") and lief.__extended__:
         if item.get_closest_marker("lief_extended") is None:
             pytest.skip("Skipping non extended tests")
+
+    if item.get_closest_marker("runtime") is not None:
+        if item.config.getoption("--skip-runtime"):
+            pytest.skip("Skipping runtime tests")

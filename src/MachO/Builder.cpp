@@ -39,9 +39,7 @@ Builder::~Builder() = default;
 Builder::Builder(Binary& binary, config_t config) :
   binary_{&binary},
   config_{config} {
-  if (binary_->original_size() != (uint64_t)-1) {
-    raw_.reserve(binary_->original_size());
-  }
+  raw_.reserve(std::min<uint64_t>(binary_->original_size(), 1_GB));
   binaries_.push_back(binary_);
 }
 

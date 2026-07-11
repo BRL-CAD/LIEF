@@ -20,6 +20,8 @@
 #include "logging.hpp"
 
 #include "LIEF/BinaryStream/SpanStream.hpp"
+#include "LIEF/BinaryStream/MemoryStream.hpp"
+#include "LIEF/BinaryStream/DumpStream.hpp"
 
 #include "LIEF/BinaryStream/VectorStream.hpp"
 #include "LIEF/PE/signature/Signature.hpp"
@@ -195,6 +197,89 @@ ok_error_t Parser::parse_rich_header() {
   return ok();
 }
 
+
+ok_error_t Parser::read_section_content(const details::pe_section& raw_sec,
+                                        uint32_t index, Section& section) {
+  uint32_t numberof_sections = binary_->header().numberof_sections();
+  uint32_t size_to_read = 0;
+  const uint32_t offset = raw_sec.PointerToRawData;
+
+  const bool is_memory_view = stream_->is_memory_view();
+
+  if (is_memory_view) {
+    size_to_read = raw_sec.VirtualSize;
+  } else {
+    size_to_read = raw_sec.VirtualSize > 0 ?
+                       std::min(raw_sec.VirtualSize,
+                                raw_sec.SizeOfRawData) : // According to Corkami
+                       raw_sec.SizeOfRawData;
+  }
+
+  if (size_to_read == 0) {
+    return ok();
+  }
+
+  const uint64_t peek_target =
+      is_memory_view ? section.virtual_address() : (uint64_t)offset;
+
+  if (peek_target < stream_->size() &&
+      (peek_target + size_to_read) > stream_->size())
+  {
+    size_to_read = (uint32_t)stream_->size() - peek_target;
+  }
+
+  if (size_to_read > Parser::MAX_DATA_SIZE) {
+    LIEF_WARN("Section '{}' data too large ({:#x})", section.name(), size_to_read);
+    return make_error_code(lief_errors::data_too_large);
+  }
+
+  if (!stream_->peek_data(section.content_, peek_target, size_to_read,
+                          section.virtual_address()))
+  {
+    LIEF_ERR("Corrupted section #{:d} ({})", index, section.name());
+  }
+
+  const uint64_t padding_size = section.size() - size_to_read;
+
+  // Treat content between two sections (that is not wrapped in a section) as
+  // 'padding'
+  uint64_t hole_size = 0;
+  if (!is_memory_view && index < numberof_sections - 1) {
+    // As we *read* at the beginning of the loop, the cursor is already on the next
+    // one
+    auto res_next_section = stream_->peek<details::pe_section>();
+    if (!res_next_section) {
+      LIEF_ERR("Failed to read section #{}", index + 1);
+    } else {
+      const details::pe_section& next_section = *res_next_section;
+      const uint64_t sec_offset = next_section.PointerToRawData;
+      if (offset + size_to_read + padding_size < sec_offset) {
+        hole_size = sec_offset - (offset + size_to_read + padding_size);
+      }
+    }
+  }
+
+  uint64_t padding_to_read = padding_size + hole_size;
+  if (!is_memory_view && padding_to_read > MAX_PADDING_SIZE) {
+    LIEF_WARN("Padding of section '{}' too large, "
+              "limiting to {} bytes",
+              section.name(), Parser::MAX_PADDING_SIZE);
+    padding_to_read = MAX_PADDING_SIZE;
+  }
+
+  if (is_memory_view) {
+    padding_to_read = 0;
+  }
+
+  if (!stream_->peek_data(section.padding_, offset + size_to_read,
+                          padding_to_read))
+  {
+    LIEF_ERR("Failed to read padding of section '{}'", section.name());
+  }
+
+  return ok();
+}
+
 ok_error_t Parser::parse_sections() {
   static constexpr size_t NB_MAX_SECTIONS = 1000;
   LIEF_DEBUG("Parsing sections");
@@ -224,66 +309,12 @@ ok_error_t Parser::parse_sections() {
       break;
     }
     auto section = std::make_unique<Section>(raw_sec);
-    uint32_t size_to_read = 0;
     const uint32_t offset = raw_sec.PointerToRawData;
     if (offset > 0) {
       first_section_offset = std::min(first_section_offset, offset);
     }
 
-    size_to_read = raw_sec.VirtualSize > 0 ?
-                       std::min(raw_sec.VirtualSize,
-                                raw_sec.SizeOfRawData) : // According to Corkami
-                       raw_sec.SizeOfRawData;
-
-    if ((offset + size_to_read) > stream_->size()) {
-      const uint32_t delta = (offset + size_to_read) - stream_->size();
-      size_to_read = size_to_read - delta;
-    }
-
-    if (size_to_read > Parser::MAX_DATA_SIZE) {
-      LIEF_WARN("Section '{}' data too large ({:#x})", section->name(),
-                size_to_read);
-    } else {
-
-      if (!stream_->peek_data(section->content_, offset, size_to_read,
-                              section->virtual_address()))
-      {
-        LIEF_ERR("Corrupted section #{:d} ({})", i, section->name());
-      }
-
-      const uint64_t padding_size = section->size() - size_to_read;
-
-      // Treat content between two sections (that is not wrapped in a section) as
-      // 'padding'
-      uint64_t hole_size = 0;
-      if (i < numberof_sections - 1) {
-        // As we *read* at the beginning of the loop, the cursor is already on the
-        // next one
-        auto res_next_section = stream_->peek<details::pe_section>();
-        if (!res_next_section) {
-          LIEF_ERR("Failed to read section #{}", i + 1);
-        } else {
-          const details::pe_section& next_section = *res_next_section;
-          const uint64_t sec_offset = next_section.PointerToRawData;
-          if (offset + size_to_read + padding_size < sec_offset) {
-            hole_size = sec_offset - (offset + size_to_read + padding_size);
-          }
-        }
-      }
-      uint64_t padding_to_read = padding_size + hole_size;
-      if (padding_to_read > Parser::MAX_PADDING_SIZE) {
-        LIEF_WARN("Padding of section '{}' too large, "
-                  "limiting to {} bytes",
-                  section->name(), Parser::MAX_PADDING_SIZE);
-        padding_to_read = Parser::MAX_PADDING_SIZE;
-      }
-
-      if (!stream_->peek_data(section->padding_, offset + size_to_read,
-                              padding_to_read))
-      {
-        LIEF_ERR("Failed to read padding of section '{}'", section->name());
-      }
-    }
+    read_section_content(raw_sec, i, *section);
 
     if (const std::string& name = section->name();
         name.size() > 1 && name[0] == '/')
@@ -296,6 +327,9 @@ ok_error_t Parser::parse_sections() {
     }
     binary_->sections_.push_back(std::move(section));
   }
+
+  // At this point we can bind the binary to the stream (if needed)
+  stream_->bind_binary(*binary_);
 
   const uint32_t last_section_header_offset =
       sections_offset + numberof_sections * sizeof(details::pe_section);
@@ -420,6 +454,11 @@ ok_error_t Parser::parse_resources() {
 ok_error_t Parser::parse_string_table() {
   // PE is using the "Symbol16" format
   static constexpr auto SYMBOL16_SZ = 18;
+
+  if (stream_->is_memory_view()) {
+    return ok();
+  }
+
   const Header& hdr = binary_->header();
 
   if (hdr.pointerto_symbol_table() == 0) {
@@ -466,6 +505,11 @@ ok_error_t Parser::parse_string_table() {
 ok_error_t Parser::parse_symbols() {
   LIEF_DEBUG("Parsing symbols");
   const Header& hdr = binary_->header();
+
+  if (stream_->is_memory_view()) {
+    return ok();
+  }
+
   if (hdr.pointerto_symbol_table() == 0 || hdr.numberof_symbols() == 0) {
     return ok();
   }
@@ -1157,6 +1201,10 @@ ok_error_t Parser::parse_exports() {
 
 ok_error_t Parser::parse_signature() {
   LIEF_DEBUG("Parsing signature");
+  if (stream_->is_memory_view()) {
+    return ok();
+  }
+
   static constexpr size_t SIZEOF_HEADER = 8;
 
   /*** /!\ In this data directory, RVA is used as an **OFFSET** /!\ ****/
@@ -1231,6 +1279,11 @@ ok_error_t Parser::parse_signature() {
 
 ok_error_t Parser::parse_overlay() {
   LIEF_DEBUG("Parsing Overlay");
+
+  if (stream_->is_memory_view()) {
+    return ok();
+  }
+
   const uint64_t last_section_offset = std::accumulate(
       binary_->sections_.begin(), binary_->sections_.end(), uint64_t{0u},
       [](uint64_t offset, const std::unique_ptr<Section>& section) {
@@ -1462,6 +1515,51 @@ ok_error_t Parser::record_delta_relocation(uint32_t rva, int64_t delta,
   }
 
   return make_error_code(lief_errors::not_supported);
+}
+
+
+std::unique_ptr<Binary> Parser::parse_from_memory(uintptr_t address,
+                                                  const ParserConfig& config) {
+  static constexpr size_t MAX_SIZE = std::numeric_limits<size_t>::max() >> 2;
+  return parse_from_memory(address, MAX_SIZE, config);
+}
+
+std::unique_ptr<Binary> Parser::parse_from_memory(uintptr_t address, size_t size,
+                                                  const ParserConfig& config) {
+  auto stream = std::make_unique<MemoryStream>(address, size);
+  if (!is_pe(*stream)) {
+    return nullptr;
+  }
+
+  Parser parser{std::move(stream)};
+  parser.init(config);
+  return std::move(parser.binary_);
+}
+
+std::unique_ptr<Binary> Parser::parse_from_dump(const std::string& filepath,
+                                                uint64_t addr,
+                                                const ParserConfig& config) {
+  auto stream = VectorStream::from_file(filepath);
+  if (!stream) {
+    return nullptr;
+  }
+  return parse_from_dump(std::make_unique<VectorStream>(std::move(*stream)), addr,
+                         config);
+}
+
+std::unique_ptr<Binary> Parser::parse_from_dump(BinaryStream& stream,
+                                                uint64_t addr,
+                                                const ParserConfig& config) {
+  return parse(std::make_unique<DumpStream>(addr, stream), config);
+}
+
+std::unique_ptr<Binary>
+    Parser::parse_from_dump(std::unique_ptr<BinaryStream> stream, uint64_t addr,
+                            const ParserConfig& config) {
+  if (stream == nullptr) {
+    return nullptr;
+  }
+  return parse(std::make_unique<DumpStream>(addr, std::move(stream)), config);
 }
 
 }

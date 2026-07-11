@@ -260,3 +260,66 @@ macro_rules! to_opt_trait_conv {
         $crate::__to_opt!($func, $self, $conv $(, $args)*)
     };
 }
+
+pub struct StandaloneForwardIterator<It: UniquePtrTarget> {
+    #[doc(hidden)]
+    pub it: cxx::UniquePtr<It>,
+}
+
+impl<It: UniquePtrTarget> StandaloneForwardIterator<It> {
+    #[doc(hidden)]
+    pub fn new(it: cxx::UniquePtr<It>) -> Self {
+        Self { it }
+    }
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! declare_standalone_fwd_iterator {
+    ($name:ident, $from:ty, $ffi:ty, $ffi_iterator:ty) => {
+        $crate::declare_standalone_fwd_iterator_conv!($name, $from, $ffi, $ffi_iterator, |n| {
+            Self::Item::from_ffi(n)
+        });
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! declare_standalone_fwd_iterator_conv {
+    ($name:ident, $from:ty, $ffi:ty, $ffi_iterator:ty, $conv: expr) => {
+        pub type $name = $crate::common::StandaloneForwardIterator<$ffi_iterator>;
+        impl Iterator for $name {
+            type Item = $from;
+            fn next(&mut self) -> Option<Self::Item> {
+                let next = self.it.as_mut().unwrap().next();
+                if next.is_null() {
+                    None
+                } else {
+                    Some($conv(next))
+                }
+            }
+        }
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __to_ok_result {
+    ($func: expr $(, $args:expr)*) => {
+        let mut err: u32 = 0;
+
+        $func($($args,)* std::pin::Pin::new(&mut err));
+        if err > 0 {
+            return Err($crate::Error::from(err));
+        }
+        return Ok(());
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! to_ok_result {
+    ($func: expr $(, $args:expr)*) => {
+        $crate::__to_ok_result!($func $(, $args)*)
+    };
+}

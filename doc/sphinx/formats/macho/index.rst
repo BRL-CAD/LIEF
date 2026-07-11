@@ -220,6 +220,115 @@ to specify which parts of the Mach-O should be rebuilt.
 
   :ref:`binary-abstraction`
 
+
+.. _format-macho-dump:
+
+Dump Analysis
+*************
+
+LIEF has the support to process Mach-O memory dump with |lief-macho-parse_from_dump|. This function
+translates the file offsets referenced by the Mach-O structures into their location inside
+the dump, using the base address passed as the second parameter. As for the regular parser,
+it returns a |lief-macho-fatbinary|:
+
+.. tabs::
+
+  .. tab:: :fa:`brands fa-python` Python
+
+    .. code-block:: python
+
+      import lief
+
+      # 0x11e32c000 is the (absolute) address at which the dump was mapped
+      fat: lief.MachO.FatBinary = lief.MachO.parse_from_dump("module.dump", 0x11e32c000)
+      macho: lief.MachO.Binary = fat.at(0)
+
+      for segment in macho.segments:
+          print(segment.name, hex(segment.virtual_address))
+
+  .. tab:: :fa:`regular fa-file-code` C++
+
+    .. code-block:: cpp
+
+      #include <LIEF/MachO.hpp>
+
+      auto fat = LIEF::MachO::Parser::parse_from_dump("module.dump", 0x11e32c000);
+      const LIEF::MachO::Binary* macho = fat->at(0);
+
+      for (const LIEF::MachO::SegmentCommand& segment : macho->segments()) {
+        std::cout << segment.name() << '\n';
+      }
+
+  .. tab:: :fa:`brands fa-rust` Rust
+
+    .. code-block:: rust
+
+      let fat = lief::macho::FatBinary::parse_from_dump("module.dump", 0x1_1e32_c000).unwrap();
+      let macho = fat.iter().next().unwrap();
+
+      for segment in macho.segments() {
+          println!("{} {:#x}", segment.name(), segment.virtual_address());
+      }
+
+.. note::
+
+  The second parameter **must** be the (absolute) virtual address at which the
+  dump was mapped. It is used to convert the virtual addresses found in the
+  Mach-O structures back into an offset within the dump.
+
+Producing a dump with the runtime API
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Such a dump can be produced from a live process thanks to the LIEF
+:ref:`runtime <runtime-intro>` and, more precisely, the
+:ref:`Module API <runtime_modules>`. |lief-runtime-module-dump| captures the
+memory of a loaded module (from its imagebase over its virtual size):
+
+.. tabs::
+
+  .. tab:: :fa:`brands fa-python` Python
+
+    .. code-block:: python
+
+      import lief
+
+      # Find the module to dump in the current process
+      mod = lief.runtime.module_from_name("libsystem_c.dylib")
+
+      # Dump the module's memory into a file (the raw bytes are also returned) ...
+      data: bytes = mod.dump("module.dump")
+
+      # ... and parse it back using the same imagebase:
+      macho = lief.MachO.parse_from_dump(data, mod.imagebase)
+
+  .. tab:: :fa:`regular fa-file-code` C++
+
+    .. code-block:: cpp
+
+      #include <LIEF/MachO.hpp>
+      #include <LIEF/runtime.hpp>
+
+      // Find the module to dump in the current process
+      auto mod = LIEF::runtime::module_from_name("libsystem_c.dylib");
+
+      // Dump the module's memory into a file (the raw bytes are also returned)
+      std::vector<uint8_t> data = mod->dump("module.dump");
+
+      auto fat = LIEF::MachO::Parser::parse_from_dump("module.dump", mod->imagebase());
+
+  .. tab:: :fa:`brands fa-rust` Rust
+
+    .. code-block:: rust
+
+      use lief::runtime::Module;
+
+      let module = lief::runtime::module_from_name("libsystem_c.dylib").unwrap();
+
+      // Dump the module's memory into a file (the raw bytes are also returned)
+      let data = module.dump_to_file("module.dump");
+
+      let fat = lief::macho::FatBinary::parse_from_dump("module.dump", module.imagebase()).unwrap();
+
 .. _format-macho-rpath:
 
 RPath and Library Path Modification

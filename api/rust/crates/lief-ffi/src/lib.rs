@@ -16,6 +16,7 @@ pub mod macho;
 pub mod objc;
 pub mod pdb;
 pub mod pe;
+pub mod runtime;
 pub mod stream;
 pub mod utils;
 
@@ -264,6 +265,7 @@ pub use crate::macho::atom_info::ffi::MachO_AtomInfo;
 pub use crate::macho::binary::ffi::MachO_Binary;
 pub use crate::macho::binary::ffi::MachO_Binary_it_bindings_info;
 pub use crate::macho::binary::ffi::MachO_Binary_it_commands;
+pub use crate::macho::binary::ffi::MachO_Binary_it_exported_symbols;
 pub use crate::macho::binary::ffi::MachO_Binary_it_fileset_binaries;
 pub use crate::macho::binary::ffi::MachO_Binary_it_lazy_load_dylib_info;
 pub use crate::macho::binary::ffi::MachO_Binary_it_libraries;
@@ -560,6 +562,47 @@ pub use crate::pe::unwind_code_x64::ffi::PE_unwind_x64_SaveXMM128;
 pub use crate::pe::unwind_code_x64::ffi::PE_unwind_x64_SetFPReg;
 pub use crate::pe::unwind_code_x64::ffi::PE_unwind_x64_Spare;
 pub use crate::pe::utils::ffi::PE_Utils;
+pub use crate::runtime::android::host::ffi::runtime_android_Host;
+pub use crate::runtime::android::module::ffi::runtime_android_Module;
+pub use crate::runtime::android::module::ffi::runtime_android_dlopen;
+pub use crate::runtime::android::process::ffi::runtime_android_Process;
+pub use crate::runtime::android::property::ffi::runtime_android_Property;
+pub use crate::runtime::android::property::ffi::runtime_android_it_properties;
+pub use crate::runtime::assembler::ffi::runtime_assemble;
+pub use crate::runtime::assembler::ffi::runtime_assemble_with_config;
+pub use crate::runtime::disassembler::ffi::runtime_disassemble;
+pub use crate::runtime::disassembler::ffi::runtime_it_instructions;
+pub use crate::runtime::ffi::runtime_arch;
+pub use crate::runtime::ffi::runtime_enabled;
+pub use crate::runtime::ffi::runtime_platform;
+pub use crate::runtime::host::ffi::runtime_Host;
+pub use crate::runtime::linux::host::ffi::runtime_linux_Host;
+pub use crate::runtime::linux::module::ffi::runtime_linux_Module;
+pub use crate::runtime::linux::module::ffi::runtime_linux_dlopen;
+pub use crate::runtime::linux::process::ffi::runtime_linux_Process;
+pub use crate::runtime::memory::ffi::runtime_Memory;
+pub use crate::runtime::memory::ffi::runtime_Memory_Chunk;
+pub use crate::runtime::module::ffi::runtime_Module;
+pub use crate::runtime::module::ffi::runtime_it_modules;
+pub use crate::runtime::module::ffi::runtime_module_from_addr;
+pub use crate::runtime::module::ffi::runtime_module_from_name;
+pub use crate::runtime::module::ffi::runtime_module_from_path;
+pub use crate::runtime::module::ffi::runtime_modules;
+pub use crate::runtime::osx::host::ffi::runtime_osx_Host;
+pub use crate::runtime::osx::host::ffi::runtime_osx_Host_version_t;
+pub use crate::runtime::osx::module::ffi::runtime_osx_Module;
+pub use crate::runtime::osx::module::ffi::runtime_osx_dlopen;
+pub use crate::runtime::osx::process::ffi::runtime_osx_Process;
+pub use crate::runtime::process::ffi::runtime_Process;
+pub use crate::runtime::windows::host::ffi::runtime_windows_Host;
+pub use crate::runtime::windows::host::ffi::runtime_windows_Host_version_t;
+pub use crate::runtime::windows::ldr_data_table_entry::ffi::runtime_windows_LdrDataTableEntry;
+pub use crate::runtime::windows::ldr_data_table_entry::ffi::runtime_windows_it_ldr_data_table_entry;
+pub use crate::runtime::windows::module::ffi::runtime_windows_Module;
+pub use crate::runtime::windows::module::ffi::runtime_windows_dlopen;
+pub use crate::runtime::windows::module::ffi::runtime_windows_find_module;
+pub use crate::runtime::windows::peb::ffi::runtime_windows_PEB;
+pub use crate::runtime::windows::process::ffi::runtime_windows_Process;
 pub use crate::stream::ffi::RustStream;
 pub use crate::utils::ffi::demangle;
 pub use crate::utils::ffi::dump;
@@ -1654,5 +1697,25 @@ impl AsRef<asm_x86_Operand> for asm_x86_operands_PCRelative {
 impl AsRef<asm_x86_Operand> for asm_x86_operands_Register {
     fn as_ref(&self) -> &asm_x86_Operand {
         unsafe { &*(self as *const asm_x86_operands_Register as *const asm_x86_Operand) }
+    }
+}
+impl AsRef<runtime_Module> for runtime_linux_Module {
+    fn as_ref(&self) -> &runtime_Module {
+        unsafe { &*(self as *const runtime_linux_Module as *const runtime_Module) }
+    }
+}
+impl AsRef<runtime_Module> for runtime_osx_Module {
+    fn as_ref(&self) -> &runtime_Module {
+        unsafe { &*(self as *const runtime_osx_Module as *const runtime_Module) }
+    }
+}
+impl AsRef<runtime_Module> for runtime_windows_Module {
+    fn as_ref(&self) -> &runtime_Module {
+        unsafe { &*(self as *const runtime_windows_Module as *const runtime_Module) }
+    }
+}
+impl AsRef<runtime_Module> for runtime_android_Module {
+    fn as_ref(&self) -> &runtime_Module {
+        unsafe { &*(self as *const runtime_android_Module as *const runtime_Module) }
     }
 }

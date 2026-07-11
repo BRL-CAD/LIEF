@@ -31,6 +31,7 @@ def run(
             CWD / "assembly",
             CWD / "abstract",
             CWD / "coff",
+            CWD / "runtime",
             "--verbose",
         ]
     ]

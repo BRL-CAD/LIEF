@@ -69,6 +69,14 @@ pub mod ffi {
         fn parse(path: &CxxString) -> UniquePtr<ELF_Binary>;
         #[Self = "ELF_Binary"]
         fn parse_with_config(path: &CxxString, config: &ELF_ParserConfig) -> UniquePtr<ELF_Binary>;
+        #[Self = "ELF_Binary"]
+        fn parse_from_dump(path: &CxxString, addr: u64) -> UniquePtr<ELF_Binary>;
+        #[Self = "ELF_Binary"]
+        fn parse_from_dump_with_config(
+            path: &CxxString,
+            addr: u64,
+            config: &ELF_ParserConfig,
+        ) -> UniquePtr<ELF_Binary>;
         fn header(self: &ELF_Binary) -> UniquePtr<ELF_Header>;
         fn gnu_hash(self: &ELF_Binary) -> UniquePtr<ELF_GnuHash>;
         fn sysv_hash(self: &ELF_Binary) -> UniquePtr<ELF_SysvHash>;

@@ -14,6 +14,7 @@ option(LIEF_ENABLE_JSON                "Enable JSON-related APIs"               
 option(LIEF_OPT_NLOHMANN_JSON_EXTERNAL "Use nlohmann/json externally"               OFF)
 option(LIEF_FORCE_API_EXPORTS          "Force exports of API symbols"               OFF)
 option(LIEF_PY_LIEF_EXT                "Use a pre-installed version of LIEF for the bindings" OFF)
+option(LIEF_PRECOMPILED                "Use a pre-compiled version of LIEF" OFF)
 option(LIEF_RUST_API                   "Generate the C++ bridge for Rust's cxx" OFF)
 option(LIEF_DISABLE_EXCEPTIONS         "Disable C++ exceptions on the core library" ON)
 option(LIEF_SO_VERSION                 "Embed versioning for LIEF shared library target" OFF)
@@ -41,6 +42,10 @@ endif()
 
 if (LIEF_PE AND NOT LIEF_COFF)
   message(FATAL_ERROR "PE module requires LIEF_COFF enabled")
+endif()
+
+if (LIEF_PY_LIEF_EXT)
+  set(LIEF_PRECOMPILED ON)
 endif()
 
 cmake_dependent_option(LIEF_PYTHON_EDITABLE "Make an editable build " OFF

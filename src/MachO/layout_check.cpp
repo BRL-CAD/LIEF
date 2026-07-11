@@ -1989,7 +1989,6 @@ bool LayoutChecker::check_tls() {
     }
   }
 
-
   if (is64 && initial_content.size() > 4_GB) {
     return error("unsupported thread-local, larger than 4GB");
   }

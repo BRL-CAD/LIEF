@@ -21,6 +21,16 @@
   #include "TargetConditionals.h"
 #endif
 
+#if defined(__linux__)
+  #include <features.h>
+
+  #ifndef __GLIBC__
+    #define LIEF_PLATFORM_MUSL 1
+  #else
+    #define LIEF_PLATFORM_GLIBC 1
+  #endif
+#endif
+
 namespace LIEF {
 
 enum PLATFORMS {

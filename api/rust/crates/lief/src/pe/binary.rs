@@ -80,6 +80,32 @@ impl Binary {
         Some(Binary::from_ffi(ffi))
     }
 
+    /// Parse a PE binary from a memory dump located at `path` that was mapped
+    /// at the virtual address `addr`
+    pub fn parse_from_dump<P: AsRef<Path>>(path: P, addr: u64) -> Option<Self> {
+        cxx::let_cxx_string!(__cxx_s = path.as_ref().to_str().unwrap());
+        let ffi = ffi::PE_Binary::parse_from_dump(&__cxx_s, addr);
+        if ffi.is_null() {
+            return None;
+        }
+        Some(Binary::from_ffi(ffi))
+    }
+
+    /// Same as [`Binary::parse_from_dump`] but with a provided configuration
+    pub fn parse_from_dump_with_config<P: AsRef<Path>>(
+        path: P,
+        addr: u64,
+        config: &ParserConfig,
+    ) -> Option<Self> {
+        let ffi_config = config.to_ffi();
+        cxx::let_cxx_string!(__cxx_s = path.as_ref().to_str().unwrap());
+        let ffi = ffi::PE_Binary::parse_from_dump_with_config(&__cxx_s, addr, &ffi_config);
+        if ffi.is_null() {
+            return None;
+        }
+        Some(Binary::from_ffi(ffi))
+    }
+
     /// DosHeader which starts the PE files
     pub fn dos_header(&self) -> DosHeader<'_> {
         DosHeader::from_ffi(self.ptr.dos_header())

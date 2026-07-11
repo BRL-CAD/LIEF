@@ -6,6 +6,11 @@
 1.0.0 - Not Released Yet
 ------------------------
 
+.. admonition:: Runtime
+  :class: tip
+
+  LIEF now provides runtime features as described here: :ref:`Runtime <runtime-intro>`
+
 :BinaryNinja:
 
   * Add :ref:`Android JNI Analyzer <plugins-binaryninja-analyzers-android-jni>`
@@ -67,6 +72,7 @@
   * Add support for ``DT_AUXILIARY`` tag: |lief-elf-DynamicEntryAuxiliary|
     (:issue:`1159`).
   * Add support for ``DT_FILTER`` tag: |lief-elf-DynamicEntryFilter|
+  * Add |lief-elf-parse_from_dump| to parse an ELF binary from a memory dump
 
 :COFF:
 
@@ -92,11 +98,13 @@
     |lief-macho-function-variant-fixups-command|
   * Add support for the ``LC_LAZY_LOAD_DYLIB_INFO`` command:
     |lief-macho-lazy-load-dylib-info-command|
+  * Add |lief-macho-parse_from_dump| to parse a Mach-O binary from a memory dump
 
 :PE:
 
   * Add setters for |lief-pe-importentry-iat-value| and |lief-pe-importentry-ilt-value|
   * Add |lief-pe-binary-offset_to_rva| to convert a raw offset into a RVA
+  * Add |lief-pe-parse_from_dump| to parse a PE binary from a memory dump
   * Update |lief-binary-offset_to_virtual_address| for PE binaries to
     return an **absolute** virtual address instead of a RVA (:issue:`1318`)
   * Add support for adding an |lief-pe-import| at a specific position:

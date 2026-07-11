@@ -19,6 +19,7 @@
 
 #include <LIEF/Abstract.hpp>
 
+#include <LIEF/runtime.hpp>
 #include <LIEF/OAT.hpp>
 #include <LIEF/VDEX.hpp>
 #include <LIEF/ART.hpp>

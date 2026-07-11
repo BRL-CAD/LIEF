@@ -18,6 +18,7 @@ target_sources(LIB_LIEF PRIVATE
   EnumToString.cpp
   GnuHash.cpp
   Header.cpp
+  elf_utils.cpp
   Layout.cpp
   Note.cpp
   Parser.cpp

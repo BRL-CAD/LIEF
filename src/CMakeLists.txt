@@ -19,6 +19,7 @@ target_sources(LIB_LIEF PRIVATE
 add_subdirectory(BinaryStream)
 add_subdirectory(Abstract)
 add_subdirectory(platforms)
+add_subdirectory(runtime)
 
 if(LIEF_ENABLE_JSON)
   target_sources(LIB_LIEF PRIVATE visitors/json.cpp)

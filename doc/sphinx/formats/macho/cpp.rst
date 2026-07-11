@@ -493,4 +493,3 @@ Enums
 
 .. doxygenenum:: LIEF::MachO::DYLD_CHAINED_PTR_FORMAT
    :project: lief
-

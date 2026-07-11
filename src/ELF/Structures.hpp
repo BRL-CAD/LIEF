@@ -14,6 +14,7 @@
  */
 #ifndef LIEF_ELF_STRUCTURES_H
 #define LIEF_ELF_STRUCTURES_H
+#include <cstdint>
 
 namespace LIEF::ELF::details {
 

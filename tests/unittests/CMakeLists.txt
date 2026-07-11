@@ -22,9 +22,16 @@ add_executable(unittests
   test_pe.cpp
   test_elf.cpp
   test_oat.cpp
-  test_macho.cpp
   test_linux_header.cpp
 )
+
+if (NOT BUILD_SHARED_LIBS)
+  target_sources(unittests PRIVATE test_macho.cpp)
+endif()
+
+if (LIEF_RUNTIME AND LIEF_RUNTIME_PLATFORM_LINUX)
+  target_sources(unittests PRIVATE test_runtime_linux.cpp)
+endif()
 
 target_precompile_headers(unittests PRIVATE pch.hpp)
 

@@ -45,4 +45,16 @@ name = "disassembler"
 name = "pe_exceptions"
 
 [[bin]]
+name = "runtime_linux"
+
+[[bin]]
+name = "runtime_windows"
+
+[[bin]]
+name = "runtime_osx"
+
+[[bin]]
+name = "runtime_android"
+
+[[bin]]
 name = "test_run_examples"

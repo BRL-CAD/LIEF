@@ -65,6 +65,32 @@ if (LIEF_DEX)
   )
 endif()
 
+if (LIEF_RUNTIME)
+  if (LIEF_RUNTIME_PLATFORM_LINUX)
+    list(APPEND LIEF_CPP_EXAMPLES
+      runtime_linux.cpp
+    )
+  endif()
+
+  if (LIEF_RUNTIME_PLATFORM_WINDOWS)
+    list(APPEND LIEF_CPP_EXAMPLES
+      runtime_windows.cpp
+    )
+  endif()
+
+  if (LIEF_RUNTIME_PLATFORM_OSX)
+    list(APPEND LIEF_CPP_EXAMPLES
+      runtime_osx.cpp
+    )
+  endif()
+
+  if (LIEF_RUNTIME_PLATFORM_ANDROID)
+    list(APPEND LIEF_CPP_EXAMPLES
+      runtime_android.cpp
+    )
+  endif()
+endif()
+
 if(APPLE)
   list(APPEND LIEF_CPP_EXAMPLES
     macho_from_memory.cpp
@@ -83,8 +109,14 @@ foreach(example ${LIEF_CPP_EXAMPLES})
   set_target_properties(
     ${output_name}
     PROPERTIES POSITION_INDEPENDENT_CODE ON
-               CXX_STANDARD              11
-               CXX_STANDARD_REQUIRED     ON)
+               CXX_STANDARD_REQUIRED     ON
+               INCLUDE_DIRECTORIES       "")
+
+  if (${output_name} MATCHES "^runtime_")
+    set_target_properties(${output_name} PROPERTIES CXX_STANDARD 23)
+  else()
+    set_target_properties(${output_name} PROPERTIES CXX_STANDARD 11)
+  endif()
 
   target_link_libraries(${output_name} PUBLIC LIB_LIEF)
 

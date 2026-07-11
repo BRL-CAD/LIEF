@@ -14,6 +14,14 @@ pub mod ffi {
             path: &CxxString,
             config: &MachO_ParserConfig,
         ) -> UniquePtr<MachO_FatBinary>;
+        #[Self = "MachO_FatBinary"]
+        fn parse_from_dump(path: &CxxString, addr: u64) -> UniquePtr<MachO_FatBinary>;
+        #[Self = "MachO_FatBinary"]
+        fn parse_from_dump_with_config(
+            path: &CxxString,
+            addr: u64,
+            config: &MachO_ParserConfig,
+        ) -> UniquePtr<MachO_FatBinary>;
         fn size(self: &MachO_FatBinary) -> u32;
         fn write(self: Pin<&mut MachO_FatBinary>, output: &CxxString);
         fn binary_at(self: &MachO_FatBinary, index: u32) -> UniquePtr<MachO_Binary>;

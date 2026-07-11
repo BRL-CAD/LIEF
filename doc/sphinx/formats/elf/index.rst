@@ -275,6 +275,121 @@ the end of the binary, immediately after the data wrapped by the segments:
 
 See: |lief-elf-binary-add| for detailed API information.
 
+
+.. _format-elf-dump:
+
+Dump Analysis
+*************
+
+LIEF has the support to process ELF memory dump with |lief-elf-parse_from_dump|. This function
+translates the file offsets referenced by the ELF structures into their location inside
+the dump, using the base address passed as the second parameter:
+
+.. tabs::
+
+  .. tab:: :fa:`brands fa-python` Python
+
+    .. code-block:: python
+
+      import lief
+
+      # 0x7f9b98e00000 is the (absolute) address at which the dump was mapped
+      elf: lief.ELF.Binary = lief.ELF.parse_from_dump("module.dump", 0x7f9b98e00000)
+
+      for segment in elf.segments:
+          print(segment.type, hex(segment.virtual_address))
+
+  .. tab:: :fa:`regular fa-file-code` C++
+
+    .. code-block:: cpp
+
+      #include <LIEF/ELF.hpp>
+
+      auto elf = LIEF::ELF::Parser::parse_from_dump("module.dump", 0x7f9b98e00000);
+
+      for (const LIEF::ELF::Segment& segment : elf->segments()) {
+        std::cout << to_string(segment.type()) << '\n';
+      }
+
+  .. tab:: :fa:`brands fa-rust` Rust
+
+    .. code-block:: rust
+
+      let elf = lief::elf::Binary::parse_from_dump("module.dump", 0x7f9b_98e0_0000).unwrap();
+
+      for segment in elf.segments() {
+          println!("{:?} {:#x}", segment.p_type(), segment.virtual_address());
+      }
+
+.. note::
+
+  The second parameter **must** be the (absolute) virtual address at which the
+  dump was mapped. It is used to convert the virtual addresses found in the ELF
+  structures back into an offset within the dump.
+
+.. warning::
+
+  Parsing an ELF from a dump is subject to the same limitations as
+  parsing it from memory: the segments (``PT_LOAD``) and the program headers are
+  reliable, but the **section header table is generally not mapped** and the
+  content of the dynamic table (dynamic entries, dynamic symbols and
+  relocations) reflects its *runtime* state and may not be recoverable. Prefer
+  working with the segments when analyzing a dump.
+
+Producing a dump with the runtime API
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Such a dump can be produced from a live process thanks to the LIEF
+:ref:`runtime <runtime-intro>` and, more precisely, the
+:ref:`Module API <runtime_modules>`. |lief-runtime-module-dump| captures the
+memory of a loaded module (from its imagebase over its virtual size):
+
+.. tabs::
+
+  .. tab:: :fa:`brands fa-python` Python
+
+    .. code-block:: python
+
+      import lief
+
+      # Find the module to dump in the current process
+      mod = lief.runtime.module_from_name("libc.so.6")
+
+      # Dump the module's memory into a file (the raw bytes are also returned)
+      data: bytes = mod.dump("module.dump")
+
+      # and parse it back using the same imagebase:
+      elf = lief.ELF.parse_from_dump(data, mod.imagebase)
+
+  .. tab:: :fa:`regular fa-file-code` C++
+
+    .. code-block:: cpp
+
+      #include <LIEF/ELF.hpp>
+      #include <LIEF/runtime.hpp>
+
+      // Find the module to dump in the current process
+      auto mod = LIEF::runtime::module_from_name("libc.so.6");
+
+      // Dump the module's memory into a file (the raw bytes are also returned)
+      std::vector<uint8_t> data = mod->dump("module.dump");
+
+      auto elf = LIEF::ELF::Parser::parse_from_dump("module.dump", mod->imagebase());
+
+  .. tab:: :fa:`brands fa-rust` Rust
+
+    .. code-block:: rust
+
+      use lief::runtime::Module;
+
+      let module = lief::runtime::module_from_name("libc.so.6").unwrap();
+
+      // Dump the module's memory into a file (the raw bytes are also returned)
+      let data = module.dump_to_file("module.dump");
+
+      let elf = lief::elf::Binary::parse_from_dump("module.dump", module.imagebase()).unwrap();
+
+
 Advanced Parsing/Writing
 ************************
 

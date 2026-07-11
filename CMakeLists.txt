@@ -115,9 +115,15 @@ if (LIEF_EXTRA_FLAGS)
   target_compile_options(LIB_LIEF PRIVATE ${LIEF_EXTRA_FLAGS})
 endif()
 
-if(NOT LIEF_PY_LIEF_EXT)
+if(LIEF_PRECOMPILED)
+  find_package(lief-extended QUIET)
+  if (NOT lief-extended_FOUND)
+    find_package(LIEF REQUIRED)
+  endif()
+else()
   add_library(LIEF::LIEF ALIAS LIB_LIEF)
 endif()
+
 
 if(NOT LIEF_OPT_MBEDTLS_EXTERNAL)
   target_sources(LIB_LIEF PRIVATE ${mbedtls_src_files})
@@ -323,6 +329,11 @@ if (LIEF_CLANG_TIDY)
   endif()
 
   set_target_properties(LIB_LIEF PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
+
+  if (TARGET LIB_LIEF_RUNTIME)
+    set_target_properties(LIB_LIEF_RUNTIME
+      PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
+  endif()
 endif()
 
 

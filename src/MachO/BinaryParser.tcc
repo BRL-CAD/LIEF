@@ -24,6 +24,7 @@
 
 #include "LIEF/BinaryStream/SpanStream.hpp"
 #include "LIEF/BinaryStream/MemoryStream.hpp"
+#include "LIEF/BinaryStream/DumpStream.hpp"
 
 #include "LIEF/MachO/AtomInfo.hpp"
 #include "LIEF/MachO/Binary.hpp"
@@ -206,7 +207,7 @@ ok_error_t BinaryParser::parse() {
     infer_indirect_bindings<MACHO_T>();
   }
 
-  if (config_.parse_overlay) {
+  if (config_.parse_overlay && !stream_->is_memory_view()) {
     parse_overlay();
   }
 
@@ -306,22 +307,34 @@ ok_error_t BinaryParser::parse_load_commands() {
           imagebase = segment->virtual_address();
         }
 
-        if (auto* memory_stram = stream_->cast<MemoryStream>()) {
-          // Link the memory stream with our
-          // binary object so that it can translate virtual address to offset
-          memory_stram->binary(*binary_);
-        }
+        // Link the memory stream with our
+        // binary object so that it can translate virtual address to offset
+        stream_->bind_binary(*binary_);
 
         if (segment->file_size() > 0) {
           if (auto* memstream = stream_->cast<MemoryStream>()) {
             uintptr_t segment_va = segment->virtual_address();
-            if (imagebase >= 0 && segment_va >= static_cast<uint64_t>(imagebase)) {
-              segment_va -= static_cast<uint64_t>(imagebase);
+            if (imagebase < 0) {
+              LIEF_WARN("Segment {}: missing __TEXT/imagebase for the in-memory "
+                        "rebasing",
+                        segment->name());
+            } else {
+              if (segment_va >= (uint64_t)imagebase) {
+                segment_va -= (uint64_t)imagebase;
+              }
+              const uint64_t msize = memstream->size();
+              if (segment_va >= msize) {
+                LIEF_WARN("Segment {}: virtual address {:#x} is beyond the "
+                          "memory size {:#x}",
+                          segment->name(), segment_va, msize);
+              } else {
+                const uint64_t avail = msize - segment_va;
+                const uint64_t n = std::min<uint64_t>(segment->file_size(), avail);
+                uintptr_t address = memstream->base_address() + segment_va;
+                const auto* p = reinterpret_cast<const uint8_t*>(address);
+                segment->data_ = {p, p + n};
+              }
             }
-
-            uintptr_t address = memstream->base_address() + segment_va;
-            const auto* p = reinterpret_cast<const uint8_t*>(address);
-            segment->data_ = {p, p + segment->file_size()};
           } else {
             if (!stream_->peek_data(segment->data_, segment->file_offset(),
                                     segment->file_size(),

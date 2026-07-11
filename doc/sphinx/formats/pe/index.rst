@@ -162,6 +162,112 @@ write the changes back to a raw PE file.
 
   :ref:`binary-abstraction`
 
+
+.. _format-pe-dump:
+
+Dump Analysis
+*************
+
+LIEF has the support to process PE memory dump with |lief-pe-parse_from_dump|. This function
+translates the file offsets referenced by the PE structures into their location inside
+the dump, using the base address passed as the second parameter:
+
+.. tabs::
+
+  .. tab:: :fa:`brands fa-python` Python
+
+    .. code-block:: python
+
+      import lief
+
+      # 0x7ffd21b80000 is the (absolute) address at which the dump was mapped
+      pe: lief.PE.Binary = lief.PE.parse_from_dump("module.dump", 0x7ffd21b80000)
+
+      for imp in pe.imports:
+          print(imp.name)
+
+  .. tab:: :fa:`regular fa-file-code` C++
+
+    .. code-block:: cpp
+
+      #include <LIEF/PE.hpp>
+
+      auto pe = LIEF::PE::Parser::parse_from_dump("module.dump", 0x7ffd21b80000);
+
+      for (const LIEF::PE::Import& imp : pe->imports()) {
+        std::cout << imp.name() << '\n';
+      }
+
+  .. tab:: :fa:`brands fa-rust` Rust
+
+    .. code-block:: rust
+
+      let pe = lief::pe::Binary::parse_from_dump("module.dump", 0x7ffd_21b8_0000).unwrap();
+
+      for imp in pe.imports() {
+          println!("{}", imp.name());
+      }
+
+.. note::
+
+  The second parameter **must** be the (absolute) virtual address at which the
+  dump was mapped. It is used to convert the RVAs found in the PE structures
+  back into an offset within the dump.
+
+Producing a dump with the runtime API
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Such a dump can be produced from a live process thanks to the LIEF
+:ref:`runtime <runtime-intro>` and, more precisely, the
+:ref:`Module API <runtime_modules>`. |lief-runtime-module-dump| captures the
+memory of a loaded module (from its imagebase over its virtual size):
+
+.. tabs::
+
+  .. tab:: :fa:`brands fa-python` Python
+
+    .. code-block:: python
+
+      import lief
+
+      # Find the module to dump in the current process
+      mod = lief.runtime.module_from_name("target.dll")
+
+      # Dump the module's memory into a file (the raw bytes are also returned) ...
+      data: bytes = mod.dump("module.dump")
+
+      # ... and parse it back using the same imagebase:
+      pe = lief.PE.parse_from_dump(data, mod.imagebase)
+
+  .. tab:: :fa:`regular fa-file-code` C++
+
+    .. code-block:: cpp
+
+      #include <LIEF/PE.hpp>
+      #include <LIEF/runtime.hpp>
+
+      // Find the module to dump in the current process
+      auto mod = LIEF::runtime::module_from_name("target.dll");
+
+      // Dump the module's memory into a file (the raw bytes are also returned)
+      std::vector<uint8_t> data = mod->dump("module.dump");
+
+      auto pe = LIEF::PE::Parser::parse_from_dump("module.dump", mod->imagebase());
+
+  .. tab:: :fa:`brands fa-rust` Rust
+
+    .. code-block:: rust
+
+      use lief::runtime::Module;
+
+      let module = lief::runtime::module_from_name("target.dll").unwrap();
+
+      // Dump the module's memory into a file (the raw bytes are also returned)
+      let data = module.dump_to_file("module.dump");
+
+      let pe = lief::pe::Binary::parse_from_dump("module.dump", module.imagebase()).unwrap();
+
+
 Advanced Parsing/Writing
 ************************
 

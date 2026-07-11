@@ -18,6 +18,7 @@
 #include <string>
 #include <ostream>
 #include "LIEF/visibility.h"
+#include "LIEF/optional.hpp"
 
 namespace LIEF {
 namespace PE {
@@ -64,6 +65,11 @@ struct LIEF_API ParserConfig {
   /// This option is disabled by default because it can introduce significant
   /// parsing overhead.
   bool parse_arm64x_binary = false;
+
+  /// If set, this value holds the original image base from which the binary
+  /// should be rebased. This is used to *undo* relocations and IAT bindings
+  /// when parsing a PE loaded in memory.
+  optional<uint64_t> rebase;
 
   std::string to_string() const;
 

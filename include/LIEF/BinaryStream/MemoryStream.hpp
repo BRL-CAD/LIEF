@@ -59,16 +59,17 @@ class LIEF_API MemoryStream : public BinaryStream {
     return start() + size_;
   }
 
-  void binary(Binary& bin) {
-    this->binary_ = &bin;
-  }
-
   Binary* binary() {
     return this->binary_;
   }
 
   uint64_t size() const override {
     return size_;
+  }
+
+  bool bind_binary(Binary& bin) override {
+    binary_ = &bin;
+    return true;
   }
 
   ~MemoryStream() override = default;

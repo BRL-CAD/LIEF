@@ -1,0 +1,60 @@
+import os
+from typing import (
+    Any,
+    ClassVar,
+    Final,
+    Iterator,
+    Optional,
+    Union,
+    overload
+)
+
+import lief.ELF
+import lief.runtime
+
+
+class Module(lief.runtime.Module):
+    @property
+    def handle(self) -> Any: ...
+
+    def dlsym(self, name: str) -> Any: ...
+
+    @staticmethod
+    def from_handle(handle: Any) -> Optional[Module]: ...
+
+    @overload
+    def parse_from_path(self) -> Optional[lief.ELF.Binary]: ...
+
+    @overload
+    def parse_from_path(self, config: lief.ELF.ParserConfig) -> Optional[lief.ELF.Binary]: ...
+
+    @overload
+    def parse_from_memory(self) -> Optional[lief.ELF.Binary]: ...
+
+    @overload
+    def parse_from_memory(self, config: lief.ELF.ParserConfig) -> Optional[lief.ELF.Binary]: ...
+
+def dlopen(name: Union[str, os.PathLike]) -> Optional[Module]: ...
+
+class Host:
+    sdk_version: ClassVar[Final[int | None]] = ...
+
+class Property:
+    @property
+    def name(self) -> str: ...
+
+    @property
+    def value(self) -> str: ...
+
+    @property
+    def serial(self) -> int: ...
+
+    def __str__(self) -> str: ...
+
+class Process(lief.runtime.Process):
+    cmdline: ClassVar[Final[str]] = ...
+
+    @staticmethod
+    def get_system_property(name: str) -> Property | None: ...
+
+    properties: ClassVar[Final[list[Property]]] = ...

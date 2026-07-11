@@ -16,6 +16,7 @@
 #include <sstream>
 #include <string>
 #include <nanobind/stl/string.h>
+#include "nanobind/extra/stl/lief_optional.h"
 
 #include "LIEF/PE/ParserConfig.hpp"
 
@@ -62,6 +63,13 @@ void create<ParserConfig>(nb::module_& m) {
 
       This option is disabled by default because it can introduce significant
       parsing overhead.
+      )doc"_doc)
+
+    .def_rw("rebase", &ParserConfig::rebase,
+      R"doc(
+      If set, this value holds the original image base from which the binary
+      should be rebased. This is used to *undo* relocations and IAT bindings
+      when parsing a PE loaded in memory.
       )doc"_doc)
 
     .def_prop_ro_static("default_conf",

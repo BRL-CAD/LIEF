@@ -39,6 +39,7 @@ class BinaryParser;
 class Builder;
 class DyldChainedFixupsCreator;
 class DyldInfo;
+class Parser;
 class Relocation;
 class Section;
 
@@ -53,6 +54,7 @@ class LIEF_API SegmentCommand : public LoadCommand {
 
   friend class DyldChainedFixupsCreator;
   friend class BinaryParser;
+  friend class Parser;
   friend class Binary;
   friend class Section;
   friend class Builder;

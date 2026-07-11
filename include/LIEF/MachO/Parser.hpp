@@ -87,6 +87,31 @@ class LIEF_API Parser : public LIEF::Parser {
       parse_from_memory(uintptr_t address, size_t size,
                         const ParserConfig& conf = ParserConfig::deep());
 
+  /// Parse a Mach-O binary from a memory dump located on disk.
+  ///
+  /// A dump is a raw capture of the process memory that was mapped starting at
+  /// the virtual address `addr`. This is typically used to parse a Mach-O image
+  /// that has been dumped from memory (e.g. from a debugger or a runtime hook).
+  ///
+  /// @param[in] filepath Path to the file that contains the memory dump
+  /// @param[in] addr     Virtual address at which the dump was mapped
+  /// @param[in] conf     Optional configuration for the parser
+  static std::unique_ptr<FatBinary>
+      parse_from_dump(const std::string& filepath, uint64_t addr,
+                      const ParserConfig& conf = ParserConfig::deep());
+
+  /// Same as parse_from_dump(const std::string&, uint64_t, const ParserConfig&)
+  /// but the dump is wrapped in the given **non-owned** stream.
+  static std::unique_ptr<FatBinary>
+      parse_from_dump(BinaryStream& stream, uint64_t addr,
+                      const ParserConfig& conf = ParserConfig::deep());
+
+  /// Same as parse_from_dump(const std::string&, uint64_t, const ParserConfig&)
+  /// but the dump is wrapped in the given **owned** stream.
+  static std::unique_ptr<FatBinary>
+      parse_from_dump(std::unique_ptr<BinaryStream> stream, uint64_t addr,
+                      const ParserConfig& conf = ParserConfig::deep());
+
   private:
   LIEF_LOCAL Parser(const std::string& file, const ParserConfig& conf);
   LIEF_LOCAL Parser(std::vector<uint8_t> data, const ParserConfig& conf);
@@ -96,6 +121,7 @@ class LIEF_API Parser : public LIEF::Parser {
   LIEF_LOCAL ok_error_t parse_fat();
 
   LIEF_LOCAL ok_error_t undo_reloc_bindings(uintptr_t base_address);
+  LIEF_LOCAL ok_error_t unpack_tlv();
 
   std::unique_ptr<BinaryStream> stream_;
   std::vector<std::unique_ptr<Binary>> binaries_;

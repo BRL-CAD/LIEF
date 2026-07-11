@@ -45,6 +45,7 @@ class RelocationEntry;
 
 namespace details {
 struct pe_debug;
+struct pe_section;
 }
 
 /// Main interface to parse PE binaries. In particular, the **static**
@@ -105,6 +106,41 @@ class LIEF_API Parser : public LIEF::Parser {
       parse(std::unique_ptr<BinaryStream> stream,
             const ParserConfig& conf = ParserConfig::default_conf());
 
+  /// Parse the PE binary at the given memory address
+  static std::unique_ptr<Binary>
+      parse_from_memory(uintptr_t address,
+                        const ParserConfig& config = ParserConfig::default_conf());
+
+  /// Parse the PE binary at the given memory address and with the given size
+  static std::unique_ptr<Binary>
+      parse_from_memory(uintptr_t address, size_t size,
+                        const ParserConfig& config = ParserConfig::default_conf());
+
+  /// Parse a PE binary from a memory dump located on disk.
+  ///
+  /// A dump is a raw capture of the process memory that was mapped starting at
+  /// the virtual address `addr`. This is typically used to parse a PE image that
+  /// has been dumped from memory (e.g. from a debugger or a runtime hook).
+  ///
+  /// @param[in] filepath Path to the file that contains the memory dump
+  /// @param[in] addr     Virtual address at which the dump was mapped
+  /// @param[in] config   Optional configuration for the parser
+  static std::unique_ptr<Binary>
+      parse_from_dump(const std::string& filepath, uint64_t addr,
+                      const ParserConfig& config = ParserConfig::default_conf());
+
+  /// Same as parse_from_dump(const std::string&, uint64_t, const ParserConfig&)
+  /// but the dump is wrapped in the given **non-owned** stream.
+  static std::unique_ptr<Binary>
+      parse_from_dump(BinaryStream& stream, uint64_t addr,
+                      const ParserConfig& config = ParserConfig::default_conf());
+
+  /// Same as parse_from_dump(const std::string&, uint64_t, const ParserConfig&)
+  /// but the dump is wrapped in the given **owned** stream.
+  static std::unique_ptr<Binary>
+      parse_from_dump(std::unique_ptr<BinaryStream> stream, uint64_t addr,
+                      const ParserConfig& config = ParserConfig::default_conf());
+
   Parser& operator=(const Parser& copy) = delete;
   Parser(const Parser& copy) = delete;
 
@@ -163,6 +199,9 @@ class LIEF_API Parser : public LIEF::Parser {
   ok_error_t parse_exports();
   ok_error_t parse_sections();
 
+  ok_error_t read_section_content(const details::pe_section& raw_sec,
+                                  uint32_t index, Section& section);
+
   template<typename PE_T>
   ok_error_t parse_headers();
 
@@ -214,6 +253,18 @@ class LIEF_API Parser : public LIEF::Parser {
   ok_error_t parse_dos_stub();
   ok_error_t parse_rich_header();
   ok_error_t parse_chpe_exceptions();
+
+  template<typename PE_T>
+  ok_error_t undo_relocations();
+
+  template<typename PE_T>
+  ok_error_t fix_iat();
+
+  template<typename PE_T>
+  ok_error_t fix_tls();
+
+  template<typename PE_T>
+  ok_error_t fix_load_config();
 
   PE_TYPE type_ = PE_TYPE::PE32_PLUS;
   std::unique_ptr<Binary> binary_;

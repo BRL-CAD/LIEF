@@ -41,6 +41,21 @@ pub mod ffi {
         fn parse(path: &CxxString) -> UniquePtr<PE_Binary>;
         #[Self = "PE_Binary"]
         fn parse_with_config(path: &CxxString, config: &PE_ParserConfig) -> UniquePtr<PE_Binary>;
+        #[Self = "PE_Binary"]
+        fn parse_from_memory(addr: u64) -> UniquePtr<PE_Binary>;
+        #[Self = "PE_Binary"]
+        fn parse_from_memory_with_config(
+            addr: u64,
+            config: &PE_ParserConfig,
+        ) -> UniquePtr<PE_Binary>;
+        #[Self = "PE_Binary"]
+        fn parse_from_dump(path: &CxxString, addr: u64) -> UniquePtr<PE_Binary>;
+        #[Self = "PE_Binary"]
+        fn parse_from_dump_with_config(
+            path: &CxxString,
+            addr: u64,
+            config: &PE_ParserConfig,
+        ) -> UniquePtr<PE_Binary>;
         fn debug(self: &PE_Binary) -> UniquePtr<PE_Binary_it_debug>;
         fn signatures(self: &PE_Binary) -> UniquePtr<PE_Binary_it_signatures>;
         fn sections(self: &PE_Binary) -> UniquePtr<PE_Binary_it_sections>;
@@ -205,6 +220,8 @@ pub mod ffi {
         fn set_parse_reloc(self: Pin<&mut PE_ParserConfig>, value: bool);
         fn set_parse_exceptions(self: Pin<&mut PE_ParserConfig>, value: bool);
         fn set_parse_arm64x_binary(self: Pin<&mut PE_ParserConfig>, value: bool);
+        fn set_rebase(self: Pin<&mut PE_ParserConfig>, value: u64);
+        fn clear_rebase(self: Pin<&mut PE_ParserConfig>);
     }
     impl UniquePtr<PE_Binary> {}
     impl UniquePtr<PE_Binary_it_data_directories> {}

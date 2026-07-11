@@ -229,3 +229,11 @@ declare_iterator!(
     ffi::MachO_Binary,
     ffi::MachO_Binary_it_symbols
 );
+
+declare_iterator!(
+    ExportedSymbols,
+    Symbol<'a>,
+    ffi::MachO_Symbol,
+    ffi::MachO_Binary,
+    ffi::MachO_Binary_it_exported_symbols
+);

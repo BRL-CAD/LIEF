@@ -17,6 +17,7 @@ pub enum Error {
     DataTooLarge,
     RequireExtendedVersion,
     Inconsistent,
+    RuntimeError,
     Unknown(u32),
 }
 
@@ -38,6 +39,7 @@ impl From<u32> for Error {
             0x0000000d => Error::DataTooLarge,
             0x0000000e => Error::RequireExtendedVersion,
             0x0000000f => Error::Inconsistent,
+            0x00000010 => Error::RuntimeError,
             _ => Error::Unknown(value),
         }
     }

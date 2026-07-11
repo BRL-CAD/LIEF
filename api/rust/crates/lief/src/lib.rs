@@ -10,9 +10,13 @@
 //!
 //! The bindings require at least Rust version **1.85.0** with the 2024 edition and support:
 //! - Windows x86-64 (support `/MT` and `/MD` linking)
-//! - Linux x86-64/aarch64/musl (Ubuntu 19.10, Almalinux 8, Debian 10, Fedora 29)
+//! - Windows arm64 (support `/MT` and `/MD` linking)
+//! - Linux x86-64 (+gnu/musl): Ubuntu 21.10+, Debian 12+, Fedora 35+, CentOS/RHEL 9+
+//! - Linux i686 (+gnu/musl): Ubuntu 19.10+, Debian 10+
+//! - Linux aarch64 (+gnu/musl): Ubuntu 21.10+, Debian 12+
+//! - Android: API 30+
 //! - macOS (`x86-64` and `aarch64` with at least OSX Big Sur: 11.0)
-//! - iOS (`aarch64`)
+//! - iOS (`aarch64`): 12+
 //!
 //! ## Getting Started
 //!
@@ -92,6 +96,8 @@ mod range;
 pub mod error;
 
 pub mod logging;
+
+pub mod runtime;
 
 mod binary;
 mod common;

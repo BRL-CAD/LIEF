@@ -101,6 +101,52 @@ class LIEF_API Parser : public LIEF::Parser {
       parse(std::unique_ptr<BinaryStream> stream,
             const ParserConfig& conf = ParserConfig::all());
 
+  /// Parse the ELF binary from the given memory address
+  ///
+  /// @param[in] address Base address of the ELF binary in memory
+  /// @param[in] conf    Optional configuration for the parser
+  ///
+  /// @return LIEF::ELF::Binary
+  static std::unique_ptr<Binary>
+      parse_from_memory(uintptr_t address,
+                        const ParserConfig& conf = ParserConfig::all());
+
+  /// Parse the ELF binary from the given memory address with the given size
+  ///
+  /// @param[in] address Base address of the ELF binary in memory
+  /// @param[in] size    Size of the memory region
+  /// @param[in] conf    Optional configuration for the parser
+  ///
+  /// @return LIEF::ELF::Binary
+  static std::unique_ptr<Binary>
+      parse_from_memory(uintptr_t address, size_t size,
+                        const ParserConfig& conf = ParserConfig::all());
+
+  /// Parse an ELF binary from a memory dump located on disk.
+  ///
+  /// A dump is a raw capture of the process memory that was mapped starting at
+  /// the virtual address `addr`. This is typically used to parse an ELF image
+  /// that has been dumped from memory (e.g. from a debugger or a runtime hook).
+  ///
+  /// @param[in] filepath Path to the file that contains the memory dump
+  /// @param[in] addr     Virtual address at which the dump was mapped
+  /// @param[in] conf     Optional configuration for the parser
+  static std::unique_ptr<Binary>
+      parse_from_dump(const std::string& filepath, uint64_t addr,
+                      const ParserConfig& conf = ParserConfig::all());
+
+  /// Same as parse_from_dump(const std::string&, uint64_t, const ParserConfig&)
+  /// but the dump is wrapped in the given **non-owned** stream.
+  static std::unique_ptr<Binary>
+      parse_from_dump(BinaryStream& stream, uint64_t addr,
+                      const ParserConfig& conf = ParserConfig::all());
+
+  /// Same as parse_from_dump(const std::string&, uint64_t, const ParserConfig&)
+  /// but the dump is wrapped in the given **owned** stream.
+  static std::unique_ptr<Binary>
+      parse_from_dump(std::unique_ptr<BinaryStream> stream, uint64_t addr,
+                      const ParserConfig& conf = ParserConfig::all());
+
   Parser& operator=(const Parser&) = delete;
   Parser(const Parser&) = delete;
 
@@ -288,6 +334,7 @@ class LIEF_API Parser : public LIEF::Parser {
    * reference sections. That's why we have this unordered_map.
    */
   std::unordered_map<size_t, Section*> sections_idx_;
+  uint64_t memory_address_ = 0;
 };
 
 } // namespace ELF

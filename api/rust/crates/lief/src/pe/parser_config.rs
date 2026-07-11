@@ -29,6 +29,11 @@ pub struct Config {
     /// This option is disabled by default because it can introduce significant
     /// parsing overhead.
     pub parse_arm64x_binary: bool,
+
+    /// If set, this value holds the original image base from which the binary
+    /// should be rebased. This is used to *undo* relocations and IAT bindings
+    /// when parsing a PE loaded in memory.
+    pub rebase: Option<u64>,
 }
 
 impl Default for Config {
@@ -41,6 +46,7 @@ impl Default for Config {
             parse_reloc: true,
             parse_exceptions: false,
             parse_arm64x_binary: false,
+            rebase: None,
         }
     }
 }
@@ -57,6 +63,11 @@ impl Config {
         ptr.pin_mut().set_parse_exceptions(self.parse_exceptions);
         ptr.pin_mut()
             .set_parse_arm64x_binary(self.parse_arm64x_binary);
+        if let Some(rebase_val) = self.rebase {
+            ptr.pin_mut().set_rebase(rebase_val);
+        } else {
+            ptr.pin_mut().clear_rebase();
+        }
         ptr
     }
 
@@ -70,6 +81,7 @@ impl Config {
             parse_reloc: true,
             parse_exceptions: true,
             parse_arm64x_binary: true,
+            rebase: None,
         }
     }
 }

@@ -66,6 +66,7 @@ std::string u16tou8(const char16_t* buffer, size_t size, bool remove_null_char) 
   return name;
 }
 
+
 result<std::u16string> u8tou16(const std::string& string) {
   using namespace utf8::internal;
   std::u16string name;

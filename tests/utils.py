@@ -1,4 +1,5 @@
 import importlib.util
+import inspect
 import json
 import math
 import os
@@ -10,9 +11,10 @@ import sys
 import sysconfig
 import time
 from functools import lru_cache, wraps
+from itertools import product
 from pathlib import Path
 from subprocess import Popen
-from typing import Any, List, Optional, Tuple, TypeAlias, cast
+from typing import Any, Iterable, List, Optional, Tuple, TypeAlias, cast
 
 import lief
 
@@ -472,3 +474,91 @@ def convert_size(size_bytes: int) -> str:
 def is_free_threaded() -> bool:
     """Check if the current interpreter supports free-threading"""
     return sysconfig.get_config_var("Py_GIL_DISABLED") == "1" and lief.__free_threaded__
+
+
+def check_attributes(
+    lhs: object,
+    rhs: object,
+    skip_list: Iterable[str] | None = None,
+    skip_cond: bool = False,
+):
+    def _filter(arg: tuple[str, object]) -> bool:
+        (name, value) = arg
+        if not skip_cond and skip_list and name in skip_list:
+            return False
+
+        if name.startswith("_"):
+            return False
+
+        if not hasattr(value, "__eq__"):
+            return False
+
+        if hasattr(value, "__call__"):
+            return False
+
+        if hasattr(value, "__iter__"):
+            return False
+
+        return True
+
+    if hasattr(lhs, "__iter__") and hasattr(rhs, "__iter__"):
+        lhs_list = list(cast(Iterable[Any], lhs))
+        rhs_list = list(cast(Iterable[Any], rhs))
+        assert len(lhs_list) == len(rhs_list), f"{len(lhs_list)} vs {len(rhs_list)}"
+        for L, R in zip(lhs_list, rhs_list):
+            check_attributes(L, R, skip_list=skip_list, skip_cond=skip_cond)
+        return
+
+    flhs = list(filter(_filter, inspect.getmembers(lhs)))
+    frhs = list(filter(_filter, inspect.getmembers(rhs)))
+
+    assert len(flhs) == len(frhs)
+
+    for (nlhs, vlhs), (nrhs, vrhs) in zip(flhs, frhs):
+        assert nlhs == nrhs, f"{nlhs}, {nrhs}"
+        assert vlhs == vrhs, f"{nlhs} ({vlhs}) != {nrhs} ({vrhs})"
+
+
+def resolve_runtime_library(name: str) -> Path:
+    platform = str(lief.runtime.platform.name).lower()
+    lief_install_dir = Path(lief.__file__).parent
+    lib_dir: list[Path] = []
+    if build_dir := os.getenv("LIEF_BUILD_DIR"):
+        build_dir_path = Path(build_dir)
+        assert build_dir_path.is_dir()
+        lib_dir.extend(
+            [
+                build_dir_path / "tests/runtime" / platform / "lib",
+            ]
+        )
+    lib_dir.append(lief_install_dir / "../tests/lib")
+
+    file_candidates = [name]
+    match lief.runtime.platform:
+        case lief.runtime.PLATFORMS.LINUX:
+            file_candidates.append(f"lib{name}.so")
+
+        case lief.runtime.PLATFORMS.OSX | lief.runtime.PLATFORMS.IOS:
+            file_candidates.append(f"lib{name}.dylib")
+
+        case lief.runtime.PLATFORMS.WINDOWS:
+            file_candidates.append(f"{name}.dll")
+    tries = []
+    for dir, file in product(lib_dir, file_candidates):
+        path: Path = dir / file
+
+        tries.append(str(path))
+
+        if path.is_file():
+            return path.resolve().absolute()
+    raise RuntimeError(
+        "Can't find {} from the following paths: {}".format(name, ", ".join(tries))
+    )
+
+
+def align(value: int, alignment: int) -> int:
+    """Align the given value on a specific alignment"""
+    if alignment == 0:
+        return value
+
+    return value + (-value % alignment)

@@ -45,7 +45,6 @@
     "/latest/extended/intro.html for the details"
 #endif
 
-
 #if !defined(ASSEMBLY_NOT_SUPPORTED)
   #define ASSEMBLY_NOT_SUPPORTED                                                  \
     "Assembler/disassembler not available for this build.\n"                      \
@@ -58,6 +57,11 @@
     "This function requires the extended version of LIEF.\n"                      \
     "Please checkout " LIEF_DOC_PREFIX                                            \
     "/latest/extended/intro.html for the details"
+#endif
+
+#if !defined(LIEF_NEEDS_RUNTIME_MSG)
+  #define LIEF_NEEDS_RUNTIME_MSG                                                  \
+    "This version of LIEF does not contain runtime features."
 #endif
 
 

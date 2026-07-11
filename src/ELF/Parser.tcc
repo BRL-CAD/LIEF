@@ -816,6 +816,12 @@ ok_error_t Parser::parse_sections() {
   const Elf_Off shdr_offset = binary_->header_.section_headers_offset();
   const auto numberof_sections = binary_->header_.numberof_sections();
 
+  const bool is_memory_stream = memory_address_ > 0;
+  // Sections are usually not mapped so logging errors is not relevant for
+  // in-memory parsing
+  logging::Scoped scope(is_memory_stream ? logging::LEVEL::OFF :
+                                           logging::get_level());
+
   stream_->setpos(shdr_offset);
   std::unordered_map<Section*, size_t> sections_names;
   DataHandler::Handler& handler = *binary_->datahandler_;

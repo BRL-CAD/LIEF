@@ -113,6 +113,13 @@ Python builds. This is controlled through the
 At runtime, you can check whether the currently loaded extension was compiled
 with free-threading support through :attr:`lief.__free_threaded__`.
 
+Runtime features
+----------------
+
+The :ref:`runtime features <runtime-intro>` are **not** enabled by default and
+must be explicitly turned on. See :ref:`runtime-intro` for the CMake options
+and TOML configuration used to enable the runtime module.
+
 .. _lief_debug:
 
 Debugging

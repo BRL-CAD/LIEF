@@ -44,7 +44,7 @@ use super::header::Header;
 use super::relocation::Relocations;
 use super::section::{Section, Sections};
 use super::stub::Stub;
-use super::symbol::{Symbol, Symbols};
+use super::symbol::{ExportedSymbols, Symbol, Symbols};
 use crate::Error;
 use lief_ffi as ffi;
 
@@ -113,6 +113,11 @@ impl Binary {
     /// Return an iterator over the different [`crate::macho::Symbol`] of this binary
     pub fn symbols(&self) -> Symbols<'_> {
         Symbols::new(self.ptr.symbols())
+    }
+
+    /// Return an iterator over the **exported** [`crate::macho::Symbol`] of this binary
+    pub fn exported_symbols(&self) -> ExportedSymbols<'_> {
+        ExportedSymbols::new(self.ptr.exported_symbols())
     }
 
     /// Return the `LC_DYLD_INFO/LC_DYLD_INFO_ONLY` command if present

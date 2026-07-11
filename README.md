@@ -25,6 +25,7 @@ modify and abstract ELF, PE and MachO formats.
 
 **Extended features**:
 
+  * [**Runtime**](https://lief.re/doc/latest/runtime/intro.html)
   * [**DWARF/PDB** Support](https://lief.re/doc/latest/extended/debug_info/index.html)
   * [**Objective-C** Metadata](https://lief.re/doc/latest/extended/objc/index.html)
   * [**Dyld Shared Cache**](https://lief.re/doc/latest/extended/dsc/index.html) with support for extracting Dylib
@@ -249,5 +250,4 @@ Romain Thomas ([@rh0main](https://www.romainthomas.fr/)) - Formerly at [Quarksla
   year         = "2017"
 }
 ```
-
 

@@ -24,6 +24,8 @@ add_subdirectory(DyldSharedCache)
 add_subdirectory(asm)
 add_subdirectory(BinaryStream)
 
+add_subdirectory(runtime)
+
 if(LIEF_ELF)
   add_subdirectory(ELF)
 endif()

@@ -127,6 +127,19 @@ class ELF_Binary : public AbstractBinary {
     );
   }
 
+  static auto parse_from_dump(const std::string& path, uint64_t addr) {
+    return details::try_unique<ELF_Binary>(
+        LIEF::ELF::Parser::parse_from_dump(path, addr)
+    );
+  }
+
+  static auto parse_from_dump_with_config(const std::string& path, uint64_t addr,
+                                          const ELF_ParserConfig& config) {
+    return details::try_unique<ELF_Binary>(
+        LIEF::ELF::Parser::parse_from_dump(path, addr, config.conf())
+    );
+  }
+
   class it_sections
     : public Iterator<ELF_Section, LIEF::ELF::Binary::it_const_sections> {
     public:

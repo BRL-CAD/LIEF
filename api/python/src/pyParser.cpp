@@ -101,6 +101,39 @@ typing::OutputParser from_stream(std::unique_ptr<BinaryStream> stream) {
   return nb::none();
 }
 
+typing::OutputParser parse_dump_from_stream(std::unique_ptr<BinaryStream> stream,
+                                            uint64_t addr) {
+  if (stream == nullptr) {
+    return nb::none();
+  }
+
+  #if LIEF_PE_SUPPORT
+  if (LIEF::PE::is_pe(*stream)) {
+    return nb::cast(LIEF::PE::Parser::parse_from_dump(std::move(stream), addr));
+  }
+  #endif
+
+  #if LIEF_ELF_SUPPORT
+  if (LIEF::ELF::is_elf(*stream)) {
+    return nb::cast(LIEF::ELF::Parser::parse_from_dump(std::move(stream), addr));
+  }
+  #endif
+
+  #if LIEF_MACHO_SUPPORT
+  if (LIEF::MachO::is_macho(*stream)) {
+    std::unique_ptr<LIEF::MachO::FatBinary> fat =
+      LIEF::MachO::Parser::parse_from_dump(std::move(stream), addr);
+
+    if (fat == nullptr || fat->empty()) {
+      return nb::none();
+    }
+    return nb::cast(fat->take(0));
+  }
+  #endif
+
+  return nb::none();
+}
+
 template<>
 void create<Parser>(nb::module_& m) {
   m.def("parse",
@@ -108,7 +141,23 @@ void create<Parser>(nb::module_& m) {
         return from_stream(generic.into_stream());
       },
       R"delim(
+      Parse a binary supported by LIEF (ELF, PE, Mach-O, ...) from the given
+      Python object and return the corresponding :class:`~lief.Binary` object.
       )delim"_doc,
       "obj"_a, nb::rv_policy::take_ownership);
+
+  m.def("parse_from_dump",
+      [] (typing::InputParser generic, uint64_t addr) -> typing::OutputParser {
+        return parse_dump_from_stream(generic.into_stream(), addr);
+      },
+      R"delim(
+      Parse a binary (ELF, PE, Mach-O, ...) from a memory dump.
+
+      A dump is a raw capture of the process' memory that was mapped starting at
+      the virtual address ``addr`` (given as the second parameter). The format is
+      auto-detected from the content of the dump.
+      )delim"_doc,
+      "obj"_a, "addr"_a, nb::rv_policy::take_ownership);
+
 }
 }

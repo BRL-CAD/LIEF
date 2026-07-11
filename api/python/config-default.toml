@@ -32,6 +32,3 @@ debug   = false
 
 #[lief.third-party]
 #spdlog  = "/path/to/spdlog-install"
-
-
-

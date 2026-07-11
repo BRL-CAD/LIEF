@@ -20,7 +20,10 @@
 #include "logging.hpp"
 
 #include "LIEF/BinaryStream/VectorStream.hpp"
+#include "LIEF/BinaryStream/MemoryStream.hpp"
+#include "LIEF/BinaryStream/DumpStream.hpp"
 
+#include "LIEF/utils.hpp"
 #include "LIEF/ELF/utils.hpp"
 #include "LIEF/ELF/Parser.hpp"
 #include "LIEF/ELF/Binary.hpp"
@@ -32,6 +35,7 @@
 #include "LIEF/ELF/SysvHash.hpp"
 
 #include "ELF/DataHandler/Handler.hpp"
+#include "ELF/elf_utils.hpp"
 #include "LIEF/ELF/EnumToString.hpp"
 
 #include "Parser.tcc"
@@ -56,7 +60,15 @@ Parser::Parser(const std::vector<uint8_t>& data, ParserConfig conf) :
 Parser::Parser(std::unique_ptr<BinaryStream> stream, ParserConfig conf) :
   stream_{std::move(stream)},
   binary_{new Binary{}},
-  config_{conf} {}
+  config_{conf} {
+  if (const auto* memory = stream_->cast<MemoryStream>()) {
+    memory_address_ = memory->base_address();
+  }
+
+  if (const auto* dump = stream_->cast<DumpStream>()) {
+    memory_address_ = dump->base_address();
+  }
+}
 
 Parser::Parser(const std::string& file, ParserConfig conf) :
   binary_{new Binary{}},
@@ -391,6 +403,66 @@ std::unique_ptr<Binary> Parser::parse(std::unique_ptr<BinaryStream> stream,
   return std::move(parser.binary_);
 }
 
+std::unique_ptr<Binary> Parser::parse_from_memory(uintptr_t address,
+                                                  const ParserConfig& conf) {
+  static constexpr uint64_t MAX_MEM_IMAGE = 6_GB;
+  MemoryStream stream(address, 0x4000);
+  auto elf_info = get_info(stream);
+  if (!elf_info) {
+    return nullptr;
+  }
+
+  uint64_t vsize = elf_info->vsize();
+  if (vsize == 0) {
+    return nullptr;
+  }
+
+  if (vsize > MAX_MEM_IMAGE) {
+    LIEF_WARN("In-memory ELF image size ({:#x}) is too large, limiting to {:#x}",
+              vsize, MAX_MEM_IMAGE);
+    vsize = MAX_MEM_IMAGE;
+  }
+
+  return parse_from_memory(address, static_cast<size_t>(vsize), conf);
+}
+
+std::unique_ptr<Binary> Parser::parse_from_memory(uintptr_t address, size_t size,
+                                                  const ParserConfig& conf) {
+  auto stream = std::make_unique<MemoryStream>(address, size);
+  if (!is_elf(*stream)) {
+    return nullptr;
+  }
+
+  Parser parser{std::move(stream), conf};
+  parser.init();
+  return std::move(parser.binary_);
+}
+
+std::unique_ptr<Binary> Parser::parse_from_dump(const std::string& filepath,
+                                                uint64_t addr,
+                                                const ParserConfig& conf) {
+  auto stream = VectorStream::from_file(filepath);
+  if (!stream) {
+    return nullptr;
+  }
+  return parse_from_dump(std::make_unique<VectorStream>(std::move(*stream)), addr,
+                         conf);
+}
+
+std::unique_ptr<Binary> Parser::parse_from_dump(BinaryStream& stream,
+                                                uint64_t addr,
+                                                const ParserConfig& conf) {
+  return parse(std::make_unique<DumpStream>(addr, stream), conf);
+}
+
+std::unique_ptr<Binary>
+    Parser::parse_from_dump(std::unique_ptr<BinaryStream> stream, uint64_t addr,
+                            const ParserConfig& conf) {
+  if (stream == nullptr) {
+    return nullptr;
+  }
+  return parse(std::make_unique<DumpStream>(addr, std::move(stream)), conf);
+}
 
 ok_error_t Parser::parse_symbol_version(uint64_t symbol_version_offset) {
   LIEF_DEBUG("Parsing symbol version");

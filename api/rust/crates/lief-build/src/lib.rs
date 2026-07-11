@@ -133,6 +133,7 @@ fn emit_cargo_directives(root: &Path) -> miette::Result<()> {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Can't access 'CARGO_CFG_TARGET_OS");
     if os.to_lowercase() == "windows" {
         println!("cargo:rustc-link-lib=bcrypt");
+        println!("cargo:rustc-link-lib=shell32");
     }
 
     Ok(())

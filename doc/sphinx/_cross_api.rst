@@ -371,6 +371,12 @@
     :py:func:`lief.PE.parse`
     :cpp:func:`LIEF::PE::Parser::parse`
 
+.. |lief-pe-parse_from_dump| lief-api:: lief.PE.parse_from_dump()
+
+    :rust:method:`lief::pe::Binary::parse_from_dump [struct]`
+    :py:func:`lief.PE.parse_from_dump`
+    :cpp:func:`LIEF::PE::Parser::parse_from_dump`
+
 .. |lief-pe-binary| lief-api:: lief.PE.Binary
 
     :rust:struct:`lief::pe::Binary`
@@ -817,6 +823,12 @@
     :py:func:`lief.ELF.parse`
     :cpp:func:`LIEF::ELF::Parser::parse`
 
+.. |lief-elf-parse_from_dump| lief-api:: lief.ELF.parse_from_dump()
+
+    :rust:method:`lief::elf::Binary::parse_from_dump [struct]`
+    :py:func:`lief.ELF.parse_from_dump`
+    :cpp:func:`LIEF::ELF::Parser::parse_from_dump`
+
 .. |lief-elf-parser-config| lief-api:: lief.ELF.ParserConfig
 
     :py:class:`lief.ELF.ParserConfig`
@@ -1016,6 +1028,12 @@
     :rust:method:`lief::macho::FatBinary::parse [struct]`
     :py:func:`lief.MachO.parse`
     :cpp:func:`LIEF::MachO::Parser::parse`
+
+.. |lief-macho-parse_from_dump| lief-api:: lief.MachO.parse_from_dump()
+
+    :rust:method:`lief::macho::FatBinary::parse_from_dump [struct]`
+    :py:func:`lief.MachO.parse_from_dump`
+    :cpp:func:`LIEF::MachO::Parser::parse_from_dump`
 
 .. |lief-macho-fatbinary| lief-api:: lief.MachO.FatBinary
 
@@ -1332,3 +1350,241 @@
     :rust:method:`lief::assembly::riscv::Instruction::operands [struct]`
     :py:attr:`lief.assembly.riscv.Instruction.operands`
     :cpp:func:`LIEF::assembly::riscv::Instruction::operands`
+
+.. Runtime ====================================================================
+
+.. |lief-runtime-host| lief-api:: lief.runtime.Host
+
+    :rust:struct:`lief::runtime::Host`
+    :py:class:`lief.runtime.Host`
+    :cpp:class:`LIEF::runtime::Host`
+
+.. |lief-runtime-assemble| lief-api:: lief.runtime.assemble()
+
+    :rust:func:`lief::runtime::assemble`
+    :rust:func:`lief::runtime::assemble_with_config`
+    :py:func:`lief.runtime.assemble`
+    :cpp:func:`LIEF::runtime::assemble`
+
+.. |lief-runtime-disassemble| lief-api:: lief.runtime.disassemble()
+
+    :rust:func:`lief::runtime::disassemble`
+    :py:func:`lief.runtime.disassemble`
+    :cpp:func:`LIEF::runtime::disassemble`
+
+.. |lief-runtime-process| lief-api:: lief.runtime.Process
+
+    :rust:struct:`lief::runtime::Process`
+    :py:class:`lief.runtime.Process`
+    :cpp:class:`LIEF::runtime::Process`
+
+.. |lief-runtime-linux-host| lief-api:: lief.runtime.linux.Host
+
+    :rust:struct:`lief::runtime::linux::Host`
+    :py:class:`lief.runtime.linux.Host`
+    :cpp:class:`LIEF::runtime::Linux::Host`
+
+.. |lief-runtime-linux-host-sys_name| lief-api:: lief.runtime.linux.Host.sys_name()
+
+    :rust:method:`lief::runtime::linux::Host::sys_name [struct]`
+    :py:attr:`lief.runtime.linux.Host.sys_name`
+    :cpp:func:`LIEF::runtime::Linux::Host::sys_name`
+
+.. |lief-runtime-linux-host-sys_release| lief-api:: lief.runtime.linux.Host.sys_release()
+
+    :rust:method:`lief::runtime::linux::Host::sys_release [struct]`
+    :py:attr:`lief.runtime.linux.Host.sys_release`
+    :cpp:func:`LIEF::runtime::Linux::Host::sys_release`
+
+.. |lief-runtime-linux-host-sys_version| lief-api:: lief.runtime.linux.Host.sys_version()
+
+    :rust:method:`lief::runtime::linux::Host::sys_version [struct]`
+    :py:attr:`lief.runtime.linux.Host.sys_version`
+    :cpp:func:`LIEF::runtime::Linux::Host::sys_version`
+
+.. |lief-runtime-linux-host-hardware| lief-api:: lief.runtime.linux.Host.hardware()
+
+    :rust:method:`lief::runtime::linux::Host::hardware [struct]`
+    :py:attr:`lief.runtime.linux.Host.hardware`
+    :cpp:func:`LIEF::runtime::Linux::Host::hardware`
+
+.. |lief-runtime-linux-process| lief-api:: lief.runtime.linux.Process
+
+    :rust:struct:`lief::runtime::linux::Process`
+    :py:class:`lief.runtime.linux.Process`
+    :cpp:class:`LIEF::runtime::Linux::Process`
+
+.. |lief-runtime-linux-process-glibc_version| lief-api:: lief.runtime.linux.Process.glibc_version()
+
+    :rust:method:`lief::runtime::linux::Process::glibc_version [struct]`
+    :py:attr:`lief.runtime.linux.Process.glibc_version`
+    :cpp:func:`LIEF::runtime::Linux::Process::glibc_version`
+
+.. |lief-runtime-memory| lief-api:: lief.runtime.Memory
+
+    :rust:struct:`lief::runtime::Memory`
+    :py:class:`lief.runtime.Memory`
+    :cpp:class:`LIEF::runtime::Memory`
+
+.. |lief-runtime-module| lief-api:: lief.runtime.Module
+
+    :rust:trait:`lief::runtime::module::Module`
+    :py:class:`lief.runtime.Module`
+    :cpp:class:`LIEF::runtime::Module`
+
+.. |lief-runtime-module-dump| lief-api:: lief.runtime.Module.dump()
+
+    :rust:method:`lief::runtime::module::Module::dump [trait]`
+    :py:meth:`lief.runtime.Module.dump`
+    :cpp:func:`LIEF::runtime::Module::dump`
+
+.. |lief-runtime-linux-module| lief-api:: lief.runtime.linux.Module
+
+    :rust:struct:`lief::runtime::linux::Module`
+    :py:class:`lief.runtime.linux.Module`
+    :cpp:class:`LIEF::runtime::Linux::Module`
+
+.. |lief-runtime-linux-dlopen| lief-api:: lief.runtime.linux.dlopen()
+
+    :rust:func:`lief::runtime::linux::dlopen`
+    :py:func:`lief.runtime.linux.dlopen`
+    :cpp:func:`LIEF::runtime::Linux::dlopen`
+
+.. |lief-runtime-linux-module-dlsym| lief-api:: lief.runtime.linux.Module.dlsym()
+
+    :rust:method:`lief::runtime::linux::Module::dlsym [struct]`
+    :py:meth:`lief.runtime.linux.Module.dlsym`
+    :cpp:func:`LIEF::runtime::Linux::Module::dlsym`
+
+.. |lief-runtime-windows-module| lief-api:: lief.runtime.windows.Module
+
+    :rust:struct:`lief::runtime::windows::Module`
+    :py:class:`lief.runtime.windows.Module`
+    :cpp:class:`LIEF::runtime::windows::Module`
+
+.. |lief-runtime-windows-process| lief-api:: lief.runtime.windows.Process
+
+    :rust:struct:`lief::runtime::windows::Process`
+    :py:class:`lief.runtime.windows.Process`
+    :cpp:class:`LIEF::runtime::windows::Process`
+
+.. |lief-runtime-windows-peb| lief-api:: lief.runtime.windows.PEB
+
+    :rust:struct:`lief::runtime::windows::PEB`
+    :py:class:`lief.runtime.windows.PEB`
+    :cpp:class:`LIEF::runtime::windows::PEB`
+
+
+.. |lief-runtime-windows-peb-entries| lief-api:: lief.runtime.windows.PEB.entries
+
+    :rust:method:`lief::runtime::windows::PEB::entries [struct]`
+    :py:attr:`lief.runtime.windows.PEB.entries`
+    :cpp:func:`LIEF::runtime::windows::PEB::entries`
+
+.. |lief-runtime-windows-ldr| lief-api:: lief.runtime.windows.LdrDataTableEntry
+
+    :rust:struct:`lief::runtime::windows::LdrDataTableEntry`
+    :py:class:`lief.runtime.windows.LdrDataTableEntry`
+    :cpp:class:`LIEF::runtime::windows::LdrDataTableEntry`
+
+.. |lief-runtime-windows-host| lief-api:: lief.runtime.windows.Host
+
+    :rust:struct:`lief::runtime::windows::Host`
+    :py:class:`lief.runtime.windows.Host`
+    :cpp:class:`LIEF::runtime::windows::Host`
+
+.. |lief-runtime-windows-host-version| lief-api:: lief.runtime.windows.Host.version()
+
+    :rust:method:`lief::runtime::windows::Host::version [struct]`
+    :py:attr:`lief.runtime.windows.Host.version`
+    :cpp:func:`LIEF::runtime::windows::Host::version`
+
+.. |lief-runtime-osx-module| lief-api:: lief.runtime.osx.Module
+
+    :rust:struct:`lief::runtime::osx::Module`
+    :py:class:`lief.runtime.osx.Module`
+    :cpp:class:`LIEF::runtime::osx::Module`
+
+.. |lief-runtime-osx-host| lief-api:: lief.runtime.osx.Host
+
+    :rust:struct:`lief::runtime::osx::Host`
+    :py:class:`lief.runtime.osx.Host`
+    :cpp:class:`LIEF::runtime::osx::Host`
+
+.. |lief-runtime-osx-host-os_version_name| lief-api:: lief.runtime.osx.Host.os_version_name()
+
+    :rust:method:`lief::runtime::osx::Host::os_version_name [struct]`
+    :py:attr:`lief.runtime.osx.Host.os_version_name`
+    :cpp:func:`LIEF::runtime::osx::Host::os_version_name`
+
+.. |lief-runtime-osx-host-is-sip-enabled| lief-api:: lief.runtime.osx.Host.is_sip_enabled
+
+    :rust:method:`lief::runtime::osx::Host::is_sip_enabled [struct]`
+    :py:attr:`lief.runtime.osx.Host.is_sip_enabled`
+    :cpp:func:`LIEF::runtime::osx::Host::is_sip_enabled`
+
+.. |lief-runtime-osx-process| lief-api:: lief.runtime.osx.Process
+
+    :rust:struct:`lief::runtime::osx::Process`
+    :py:class:`lief.runtime.osx.Process`
+    :cpp:class:`LIEF::runtime::osx::Process`
+
+.. |lief-runtime-osx-process-dyld_version| lief-api:: lief.runtime.osx.Process.dyld_version()
+
+    :rust:method:`lief::runtime::osx::Process::dyld_version [struct]`
+    :py:attr:`lief.runtime.osx.Process.dyld_version`
+    :cpp:func:`LIEF::runtime::osx::Process::dyld_version`
+
+.. |lief-runtime-android-host| lief-api:: lief.runtime.android.Host
+
+    :rust:struct:`lief::runtime::android::Host`
+    :py:class:`lief.runtime.android.Host`
+    :cpp:class:`LIEF::runtime::android::Host`
+
+.. |lief-runtime-android-host-sdk_version| lief-api:: lief.runtime.android.Host.sdk_version()
+
+    :rust:method:`lief::runtime::android::Host::sdk_version [struct]`
+    :py:attr:`lief.runtime.android.Host.sdk_version`
+    :cpp:func:`LIEF::runtime::android::Host::sdk_version`
+
+.. |lief-runtime-android-process| lief-api:: lief.runtime.android.Process
+
+    :rust:struct:`lief::runtime::android::Process`
+    :py:class:`lief.runtime.android.Process`
+    :cpp:class:`LIEF::runtime::android::Process`
+
+.. |lief-runtime-android-process-get_system_property| lief-api:: lief.runtime.android.Process.get_system_property()
+
+    :rust:method:`lief::runtime::android::Process::get_system_property [struct]`
+    :py:meth:`lief.runtime.android.Process.get_system_property`
+    :cpp:func:`LIEF::runtime::android::Process::get_system_property`
+
+.. |lief-runtime-android-process-properties| lief-api:: lief.runtime.android.Process.properties()
+
+    :rust:method:`lief::runtime::android::Process::properties [struct]`
+    :py:attr:`lief.runtime.android.Process.properties`
+    :cpp:func:`LIEF::runtime::android::Process::properties`
+
+.. |lief-runtime-android-property| lief-api:: lief.runtime.android.Property
+
+    :rust:struct:`lief::runtime::android::Property`
+    :py:class:`lief.runtime.android.Property`
+    :cpp:class:`LIEF::runtime::android::Property`
+
+.. |lief-runtime-android-module| lief-api:: lief.runtime.android.Module
+
+    :rust:struct:`lief::runtime::android::Module`
+    :py:class:`lief.runtime.android.Module`
+    :cpp:class:`LIEF::runtime::android::Module`
+
+.. |lief-runtime-android-dlopen| lief-api:: lief.runtime.android.dlopen()
+
+    :rust:func:`lief::runtime::android::dlopen`
+    :py:func:`lief.runtime.android.dlopen`
+    :cpp:func:`LIEF::runtime::android::dlopen`
+
+.. |lief-runtime-android-module-dlsym| lief-api:: lief.runtime.android.Module.dlsym()
+
+    :rust:method:`lief::runtime::android::Module::dlsym [struct]`
+    :py:meth:`lief.runtime.android.Module.dlsym`
+    :cpp:func:`LIEF::runtime::android::Module::dlsym`

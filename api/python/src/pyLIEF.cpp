@@ -44,6 +44,7 @@
 #include "DyldSharedCache/init.hpp"
 #include "asm/init.hpp"
 #include "BinaryStream/init.hpp"
+#include "runtime/init.hpp"
 
 #include "pyWriteStream.hpp"
 
@@ -369,6 +370,14 @@ void init(nb::module_& m) {
   m.def("extended_version", &LIEF::extended_version,
         "Return the extended version"_doc);
 
+  m.def("to_int", [] (const void* ptr) {
+    return reinterpret_cast<uintptr_t>(ptr);
+  }, "ptr"_a, "Convert an opaque pointer into an address (int)"_doc);
+
+  m.def("to_ptr", [] (uintptr_t ptr) {
+    return reinterpret_cast<void*>(ptr);
+  }, "ptr"_a, "Convert an integer into an opaque pointer (``void*``)"_doc);
+
   LIEF::py::init_extension(m);
 
   LIEF::py::init_python_sink();
@@ -395,6 +404,8 @@ void init(nb::module_& m) {
   LIEF::pdb::py::init(m);
   LIEF::objc::py::init(m);
   LIEF::dsc::py::init(m);
+
+  LIEF::runtime::py::init(m);
 
 #if defined(LIEF_ELF_SUPPORT)
   LIEF::ELF::py::init(m);

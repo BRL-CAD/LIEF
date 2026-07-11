@@ -18,13 +18,17 @@
 #include "logging.hpp"
 
 #include "LIEF/BinaryStream/BinaryStream.hpp"
+#include "LIEF/BinaryStream/MemoryStream.hpp"
 #include "LIEF/BinaryStream/SpanStream.hpp"
 #include "LIEF/PE/LoadConfigurations.hpp"
 #include "LIEF/PE/LoadConfigurations/CHPEMetadata.hpp"
 #include "LIEF/PE/LoadConfigurations/LoadConfiguration.hpp"
 #include "LIEF/PE/Parser.hpp"
+#include "LIEF/PE/TLS.hpp"
 #include "LIEF/PE/Binary.hpp"
 #include "LIEF/PE/DataDirectory.hpp"
+#include "LIEF/PE/Relocation.hpp"
+#include "LIEF/PE/RelocationEntry.hpp"
 #include "LIEF/PE/EnumToString.hpp"
 #include "LIEF/PE/Section.hpp"
 #include "LIEF/PE/ImportEntry.hpp"
@@ -32,6 +36,11 @@
 #include "PE/Structures.hpp"
 
 namespace LIEF::PE {
+
+inline uint64_t delta(const Parser& parser) {
+  assert(parser.bin().optional_header().imagebase() >= *parser.config().rebase);
+  return parser.bin().optional_header().imagebase() - *parser.config().rebase;
+}
 
 bool inline warn_missing_section(const DataDirectory& dir) {
   return dir.type() != DataDirectory::TYPES::CERTIFICATE_TABLE &&
@@ -90,9 +99,241 @@ ok_error_t Parser::parse() {
     LIEF_WARN("Nested PE ARM64X parsed with errors");
   }
 
+  if (stream_->is_memory_view() && config_.rebase) {
+    const uint64_t imagebase = binary_->optional_header().imagebase();
+    if (imagebase < *config_.rebase) {
+      LIEF_WARN("Can't revert the memory layout: the image base ({:#x}) is "
+                "smaller than the rebase address ({:#x})",
+                imagebase, *config_.rebase);
+    } else {
+      LIEF_DEBUG("Rebase delta: ({0:#010x})", delta(*this));
+      undo_relocations<PE_T>();
+      fix_iat<PE_T>();
+      fix_tls<PE_T>();
+      fix_load_config<PE_T>();
+
+      binary_->optional_header().imagebase(*config_.rebase);
+    }
+  }
+
   return ok();
 }
 
+template<typename PE_T>
+ok_error_t Parser::fix_load_config() {
+  LoadConfiguration* lconf = binary_->load_configuration();
+  if (lconf == nullptr) {
+    return ok();
+  }
+  const uint64_t D = delta(*this);
+  const uint64_t imagebase = binary_->optional_header().imagebase();
+
+  if (uint64_t addr = lconf->security_cookie(); addr > 0 && addr >= imagebase) {
+    lconf->security_cookie(addr - D);
+  }
+
+  if (uint64_t addr = lconf->lock_prefix_table(); addr > 0 && addr >= imagebase) {
+    lconf->lock_prefix_table(addr - D);
+  }
+
+  if (uint64_t addr = lconf->se_handler_table().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->se_handler_table(addr - D);
+  }
+
+  if (uint64_t addr = lconf->guard_cf_check_function_pointer().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->guard_cf_check_function_pointer(addr - D);
+  }
+
+  if (uint64_t addr = lconf->guard_cf_dispatch_function_pointer().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->guard_cf_dispatch_function_pointer(addr - D);
+  }
+
+  if (uint64_t addr = lconf->guard_address_taken_iat_entry_table().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->guard_address_taken_iat_entry_table(addr - D);
+  }
+
+  if (uint64_t addr = lconf->guard_long_jump_target_table().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->guard_long_jump_target_table(addr - D);
+  }
+
+  if (uint64_t addr = lconf->dynamic_value_reloc_table().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->dynamic_value_reloc_table(addr - D);
+  }
+
+  if (uint64_t addr = lconf->hybrid_metadata_pointer().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->hybrid_metadata_pointer(addr - D);
+  }
+
+  if (uint64_t addr = lconf->guard_rf_failure_routine().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->guard_rf_failure_routine(addr - D);
+  }
+
+  if (uint64_t addr =
+          lconf->guard_rf_failure_routine_function_pointer().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->guard_rf_failure_routine_function_pointer(addr - D);
+  }
+
+  if (uint64_t addr =
+          lconf->guard_rf_verify_stackpointer_function_pointer().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->guard_rf_verify_stackpointer_function_pointer(addr - D);
+  }
+
+  if (uint64_t addr = lconf->enclave_configuration_ptr().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->enclave_configuration_ptr(addr - D);
+  }
+
+  if (uint64_t addr = lconf->volatile_metadata_pointer().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->volatile_metadata_pointer(addr - D);
+  }
+
+  if (uint64_t addr = lconf->guard_eh_continuation_table().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->guard_eh_continuation_table(addr - D);
+  }
+
+  if (uint64_t addr = lconf->guard_xfg_check_function_pointer().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->guard_xfg_check_function_pointer(addr - D);
+  }
+
+  if (uint64_t addr = lconf->guard_xfg_dispatch_function_pointer().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->guard_xfg_dispatch_function_pointer(addr - D);
+  }
+
+  if (uint64_t addr =
+          lconf->guard_xfg_table_dispatch_function_pointer().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->guard_xfg_table_dispatch_function_pointer(addr - D);
+  }
+
+  if (uint64_t addr = lconf->cast_guard_os_determined_failure_mode().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->cast_guard_os_determined_failure_mode(addr - D);
+  }
+
+  if (uint64_t addr = lconf->guard_memcpy_function_pointer().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->guard_memcpy_function_pointer(addr - D);
+  }
+
+  if (uint64_t addr = lconf->uma_function_pointers().value_or(0);
+      addr > 0 && addr >= imagebase)
+  {
+    lconf->uma_function_pointers(addr - D);
+  }
+  return ok();
+}
+
+template<typename PE_T>
+ok_error_t Parser::fix_tls() {
+  TLS* tls = binary_->tls();
+  if (tls == nullptr) {
+    return ok();
+  }
+
+  const uint64_t D = delta(*this);
+  tls->addressof_index(tls->addressof_index() - D);
+  tls->addressof_callbacks(tls->addressof_callbacks() - D);
+  /* Address of raw data */ {
+    const auto& [start, end] = tls->addressof_raw_data();
+    tls->addressof_raw_data(std::make_pair(start - D, end - D));
+  }
+  /* Callbacks */ {
+    std::vector<uint64_t> callbacks = tls->callbacks();
+    for (size_t i = 0; i < callbacks.size(); ++i) {
+      callbacks[i] -= D;
+    }
+    tls->callbacks(std::move(callbacks));
+  }
+  return ok();
+}
+
+template<typename PE_T>
+ok_error_t Parser::fix_iat() {
+  for (Import& imp : binary_->imports()) {
+    for (ImportEntry& entry : imp.entries()) {
+      entry.iat_value(entry.ilt_value());
+    }
+  }
+  return ok();
+}
+
+template<typename PE_T>
+ok_error_t Parser::undo_relocations() {
+  const uint64_t D = delta(*this);
+  for (const Relocation& R : binary_->relocations()) {
+    for (const RelocationEntry& entry : R.entries()) {
+      if (entry.type() == RelocationEntry::BASE_TYPES::ABS) {
+        continue;
+      }
+
+      const uint64_t rva = entry.address();
+      Section* sec = binary_->section_from_rva(rva);
+
+      if (sec == nullptr) {
+        continue;
+      }
+
+      span<uint8_t> buffer = sec->writable_content();
+      const uint64_t rel_offset = rva - sec->virtual_address();
+
+      switch (entry.type()) {
+        case RelocationEntry::BASE_TYPES::DIR64:
+        {
+          if (rel_offset > buffer.size() ||
+              buffer.size() - rel_offset < sizeof(uint64_t))
+          {
+            LIEF_WARN("Relocation at RVA {:#x} is out of the section's "
+                      "content bounds",
+                      rva);
+            continue;
+          }
+          uint64_t value = 0;
+          std::memcpy(&value, buffer.data() + rel_offset, sizeof(value));
+          value -= D;
+          std::memcpy(buffer.data() + rel_offset, &value, sizeof(value));
+          break;
+        }
+
+        default:
+          LIEF_WARN("Unsupported reloc type: {}", to_string(entry.type()));
+          continue;
+      }
+    }
+  }
+  return ok();
+}
 
 template<typename PE_T>
 ok_error_t Parser::parse_nested_relocated() {

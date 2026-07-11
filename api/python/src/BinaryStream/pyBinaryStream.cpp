@@ -32,6 +32,8 @@ void create<BinaryStream>(nb::module_& m) {
     .def("__bool__", &BinaryStream::is_valid)
     .def("__len__", &BinaryStream::size)
 
+    .def_prop_ro("is_memory_stream", &BinaryStream::is_memory_stream)
+
     .def_prop_ro("pos", &BinaryStream::pos)
     .def("increment_pos", &BinaryStream::increment_pos,
       "value"_a, nb::rv_policy::reference_internal

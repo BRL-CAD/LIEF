@@ -41,6 +41,19 @@ void create<Parser>(nb::module_& m) {
     )delim"_doc, "address"_a, "config"_a = ParserConfig::deep(),
     nb::rv_policy::take_ownership);
 
+  m.def("parse_from_dump",
+    [] (typing::InputParser obj, uint64_t addr, const ParserConfig& config) {
+      return Parser::parse_from_dump(obj.into_stream(), addr, config);
+    },
+    R"delim(
+    Parse the Mach-O binary from a memory dump given in the first parameter.
+
+    A dump is a raw capture of the process memory that was mapped starting at
+    the virtual address given in the second parameter.
+    )delim"_doc,
+    "obj"_a, "addr"_a, "config"_a = ParserConfig::deep(),
+    nb::rv_policy::take_ownership);
+
   m.def("parse",
     [] (typing::InputParser obj, const ParserConfig& config) -> std::unique_ptr<FatBinary> {
       return Parser::parse(obj.into_stream(), config);

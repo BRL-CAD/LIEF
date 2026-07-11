@@ -1,5 +1,5 @@
 
-if (LIEF_PY_LIEF_EXT)
+if (LIEF_PRECOMPILED)
   if (LIEF_PY_LIEF_EXT_SHARED)
     find_package(LIEF REQUIRED COMPONENTS SHARED)
   else()
@@ -54,7 +54,7 @@ if (LIEF_PYTHON_FREE_THREADED)
 endif()
 
 if (LIEF_PYTHON_STATIC)
-  list(APPEND NANOBIND_OPT NB_EXT_STATIC)
+  list(APPEND NANOBIND_OPT NB_EXT_STATIC ON)
 endif()
 
 nanobind_add_module(

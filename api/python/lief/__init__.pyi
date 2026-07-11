@@ -4,7 +4,7 @@ import io
 import lief
 import lief.PE
 import os
-from typing import Iterator, Optional, Union, overload
+from typing import Any, Iterator, Optional, Union, overload
 
 import lief.ELF
 import lief.MachO
@@ -24,7 +24,8 @@ from . import (
     dwarf as dwarf,
     logging as logging,
     objc as objc,
-    pdb as pdb
+    pdb as pdb,
+    runtime as runtime
 )
 
 
@@ -62,6 +63,10 @@ def dump(buffer: bytes, title: str = '', prefix: str = '', limit: int = 0) -> st
 def extended_version_info() -> str: ...
 
 def extended_version() -> lief_version_t: ...
+
+def to_int(ptr: Any) -> int: ...
+
+def to_ptr(ptr: int) -> Any: ...
 
 __extended__: bool = ...
 
@@ -162,6 +167,8 @@ class lief_errors(enum.Enum):
 
     inconsistent = 15
 
+    runtime_error = 16
+
 @overload
 def hash(arg: Object, /) -> int: ... # type: ignore
 
@@ -183,6 +190,9 @@ class BinaryStream:
     def __bool__(self) -> bool: ...
 
     def __len__(self) -> int: ...
+
+    @property
+    def is_memory_stream(self) -> bool: ...
 
     @property
     def pos(self) -> int: ...
@@ -742,6 +752,8 @@ class Symbol(Object):
     def __str__(self) -> str: ...
 
 def parse(obj: Union[str | io.IOBase | os.PathLike | bytes | list[int]]) -> PE.Binary | OAT.Binary | ELF.Binary | MachO.Binary | COFF.Binary | None: ...
+
+def parse_from_dump(obj: Union[str | io.IOBase | os.PathLike | bytes | list[int]], addr: int) -> PE.Binary | OAT.Binary | ELF.Binary | MachO.Binary | COFF.Binary | None: ...
 
 class Relocation(Object):
     address: int

@@ -25,6 +25,7 @@
 #include "LIEF/rust/ObjC.hpp"
 #include "LIEF/rust/DyldSharedCache.hpp"
 #include "LIEF/rust/ASM.hpp"
+#include "LIEF/rust/runtime.hpp"
 
 #include "LIEF/rust/Span.hpp"
 #include "LIEF/rust/range.hpp"
