@@ -12,3 +12,4 @@ api/rust/examples/target/*
 tools/target/*
 plugins/ghidra/bin/
 api/python/tests/lib/
+dev-scripts/
