@@ -59,7 +59,9 @@ void Parser::parse_binary<details::OAT64_t>() {
 
   std::vector<uint8_t> raw_oat;
   auto& oat = oat_binary();
-  const auto* oat_data = oat.get_symbol("oatdata")->as<ELF::Symbol>();
+  const auto* oat_data_sym = oat.get_symbol("oatdata");
+  const auto* oat_data =
+      oat_data_sym != nullptr ? oat_data_sym->as<ELF::Symbol>() : nullptr;
   if (oat_data != nullptr) {
     raw_oat.reserve(oat_data->size());
 
@@ -72,7 +74,9 @@ void Parser::parse_binary<details::OAT64_t>() {
     data_size_ = oat_data->size();
   }
 
-  const auto* oat_exec = oat.get_symbol("oatexec")->as<ELF::Symbol>();
+  const auto* oat_exec_sym = oat.get_symbol("oatexec");
+  const auto* oat_exec =
+      oat_exec_sym != nullptr ? oat_exec_sym->as<ELF::Symbol>() : nullptr;
   if (oat_exec != nullptr) {
 
     exec_start_ = oat_exec->value();
@@ -109,7 +113,9 @@ void Parser::parse_binary<details::OAT79_t>() {
 
   std::vector<uint8_t> raw_oat;
   auto& oat = oat_binary();
-  const auto* oat_data = oat.get_symbol("oatdata")->as<ELF::Symbol>();
+  const auto* oat_data_sym = oat.get_symbol("oatdata");
+  const auto* oat_data =
+      oat_data_sym != nullptr ? oat_data_sym->as<ELF::Symbol>() : nullptr;
   if (oat_data != nullptr) {
     raw_oat.reserve(oat_data->size());
 
@@ -121,7 +127,9 @@ void Parser::parse_binary<details::OAT79_t>() {
     data_size_ = oat_data->size();
   }
 
-  const auto* oat_exec = oat.get_symbol("oatexec")->as<ELF::Symbol>();
+  const auto* oat_exec_sym = oat.get_symbol("oatexec");
+  const auto* oat_exec =
+      oat_exec_sym != nullptr ? oat_exec_sym->as<ELF::Symbol>() : nullptr;
   if (oat_exec != nullptr) {
 
     exec_start_ = oat_exec->value();
@@ -160,7 +168,9 @@ template<>
 void Parser::parse_binary<details::OAT88_t>() {
   std::vector<uint8_t> raw_oat;
   auto& oat = oat_binary();
-  const auto* oat_data = oat.get_symbol("oatdata")->as<ELF::Symbol>();
+  const auto* oat_data_sym = oat.get_symbol("oatdata");
+  const auto* oat_data =
+      oat_data_sym != nullptr ? oat_data_sym->as<ELF::Symbol>() : nullptr;
   if (oat_data != nullptr) {
     raw_oat.reserve(oat_data->size());
 
@@ -172,7 +182,9 @@ void Parser::parse_binary<details::OAT88_t>() {
     data_size_ = oat_data->size();
   }
 
-  const auto* oat_exec = oat.get_symbol("oatexec")->as<ELF::Symbol>();
+  const auto* oat_exec_sym = oat.get_symbol("oatexec");
+  const auto* oat_exec =
+      oat_exec_sym != nullptr ? oat_exec_sym->as<ELF::Symbol>() : nullptr;
   if (oat_exec != nullptr) {
     exec_start_ = oat_exec->value();
     exec_size_ = oat_exec->size();
@@ -210,7 +222,9 @@ template<>
 void Parser::parse_binary<details::OAT124_t>() {
   std::vector<uint8_t> raw_oat;
   auto& oat = oat_binary();
-  const auto* oat_data = oat.get_symbol("oatdata")->as<ELF::Symbol>();
+  const auto* oat_data_sym = oat.get_symbol("oatdata");
+  const auto* oat_data =
+      oat_data_sym != nullptr ? oat_data_sym->as<ELF::Symbol>() : nullptr;
   if (oat_data != nullptr) {
     raw_oat.reserve(oat_data->size());
 
@@ -222,7 +236,9 @@ void Parser::parse_binary<details::OAT124_t>() {
     data_size_ = oat_data->size();
   }
 
-  const auto* oat_exec = oat.get_symbol("oatexec")->as<ELF::Symbol>();
+  const auto* oat_exec_sym = oat.get_symbol("oatexec");
+  const auto* oat_exec =
+      oat_exec_sym != nullptr ? oat_exec_sym->as<ELF::Symbol>() : nullptr;
   if (oat_exec != nullptr) {
     exec_start_ = oat_exec->value();
     exec_size_ = oat_exec->size();
@@ -260,7 +276,9 @@ template<>
 void Parser::parse_binary<details::OAT131_t>() {
   std::vector<uint8_t> raw_oat;
   auto& oat = oat_binary();
-  const auto* oat_data = oat.get_symbol("oatdata")->as<ELF::Symbol>();
+  const auto* oat_data_sym = oat.get_symbol("oatdata");
+  const auto* oat_data =
+      oat_data_sym != nullptr ? oat_data_sym->as<ELF::Symbol>() : nullptr;
   if (oat_data != nullptr) {
     raw_oat.reserve(oat_data->size());
 
@@ -272,7 +290,9 @@ void Parser::parse_binary<details::OAT131_t>() {
     data_size_ = oat_data->size();
   }
 
-  const auto* oat_exec = oat.get_symbol("oatexec")->as<ELF::Symbol>();
+  const auto* oat_exec_sym = oat.get_symbol("oatexec");
+  const auto* oat_exec =
+      oat_exec_sym != nullptr ? oat_exec_sym->as<ELF::Symbol>() : nullptr;
   if (oat_exec != nullptr) {
     exec_start_ = oat_exec->value();
     exec_size_ = oat_exec->size();
