@@ -3686,9 +3686,6 @@ ok_error_t BinaryParser::post_process(SymbolCommand& cmd) {
 
     const uint64_t nlist_size = sizeof(nlist_t) * cmd.numberof_symbols();
 
-    nlist_buffer.resize(nlist_size);
-    strings_buffer.resize(cmd.strings_size());
-
     if (!stream_->peek_data(nlist_buffer, cmd.symbol_offset(), nlist_size)) {
       LIEF_ERR("Can't read nlist buffer at: {:#012x}", cmd.symbol_offset());
       return make_error_code(lief_errors::read_error);

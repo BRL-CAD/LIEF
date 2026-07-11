@@ -5,7 +5,7 @@ from textwrap import dedent
 
 import lief
 import pytest
-from utils import get_sample, parse_macho
+from utils import address_space_limiter, get_sample, parse_macho
 
 
 def test_945():
@@ -215,6 +215,32 @@ def test_dyld_corrupted_indices():
 
     assert "<invalid>" in di.show_rebases_opcodes
     assert "<invalid>" in di.show_bind_opcodes
+
+
+@pytest.mark.private
+def test_symtab_uncapped_alloc():
+    sample = get_sample("private/MachO/symtab_uncapped_alloc.macho")
+    subprocess.check_call(
+        [
+            sys.executable,
+            "-c",
+            dedent(f"""\
+            import lief
+            fat = lief.MachO.parse(r"{sample}")
+            assert fat is not None
+            b = fat.at(0)
+            assert b is not None
+            assert [s.name for s in b.segments] == ["__TEXT"]
+            assert len(b.symbols) == 0"""),
+        ],
+        timeout=30.0,
+        preexec_fn=address_space_limiter(),
+    )
+
+    target = parse_macho(sample).at(0)
+    assert target is not None
+    assert [s.name for s in target.segments] == ["__TEXT"]
+    assert len(target.symbols) == 0
 
 
 @pytest.mark.private
