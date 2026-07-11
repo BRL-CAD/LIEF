@@ -1,3 +1,4 @@
+#![allow(warnings)]
 mod utils;
 use lief::pdb::types::classlike::ClassLike;
 use lief::{self, pdb::types::PdbType};

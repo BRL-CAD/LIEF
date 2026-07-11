@@ -1,3 +1,4 @@
+#![allow(warnings)]
 mod utils;
 use std::env;
 use std::path::PathBuf;

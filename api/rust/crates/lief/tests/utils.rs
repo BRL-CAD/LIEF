@@ -1,3 +1,4 @@
+#![allow(warnings)]
 use std::env;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;

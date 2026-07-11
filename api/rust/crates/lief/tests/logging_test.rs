@@ -1,3 +1,4 @@
+#![allow(warnings)]
 use lief::logging;
 use std::env;
 

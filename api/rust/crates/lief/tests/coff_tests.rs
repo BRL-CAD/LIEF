@@ -1,3 +1,4 @@
+#![allow(warnings)]
 mod utils;
 use lief::generic::{Section, Symbol};
 use lief::logging;

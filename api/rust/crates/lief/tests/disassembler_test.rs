@@ -1,3 +1,4 @@
+#![allow(warnings)]
 mod utils;
 use lief;
 use lief::assembly::x86;

@@ -1,3 +1,4 @@
+#![allow(warnings)]
 mod utils;
 use lief::Binary;
 use lief::generic::Binary as GenericBinary;

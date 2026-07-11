@@ -1,3 +1,4 @@
+#![allow(warnings)]
 use lief;
 use lief::runtime::memory::{MmapFlags, Perm};
 use lief::runtime::{Memory, Module, Process};
