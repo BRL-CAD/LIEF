@@ -69,19 +69,18 @@ FunctionOverride& FunctionOverride::operator=(FunctionOverride&&) = default;
 FunctionOverride::~FunctionOverride() = default;
 
 std::string FunctionOverride::to_string() const {
-  using namespace fmt;
   std::ostringstream oss;
-  oss << format("Function Override ({}) {{\n", overriding_info_.size());
+  oss << fmt::format("Function Override ({}) {{\n", overriding_info_.size());
   for (const FunctionOverrideInfo& info : func_overriding_info()) {
     oss << indent(info.to_string(), 2);
     if (const image_bdd_info_t* bdd_info = find_bdd_info(info)) {
-      oss << format("  BDD Version: {} ({} bytes, offset={:#010x})\n",
-                    bdd_info->version, bdd_info->original_size,
-                    bdd_info->original_offset);
+      oss << fmt::format("  BDD Version: {} ({} bytes, offset={:#010x})\n",
+                         bdd_info->version, bdd_info->original_size,
+                         bdd_info->original_offset);
       for (size_t i = 0; i < bdd_info->relocations.size(); ++i) {
         const image_bdd_dynamic_relocation_t& R = bdd_info->relocations[i];
-        oss << format("    [{:04d}] L={:04d}, R={:04d}, V={:#010x}\n", i, R.left,
-                      R.right, R.value);
+        oss << fmt::format("    [{:04d}] L={:04d}, R={:04d}, V={:#010x}\n", i,
+                           R.left, R.right, R.value);
       }
     } else {
       oss << "  <Missing IMAGE_BDD_INFO>\n";

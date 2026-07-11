@@ -27,9 +27,8 @@ void RichEntry::accept(LIEF::Visitor& visitor) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const RichEntry& entry) {
-  using namespace fmt;
-  os << format("ID: {:#06x}, Build ID: {:#06x}, Count: {}", entry.id(),
-               entry.build_id(), entry.count());
+  os << fmt::format("ID: {:#06x}, Build ID: {:#06x}, Count: {}", entry.id(),
+                    entry.build_id(), entry.count());
   return os;
 }
 

@@ -49,17 +49,16 @@ std::unique_ptr<BigObjHeader> BigObjHeader::create(BinaryStream& stream) {
 }
 
 std::string BigObjHeader::to_string() const {
-  using namespace fmt;
   std::ostringstream oss;
 
   static constexpr auto WIDTH = 16;
   oss << Header::to_string() << '\n';
-  oss << format("{:>{}} Version\n", version(), WIDTH);
-  oss << format("{:>{}} uuid: {}\n", "", WIDTH, uuid_to_str_impl(uuid_));
-  oss << format("{:>#{}x} Size of data\n", sizeof_data(), WIDTH);
-  oss << format("{:>#{}x} Flags\n", flags(), WIDTH);
-  oss << format("{:>#{}x} Metadata size\n", metadata_size(), WIDTH);
-  oss << format("{:>#{}x} Metadata offset", metadata_offset(), WIDTH);
+  oss << fmt::format("{:>{}} Version\n", version(), WIDTH);
+  oss << fmt::format("{:>{}} uuid: {}\n", "", WIDTH, uuid_to_str_impl(uuid_));
+  oss << fmt::format("{:>#{}x} Size of data\n", sizeof_data(), WIDTH);
+  oss << fmt::format("{:>#{}x} Flags\n", flags(), WIDTH);
+  oss << fmt::format("{:>#{}x} Metadata size\n", metadata_size(), WIDTH);
+  oss << fmt::format("{:>#{}x} Metadata offset", metadata_offset(), WIDTH);
   return oss.str();
 }
 

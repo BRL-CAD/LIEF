@@ -39,9 +39,8 @@ static_assert(sizeof(control_transfer_reloc_t) == sizeof(uint32_t));
 }
 
 std::string DynamicFixupControlTransfer::reloc_entry_t::to_string() const {
-  using namespace fmt;
-  return format("RVA: {:#010x} Instr: {:6} IAT index: {:04d}", rva,
-                is_call ? "call" : "branch", iat_index);
+  return fmt::format("RVA: {:#010x} Instr: {:6} IAT index: {:04d}", rva,
+                     is_call ? "call" : "branch", iat_index);
 }
 
 std::unique_ptr<DynamicFixupControlTransfer>
@@ -89,12 +88,11 @@ std::unique_ptr<DynamicFixupControlTransfer>
 }
 
 std::string DynamicFixupControlTransfer::to_string() const {
-  using namespace fmt;
   std::ostringstream oss;
   oss << "Fixup RVAs (Guard Import Control Transfer)\n";
   for (size_t i = 0; i < entries_.size(); ++i) {
     const reloc_entry_t& entry = entries_[i];
-    oss << format("  [{:04d}] {}\n", i, entry.to_string());
+    oss << fmt::format("  [{:04d}] {}\n", i, entry.to_string());
   }
   return oss.str();
 }

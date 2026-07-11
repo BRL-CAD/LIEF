@@ -88,7 +88,6 @@ std::string indent(const std::string& input, size_t level) {
 
 
 std::string ts_to_str(uint64_t timestamp) {
-  using namespace fmt;
   using namespace std::chrono;
 
   static std::mutex mu;

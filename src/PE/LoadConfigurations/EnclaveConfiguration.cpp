@@ -29,30 +29,29 @@
 namespace LIEF::PE {
 
 std::string EnclaveConfiguration::to_string() const {
-  using namespace fmt;
   static constexpr auto WIDTH = 39;
   std::ostringstream os;
-  os << format("{:>{}}: {:#010x}\n", "Size", WIDTH, size())
-     << format("{:>{}}: {:#010x}\n", "Minimum Required Config Size", WIDTH,
-               min_required_config_size())
-     << format("{:>{}}: {:#010x} (debuggable={})\n", "Policy Flags", WIDTH,
-               policy_flags(), is_debuggable())
-     << format("{:>{}}: {}\n", "Number of Enclave Import Descriptors", WIDTH,
-               nb_imports())
-     << format("{:>{}}: {:#010x}\n", "RVA to enclave imports", WIDTH,
-               import_list_rva())
-     << format("{:>{}}: {:#06x}\n", "Size of enclave import", WIDTH,
-               import_entry_size())
-     << format("{:>{}}: {}\n", "Image version", WIDTH, image_version())
-     << format("{:>{}}: {}\n", "Security version", WIDTH, security_version())
-     << format("{:>{}}: {:#018x}\n", "Enclave Size", WIDTH, enclave_size())
-     << format("{:>{}}: {}\n", "Number of Threads", WIDTH, nb_threads())
-     << format("{:>{}}: {:#010x}\n", "Enclave flags", WIDTH, enclave_flags());
+  os << fmt::format("{:>{}}: {:#010x}\n", "Size", WIDTH, size())
+     << fmt::format("{:>{}}: {:#010x}\n", "Minimum Required Config Size", WIDTH,
+                    min_required_config_size())
+     << fmt::format("{:>{}}: {:#010x} (debuggable={})\n", "Policy Flags", WIDTH,
+                    policy_flags(), is_debuggable())
+     << fmt::format("{:>{}}: {}\n", "Number of Enclave Import Descriptors", WIDTH,
+                    nb_imports())
+     << fmt::format("{:>{}}: {:#010x}\n", "RVA to enclave imports", WIDTH,
+                    import_list_rva())
+     << fmt::format("{:>{}}: {:#06x}\n", "Size of enclave import", WIDTH,
+                    import_entry_size())
+     << fmt::format("{:>{}}: {}\n", "Image version", WIDTH, image_version())
+     << fmt::format("{:>{}}: {}\n", "Security version", WIDTH, security_version())
+     << fmt::format("{:>{}}: {:#018x}\n", "Enclave Size", WIDTH, enclave_size())
+     << fmt::format("{:>{}}: {}\n", "Number of Threads", WIDTH, nb_threads())
+     << fmt::format("{:>{}}: {:#010x}\n", "Enclave flags", WIDTH, enclave_flags());
 
-  os << format("{:>{}}: {}\n", "Image ID", WIDTH,
-               hex_dump(image_id(), /*sep=*/" "));
-  os << format("{:>{}}: {}", "Family ID", WIDTH,
-               hex_dump(family_id(), /*sep=*/" "));
+  os << fmt::format("{:>{}}: {}\n", "Image ID", WIDTH,
+                    hex_dump(image_id(), /*sep=*/" "));
+  os << fmt::format("{:>{}}: {}", "Family ID", WIDTH,
+                    hex_dump(family_id(), /*sep=*/" "));
 
   if (!imports_.empty()) {
     os << '\n';

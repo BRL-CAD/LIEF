@@ -55,10 +55,9 @@ void ImportEntry::accept(LIEF::Visitor& visitor) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const ImportEntry& entry) {
-  using namespace fmt;
   os << (!entry.is_ordinal() ?
-             format("{:#06x}: {}", entry.hint(), entry.name()) :
-             format("{:#06x}: {}", entry.hint(), entry.ordinal()));
+             fmt::format("{:#06x}: {}", entry.hint(), entry.name()) :
+             fmt::format("{:#06x}: {}", entry.hint(), entry.ordinal()));
   return os;
 }
 

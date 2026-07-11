@@ -72,15 +72,15 @@ void DelayImport::accept(LIEF::Visitor& visitor) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const DelayImport& entry) {
-  using namespace fmt;
   os << entry.name() << '\n'
-     << format("  Characteristics:          {:#010x}\n", entry.attribute())
-     << format("  Address of HMODULE:       {:#010x}\n", entry.handle())
-     << format("  Import Address Table:     {:#010x}\n", entry.iat())
-     << format("  Import Name Table:        {:#010x}\n", entry.names_table())
-     << format("  Bound Import Name Table:  {:#010x}\n", entry.biat())
-     << format("  Unload Import Name Table: {:#010x}\n", entry.uiat())
-     << format("  Timestamp:                {}\n", entry.uiat()) << "Entries:\n";
+     << fmt::format("  Characteristics:          {:#010x}\n", entry.attribute())
+     << fmt::format("  Address of HMODULE:       {:#010x}\n", entry.handle())
+     << fmt::format("  Import Address Table:     {:#010x}\n", entry.iat())
+     << fmt::format("  Import Name Table:        {:#010x}\n", entry.names_table())
+     << fmt::format("  Bound Import Name Table:  {:#010x}\n", entry.biat())
+     << fmt::format("  Unload Import Name Table: {:#010x}\n", entry.uiat())
+     << fmt::format("  Timestamp:                {}\n", entry.uiat())
+     << "Entries:\n";
 
   for (const DelayImportEntry& delayed : entry.entries()) {
     os << "    " << delayed << '\n';

@@ -75,25 +75,25 @@ FunctionOverrideInfo&
 FunctionOverrideInfo::~FunctionOverrideInfo() = default;
 
 std::string FunctionOverrideInfo::to_string() const {
-  using namespace fmt;
   std::ostringstream oss;
-  oss << format("Original RVA:   {:#010x}\n", original_rva())
-      << format("BDD Offset:     {:#010x}\n", bdd_offset())
-      << format("RVA array size: {}\n", rva_size())
-      << format("Reloc size:     {:#06x}\n", base_reloc_size());
+  oss << fmt::format("Original RVA:   {:#010x}\n", original_rva())
+      << fmt::format("BDD Offset:     {:#010x}\n", bdd_offset())
+      << fmt::format("RVA array size: {}\n", rva_size())
+      << fmt::format("Reloc size:     {:#06x}\n", base_reloc_size());
   if (!rvas_.empty()) {
     oss << "RVAs:\n";
     for (size_t i = 0; i < rvas_.size(); ++i) {
-      oss << format("  [{:04d}]: {:#010x}\n", i, rvas_[i]);
+      oss << fmt::format("  [{:04d}]: {:#010x}\n", i, rvas_[i]);
     }
   }
   if (!relocations_.empty()) {
     oss << "Fixup RVAs:\n";
     for (size_t i = 0; i < relocations_.size(); ++i) {
       const Relocation& R = *relocations_[i];
-      oss << format("  [{:04d}]: RVA: {:#010x}\n", i, R.virtual_address());
+      oss << fmt::format("  [{:04d}]: RVA: {:#010x}\n", i, R.virtual_address());
       for (const RelocationEntry& E : R.entries()) {
-        oss << format("    {:#010x} ({})\n", E.address(), PE::to_string(E.type()));
+        oss << fmt::format("    {:#010x} ({})\n", E.address(),
+                           PE::to_string(E.type()));
       }
     }
   }

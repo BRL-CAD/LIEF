@@ -2689,7 +2689,6 @@ bool Binary::can_cache_segment(const SegmentCommand& segment) {
 Binary::~Binary() = default;
 
 std::ostream& Binary::print(std::ostream& os) const {
-  using namespace fmt;
   os << "Header {\n" << indent(LIEF::to_string(header()), 2) << "}\n";
 
   if (auto cmds = commands(); !cmds.empty()) {

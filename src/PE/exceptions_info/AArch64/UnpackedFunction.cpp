@@ -139,22 +139,22 @@ epilog_scope_t epilog_scope_t::from_raw(uint32_t raw) {
 }
 
 std::string UnpackedFunction::to_string() const {
-  using namespace fmt;
   std::ostringstream oss;
   oss << "Runtime Unpacked AArch64 Function {\n";
-  oss << format("  Range(RVA): {:#010x} - {:#010x}\n", rva_start(), rva_end());
-  oss << format("  Unwind location (RVA): {:#010x}\n", xdata_rva());
-  oss << format("  Length={} Vers={} X={} E={}, CodeWords={}\n", length(),
-                version(), X(), E(), code_words());
+  oss << fmt::format("  Range(RVA): {:#010x} - {:#010x}\n", rva_start(),
+                     rva_end());
+  oss << fmt::format("  Unwind location (RVA): {:#010x}\n", xdata_rva());
+  oss << fmt::format("  Length={} Vers={} X={} E={}, CodeWords={}\n", length(),
+                     version(), X(), E(), code_words());
 
   if (X() == 1) {
-    oss << format("  Exception Handler: {:#010x}\n", exception_handler());
+    oss << fmt::format("  Exception Handler: {:#010x}\n", exception_handler());
   }
   if (E() == 0) {
-    oss << format("  Epilogs={}\n", epilog_count());
+    oss << fmt::format("  Epilogs={}\n", epilog_count());
   }
   if (E() == 1) {
-    oss << format("  Epilogs (offset)={:#08x}\n", epilog_offset());
+    oss << fmt::format("  Epilogs (offset)={:#08x}\n", epilog_offset());
   }
 
   if (E() == 0) {
@@ -168,8 +168,10 @@ std::string UnpackedFunction::to_string() const {
 
     for (size_t i = 0; i < epilog_scopes_.size(); ++i) {
       const epilog_scope_t& scope = epilog_scopes_[i];
-      oss << format("  Epilog #{} unwind:  (Offset={}, Index={}, Reserved={})\n",
-                    i + 1, scope.start_offset, scope.start_index, scope.reserved);
+      oss << fmt::format(
+          "  Epilog #{} unwind:  (Offset={}, Index={}, Reserved={})\n", i + 1,
+          scope.start_offset, scope.start_index, scope.reserved
+      );
 
       if (uint32_t offset = scope.start_index; offset > 0 && offset < code.size())
       {

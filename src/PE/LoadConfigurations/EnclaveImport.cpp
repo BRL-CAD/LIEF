@@ -24,24 +24,25 @@
 namespace LIEF::PE {
 
 std::string EnclaveImport::to_string() const {
-  using namespace fmt;
   static constexpr auto WIDTH = 26;
 
   std::ostringstream os;
 
-  os << format("{} (RVA: {:#010x})\n", import_name(), import_name_rva())
-     << format("  {:{}}: {}\n", "Minimum Security Version", WIDTH,
-               min_security_version())
-     << format("  {:{}}: {}\n", "Reserved", WIDTH, reserved())
-     << format("  {:{}}: {}\n", "Type", WIDTH, PE::to_string(type()))
-     << format("  {:{}}: {}\n", "Family ID", WIDTH, hex_dump(family_id(), " "))
-     << format("  {:{}}: {}\n", "Image ID", WIDTH, hex_dump(image_id(), " "));
+  os << fmt::format("{} (RVA: {:#010x})\n", import_name(), import_name_rva())
+     << fmt::format("  {:{}}: {}\n", "Minimum Security Version", WIDTH,
+                    min_security_version())
+     << fmt::format("  {:{}}: {}\n", "Reserved", WIDTH, reserved())
+     << fmt::format("  {:{}}: {}\n", "Type", WIDTH, PE::to_string(type()))
+     << fmt::format("  {:{}}: {}\n", "Family ID", WIDTH,
+                    hex_dump(family_id(), " "))
+     << fmt::format("  {:{}}: {}\n", "Image ID", WIDTH, hex_dump(image_id(), " "));
   {
     span<const uint8_t> id = this->id();
     auto chunk_1 = id.subspan(0, 16);
     auto chunk_2 = id.subspan(16);
-    os << format("  {:{}}: {}\n{:{}}{}", "unique/author ID", WIDTH,
-                 hex_dump(chunk_1, " "), " ", WIDTH + 4, hex_dump(chunk_2, " "));
+    os << fmt::format("  {:{}}: {}\n{:{}}{}", "unique/author ID", WIDTH,
+                      hex_dump(chunk_1, " "), " ", WIDTH + 4,
+                      hex_dump(chunk_2, " "));
   }
 
 

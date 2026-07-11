@@ -65,13 +65,12 @@ std::string CodeViewPDB::guid() const {
 }
 
 std::string CodeViewPDB::to_string() const {
-  using namespace fmt;
   std::ostringstream os;
   os << CodeView::to_string() << '\n'
-     << format("  age:       {}\n", age())
-     << format("  signature: {}\n", to_hex(signature(), 19))
-     << format("  GUID:      {}\n", guid())
-     << format("  filename:  {}", filename());
+     << fmt::format("  age:       {}\n", age())
+     << fmt::format("  signature: {}\n", to_hex(signature(), 19))
+     << fmt::format("  GUID:      {}\n", guid())
+     << fmt::format("  filename:  {}", filename());
   return os.str();
 }
 

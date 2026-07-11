@@ -3467,7 +3467,6 @@ bool Binary::remove_version_requirement(const std::string& libname) {
 }
 
 std::ostream& Binary::print(std::ostream& os) const {
-  using namespace fmt;
   os << "Header {\n" << indent(LIEF::to_string(header()), 2) << "}\n";
 
   {

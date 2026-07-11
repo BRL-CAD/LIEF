@@ -63,11 +63,10 @@ std::unique_ptr<RuntimeFunctionAArch64>
 }
 
 std::string RuntimeFunctionAArch64::to_string() const {
-  using namespace fmt;
   std::ostringstream oss;
   oss << "Runtime Unpacked AArch64 Function {\n"
-      << format("  Start (RVA): {:#010x}\n", rva_start())
-      << format("  Flag: {}\n", (int)flag());
+      << fmt::format("  Start (RVA): {:#010x}\n", rva_start())
+      << fmt::format("  Flag: {}\n", (int)flag());
   oss << "}\n";
   return oss.str();
 }

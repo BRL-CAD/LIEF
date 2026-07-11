@@ -78,15 +78,15 @@ void Debug::accept(Visitor& visitor) const {
 }
 
 std::string Debug::to_string() const {
-  using namespace fmt;
   std::ostringstream os;
-  os << format("Characteristics:     {:#x}\n", characteristics())
-     << format("Timestamp:           {:#x}\n", timestamp())
-     << format("Major/Minor version: {}.{}\n", major_version(), minor_version())
-     << format("Type:                {}\n", PE::to_string(type()))
-     << format("Size of data:        {:#x}\n", sizeof_data())
-     << format("Address of rawdata:  {:#x}\n", addressof_rawdata())
-     << format("Pointer to rawdata:  {:#x}", pointerto_rawdata());
+  os << fmt::format("Characteristics:     {:#x}\n", characteristics())
+     << fmt::format("Timestamp:           {:#x}\n", timestamp())
+     << fmt::format("Major/Minor version: {}.{}\n", major_version(),
+                    minor_version())
+     << fmt::format("Type:                {}\n", PE::to_string(type()))
+     << fmt::format("Size of data:        {:#x}\n", sizeof_data())
+     << fmt::format("Address of rawdata:  {:#x}\n", addressof_rawdata())
+     << fmt::format("Pointer to rawdata:  {:#x}", pointerto_rawdata());
   return os.str();
 }
 

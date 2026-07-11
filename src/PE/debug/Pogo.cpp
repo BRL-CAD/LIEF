@@ -30,12 +30,11 @@ void Pogo::accept(Visitor& visitor) const {
 }
 
 std::string Pogo::to_string() const {
-  using namespace fmt;
   std::ostringstream os;
   os << Debug::to_string() << '\n'
      << "Pogo:\n"
-     << format("  Signature: {} ({:#08x})\n", PE::to_string(signature()),
-               (uint32_t)signature());
+     << fmt::format("  Signature: {} ({:#08x})\n", PE::to_string(signature()),
+                    (uint32_t)signature());
 
   for (const PogoEntry& pentry : entries()) {
     os << "    " << pentry << '\n';

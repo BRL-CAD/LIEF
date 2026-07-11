@@ -19,7 +19,6 @@
 #include "logging.hpp"
 
 namespace LIEF::PE::unwind_aarch64 {
-using namespace fmt;
 
 template<>
 bool Decoder::decode<OPCODES::ALLOC_S>(bool is_prologue) {

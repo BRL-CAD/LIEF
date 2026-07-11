@@ -71,14 +71,13 @@ std::unique_ptr<DynamicFixupGeneric> DynamicFixupGeneric::parse(Parser& ctx,
 }
 
 std::string DynamicFixupGeneric::to_string() const {
-  using namespace fmt;
   std::ostringstream oss;
   oss << "Fixup RVAs (Generic)\n";
   size_t idx = 0;
   for (const Relocation& R : relocations()) {
     for (const RelocationEntry& E : R.entries()) {
-      oss << format("  [{:04d}] RVA: {:#010x} Type: {}\n", idx++, E.address(),
-                    PE::to_string(E.type()));
+      oss << fmt::format("  [{:04d}] RVA: {:#010x} Type: {}\n", idx++, E.address(),
+                         PE::to_string(E.type()));
     }
   }
   return oss.str();

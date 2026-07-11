@@ -47,14 +47,13 @@ std::unique_ptr<RegularHeader> RegularHeader::create(BinaryStream& stream) {
 }
 
 std::string RegularHeader::to_string() const {
-  using namespace fmt;
   std::ostringstream oss;
 
   static constexpr auto WIDTH = 16;
   oss << Header::to_string() << '\n';
-  oss << format("{:>{}} Size of optional header\n", sizeof_optionalheader(),
-                WIDTH);
-  oss << format("{:>#{}x} Characteristics", characteristics(), WIDTH);
+  oss << fmt::format("{:>{}} Size of optional header\n", sizeof_optionalheader(),
+                     WIDTH);
+  oss << fmt::format("{:>#{}x} Characteristics", characteristics(), WIDTH);
   return oss.str();
 }
 

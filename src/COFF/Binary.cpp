@@ -61,7 +61,6 @@ const Symbol* Binary::find_demangled_function(const std::string& name) const {
 }
 
 std::string Binary::to_string() const {
-  using namespace fmt;
   std::ostringstream oss;
 
   oss << header() << '\n';

@@ -68,21 +68,19 @@ std::unique_ptr<FPO> FPO::parse(const details::pe_debug& hdr, Section* section,
 }
 
 std::string FPO::entry_t::to_string() const {
-  using namespace fmt;
   std::ostringstream os;
-  os << format("{:10} {:<13} {:<9} {:<8} {:<9} {:<5} {:<6} {:<8} {}",
-               format("{:#010x}", rva), proc_size, nb_locals, nb_saved_regs,
-               prolog_size, use_bp ? 'Y' : 'N', use_seh ? 'Y' : 'N',
-               PE::to_string(type), parameters_size);
+  os << fmt::format("{:10} {:<13} {:<9} {:<8} {:<9} {:<5} {:<6} {:<8} {}",
+                    fmt::format("{:#010x}", rva), proc_size, nb_locals,
+                    nb_saved_regs, prolog_size, use_bp ? 'Y' : 'N',
+                    use_seh ? 'Y' : 'N', PE::to_string(type), parameters_size);
   return os.str();
 }
 
 std::string FPO::to_string() const {
-  using namespace fmt;
   std::ostringstream os;
-  os << format("{:10} {:13} {:9} {:8} {:9} {:5} {:6} {:8} {}\n", "RVA",
-               "Proc Size", "Locals", "Regs", "Prolog", "BP", "SEH", "Type",
-               "Params");
+  os << fmt::format("{:10} {:13} {:9} {:8} {:9} {:5} {:6} {:8} {}\n", "RVA",
+                    "Proc Size", "Locals", "Regs", "Prolog", "BP", "SEH", "Type",
+                    "Params");
   for (const entry_t& entry : entries()) {
     os << entry.to_string() << '\n';
   }

@@ -155,37 +155,38 @@ std::unique_ptr<CHPEMetadataX86> CHPEMetadataX86::parse(Parser& /*ctx*/,
 }
 
 std::string CHPEMetadataX86::to_string() const {
-  using namespace fmt;
   static constexpr auto WIDTH = 19;
   std::ostringstream oss;
-  oss << format("{:>{}} Version\n", version(), WIDTH);
-  oss << format("{:>#{}x} WowA64 exception handler function pointer\n",
-                wowa64_exception_handler_function_pointer(), WIDTH)
-      << format("{:>#{}x} WowA64 dispatch call function pointer\n",
-                wowa64_dispatch_call_function_pointer(), WIDTH)
-      << format("{:>#{}x} WowA64 dispatch indirect call function pointer\n",
-                wowa64_dispatch_indirect_call_function_pointer(), WIDTH)
-      << format("{:>#{}x} WowA64 dispatch indirect call function pointer (with "
-                "CFG check)\n",
-                wowa64_dispatch_indirect_call_cfg_function_pointer(), WIDTH)
-      << format("{:>#{}x} WowA64 dispatch return function pointer\n",
-                wowa64_dispatch_ret_function_pointer(), WIDTH)
-      << format("{:>#{}x} WowA64 dispatch leaf return function pointer\n",
-                wowa64_dispatch_ret_leaf_function_pointer(), WIDTH)
-      << format("{:>#{}x} WowA64 dispatch jump function pointer\n",
-                wowa64_dispatch_jump_function_pointer(), WIDTH)
-      << format("{:>{}} Hybrid code address range\n",
-                format("{:#x}[{:#x}]", chpe_code_address_range_offset(),
-                       chpe_code_address_range_count()),
-                WIDTH);
+  oss << fmt::format("{:>{}} Version\n", version(), WIDTH);
+  oss << fmt::format("{:>#{}x} WowA64 exception handler function pointer\n",
+                     wowa64_exception_handler_function_pointer(), WIDTH)
+      << fmt::format("{:>#{}x} WowA64 dispatch call function pointer\n",
+                     wowa64_dispatch_call_function_pointer(), WIDTH)
+      << fmt::format("{:>#{}x} WowA64 dispatch indirect call function pointer\n",
+                     wowa64_dispatch_indirect_call_function_pointer(), WIDTH)
+      << fmt::format(
+             "{:>#{}x} WowA64 dispatch indirect call function pointer (with "
+             "CFG check)\n",
+             wowa64_dispatch_indirect_call_cfg_function_pointer(), WIDTH
+         )
+      << fmt::format("{:>#{}x} WowA64 dispatch return function pointer\n",
+                     wowa64_dispatch_ret_function_pointer(), WIDTH)
+      << fmt::format("{:>#{}x} WowA64 dispatch leaf return function pointer\n",
+                     wowa64_dispatch_ret_leaf_function_pointer(), WIDTH)
+      << fmt::format("{:>#{}x} WowA64 dispatch jump function pointer\n",
+                     wowa64_dispatch_jump_function_pointer(), WIDTH)
+      << fmt::format("{:>{}} Hybrid code address range\n",
+                     fmt::format("{:#x}[{:#x}]", chpe_code_address_range_offset(),
+                                 chpe_code_address_range_count()),
+                     WIDTH);
 
   if (auto opt = compiler_iat_pointer()) {
-    oss << format("{:>#{}x} WowA64 auxiliary import address table pointer\n", *opt,
-                  WIDTH);
+    oss << fmt::format("{:>#{}x} WowA64 auxiliary import address table pointer\n",
+                       *opt, WIDTH);
   }
 
   if (auto opt = wowa64_rdtsc_function_pointer()) {
-    oss << format("{:>#{}x} WowA64 RDTSC function pointer\n", *opt, WIDTH);
+    oss << fmt::format("{:>#{}x} WowA64 RDTSC function pointer\n", *opt, WIDTH);
   }
   std::string output = oss.str();
   output.pop_back();

@@ -54,12 +54,11 @@ std::unique_ptr<PDBChecksum> PDBChecksum::parse(const details::pe_debug& hdr,
 }
 
 std::string PDBChecksum::to_string() const {
-  using namespace fmt;
   std::ostringstream os;
   os << Debug::to_string() << '\n'
      << "PDB Checksum:\n"
-     << format("  Algorithm: {}\n", PE::to_string(algorithm()))
-     << format("  Hash: {}", to_hex(hash(), 30));
+     << fmt::format("  Algorithm: {}\n", PE::to_string(algorithm()))
+     << fmt::format("  Hash: {}", to_hex(hash(), 30));
 
   return os.str();
 }

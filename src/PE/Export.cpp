@@ -166,19 +166,19 @@ bool Export::remove_entry(const ExportEntry& exp) {
 
 
 std::ostream& operator<<(std::ostream& os, const Export& exp) {
-  using namespace fmt;
   static constexpr auto WIDTH = 20;
-  os << format("DLL Name: {}\n", exp.name())
-     << format("  {:{}} {:#010x}\n", "Characteristics", WIDTH, exp.export_flags())
-     << format("  {:{}} {} ({})\n", "Timestamp", WIDTH, exp.timestamp(),
-               ts_to_str(exp.timestamp()))
-     << format("  {:{}} {}.{}\n", "Version", WIDTH, exp.major_version(),
-               exp.minor_version())
-     << format("  {:{}} {}\n", "Ordinal Base", WIDTH, exp.ordinal_base())
-     << format("  {:{}} {}\n", "Number of functions", WIDTH,
-               exp.export_addr_table_cnt())
-     << format("  {:{}} {}\n", "Number of names", WIDTH,
-               exp.names_addr_table_cnt());
+  os << fmt::format("DLL Name: {}\n", exp.name())
+     << fmt::format("  {:{}} {:#010x}\n", "Characteristics", WIDTH,
+                    exp.export_flags())
+     << fmt::format("  {:{}} {} ({})\n", "Timestamp", WIDTH, exp.timestamp(),
+                    ts_to_str(exp.timestamp()))
+     << fmt::format("  {:{}} {}.{}\n", "Version", WIDTH, exp.major_version(),
+                    exp.minor_version())
+     << fmt::format("  {:{}} {}\n", "Ordinal Base", WIDTH, exp.ordinal_base())
+     << fmt::format("  {:{}} {}\n", "Number of functions", WIDTH,
+                    exp.export_addr_table_cnt())
+     << fmt::format("  {:{}} {}\n", "Number of names", WIDTH,
+                    exp.names_addr_table_cnt());
   for (const ExportEntry& E : exp.entries()) {
     os << "    " << E << '\n';
   }

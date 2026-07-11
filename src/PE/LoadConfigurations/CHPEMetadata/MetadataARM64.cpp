@@ -361,74 +361,77 @@ ok_error_t CHPEMetadataARM64::parse_code_ranges_to_entry_points(
 
 
 std::string CHPEMetadataARM64::to_string() const {
-  using namespace fmt;
   static constexpr auto WIDTH = 19;
   std::ostringstream oss;
-  oss << format("{:>{}} Version\n", version(), WIDTH);
-  oss << format(
+  oss << fmt::format("{:>{}} Version\n", version(), WIDTH);
+  oss << fmt::format(
       "{:>#{}x} Arm64X dispatch call function pointer (no redirection)\n",
       os_arm64x_dispatch_call_no_redirect(), WIDTH
   );
-  oss << format("{:>#{}x} Arm64X dispatch return function pointer\n",
-                os_arm64x_dispatch_ret(), WIDTH);
-  oss << format("{:>#{}x} Arm64X dispatch call function pointer\n",
-                os_arm64x_dispatch_call(), WIDTH);
-  oss << format("{:>#{}x} Arm64X dispatch indirect call function pointer\n",
-                os_arm64x_dispatch_icall(), WIDTH);
-  oss << format(
+  oss << fmt::format("{:>#{}x} Arm64X dispatch return function pointer\n",
+                     os_arm64x_dispatch_ret(), WIDTH);
+  oss << fmt::format("{:>#{}x} Arm64X dispatch call function pointer\n",
+                     os_arm64x_dispatch_call(), WIDTH);
+  oss << fmt::format("{:>#{}x} Arm64X dispatch indirect call function pointer\n",
+                     os_arm64x_dispatch_icall(), WIDTH);
+  oss << fmt::format(
       "{:>#{}x} Arm64X dispatch indirect call function pointer (with CFG check)\n",
       os_arm64x_dispatch_icall_cfg(), WIDTH
   );
-  oss << format("{:>#{}x} Arm64X alternative entry point\n",
-                alternate_entry_point(), WIDTH);
-  oss << format("{:>#{}x} Arm64X auxiliary import address table\n",
-                auxiliary_iat(), WIDTH);
-  oss << format("{:>#{}x} Get x64 information function pointer\n",
-                get_x64_information_function_pointer(), WIDTH);
-  oss << format("{:>#{}x} Set x64 information function pointer\n",
-                set_x64_information_function_pointer(), WIDTH);
-  oss << format("{:>{}} Arm64X x64 code ranges to entry points table\n",
-                format("{:#x}[{}]", code_ranges_to_entrypoints(),
-                       code_ranges_to_entry_points_count()),
-                WIDTH);
-  oss << format("{:>{}} Arm64X arm64x redirection metadata table\n",
-                format("{:#x}[{}]", redirection_metadata(),
-                       redirection_metadata_count()),
-                WIDTH);
-  oss << format("{:>{}} Arm64X extra RFE table\n",
-                format("{:#x}[{:#x}]", extra_rfe_table(), extra_rfe_table_size()),
-                WIDTH);
-  oss << format("{:>#{}x} Arm64X dispatch function pointer\n",
-                os_arm64x_dispatch_fptr(), WIDTH);
-  oss << format("{:>#{}x} Arm64X copy of auxiliary import address table\n",
-                auxiliary_iat_copy(), WIDTH);
-  oss << format("{:>#{}x} Arm64X auxiliary delayload import address table\n",
-                auxiliary_delay_import(), WIDTH);
-  oss << format("{:>#{}x} Arm64X auxiliary delayload import address table copy\n",
-                auxiliary_delay_import_copy(), WIDTH);
-  oss << format("{:>#{}x} Arm64X hybrid image info bitfield\n", bitfield_info(),
-                WIDTH);
+  oss << fmt::format("{:>#{}x} Arm64X alternative entry point\n",
+                     alternate_entry_point(), WIDTH);
+  oss << fmt::format("{:>#{}x} Arm64X auxiliary import address table\n",
+                     auxiliary_iat(), WIDTH);
+  oss << fmt::format("{:>#{}x} Get x64 information function pointer\n",
+                     get_x64_information_function_pointer(), WIDTH);
+  oss << fmt::format("{:>#{}x} Set x64 information function pointer\n",
+                     set_x64_information_function_pointer(), WIDTH);
+  oss << fmt::format("{:>{}} Arm64X x64 code ranges to entry points table\n",
+                     fmt::format("{:#x}[{}]", code_ranges_to_entrypoints(),
+                                 code_ranges_to_entry_points_count()),
+                     WIDTH);
+  oss << fmt::format("{:>{}} Arm64X arm64x redirection metadata table\n",
+                     fmt::format("{:#x}[{}]", redirection_metadata(),
+                                 redirection_metadata_count()),
+                     WIDTH);
+  oss << fmt::format(
+      "{:>{}} Arm64X extra RFE table\n",
+      fmt::format("{:#x}[{:#x}]", extra_rfe_table(), extra_rfe_table_size()), WIDTH
+  );
+  oss << fmt::format("{:>#{}x} Arm64X dispatch function pointer\n",
+                     os_arm64x_dispatch_fptr(), WIDTH);
+  oss << fmt::format("{:>#{}x} Arm64X copy of auxiliary import address table\n",
+                     auxiliary_iat_copy(), WIDTH);
+  oss << fmt::format("{:>#{}x} Arm64X auxiliary delayload import address table\n",
+                     auxiliary_delay_import(), WIDTH);
+  oss << fmt::format(
+      "{:>#{}x} Arm64X auxiliary delayload import address table copy\n",
+      auxiliary_delay_import_copy(), WIDTH
+  );
+  oss << fmt::format("{:>#{}x} Arm64X hybrid image info bitfield\n",
+                     bitfield_info(), WIDTH);
 
   if (!range_entries_.empty()) {
     oss << "Address Range:\n";
     for (const range_entry_t& entry : code_ranges()) {
-      oss << format("{:>10} [{:#010x}, {:#010x}]\n",
-                    LIEF::PE::to_string(entry.type()), entry.start(), entry.end());
+      oss << fmt::format("{:>10} [{:#010x}, {:#010x}]\n",
+                         LIEF::PE::to_string(entry.type()), entry.start(),
+                         entry.end());
     }
   }
 
   if (!redirection_entries_.empty()) {
     oss << "Arm64X Redirection Metadata Table:\n";
     for (const redirection_entry_t& entry : redirections()) {
-      oss << format("  {:#010x} --> {:#010x}\n", entry.src, entry.dst);
+      oss << fmt::format("  {:#010x} --> {:#010x}\n", entry.src, entry.dst);
     }
   }
 
   if (!code_range_entry_point_entries_.empty()) {
     oss << "Arm64X X64 Code Ranges to Entrypoint:\n";
     for (const code_range_entry_point_t& entry : code_range_entry_point()) {
-      oss << format("  [{:#010x}, {:#010x}] --> {:#010x}\n", entry.start_rva,
-                    entry.end_rva, entry.entrypoint);
+      oss << fmt::format("  [{:#010x}, {:#010x}] --> {:#010x}\n", entry.start_rva,
+                         entry.end_rva, entry.entrypoint);
     }
   }
 

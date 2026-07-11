@@ -44,24 +44,25 @@ void TLS::accept(LIEF::Visitor& visitor) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const TLS& entry) {
-  using namespace fmt;
-  os << format("Address of index:     {:#018x}\n", entry.addressof_index())
-     << format("Address of callbacks: {:#018x}\n", entry.addressof_callbacks())
-     << format("Address of raw data:  [{:#018x}, {:#018x}] ({} bytes)\n",
-               entry.addressof_raw_data().first, entry.addressof_raw_data().second,
-               entry.addressof_raw_data().second -
-                   entry.addressof_raw_data().first)
-     << format("Size of zerofill:     {:#x}\n", entry.sizeof_zero_fill())
-     << format("Characteristics:      {:#x}\n", entry.characteristics());
+  os << fmt::format("Address of index:     {:#018x}\n", entry.addressof_index())
+     << fmt::format("Address of callbacks: {:#018x}\n",
+                    entry.addressof_callbacks())
+     << fmt::format("Address of raw data:  [{:#018x}, {:#018x}] ({} bytes)\n",
+                    entry.addressof_raw_data().first,
+                    entry.addressof_raw_data().second,
+                    entry.addressof_raw_data().second -
+                        entry.addressof_raw_data().first)
+     << fmt::format("Size of zerofill:     {:#x}\n", entry.sizeof_zero_fill())
+     << fmt::format("Characteristics:      {:#x}\n", entry.characteristics());
 
   if (const Section* section = entry.section()) {
-    os << format("Section:              '{}'\n", section->name());
+    os << fmt::format("Section:              '{}'\n", section->name());
   }
 
   if (const std::vector<uint64_t>& cbk = entry.callbacks(); !cbk.empty()) {
-    os << format("Callbacks (#{}):\n", cbk.size());
+    os << fmt::format("Callbacks (#{}):\n", cbk.size());
     for (size_t i = 0; i < cbk.size(); ++i) {
-      os << format("  [{:02d}]: {:#018x}\n", i, cbk[i]);
+      os << fmt::format("  [{:02d}]: {:#018x}\n", i, cbk[i]);
     }
   }
 

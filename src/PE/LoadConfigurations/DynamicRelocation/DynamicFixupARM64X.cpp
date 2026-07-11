@@ -162,28 +162,27 @@ std::unique_ptr<DynamicFixupARM64X> DynamicFixupARM64X::parse(Parser& ctx,
 }
 
 std::string DynamicFixupARM64X::reloc_entry_t::to_string() const {
-  using namespace fmt;
   switch (type) {
     case FIXUP_TYPE::ZEROFILL:
-      return format("RVA {:#010x}, {} bytes, zero fill", rva, size);
+      return fmt::format("RVA {:#010x}, {} bytes, zero fill", rva, size);
 
     case FIXUP_TYPE::VALUE:
-      return format("RVA {:#010x}, {} bytes, target value {}", rva, bytes.size(),
-                    hex_dump(bytes));
+      return fmt::format("RVA {:#010x}, {} bytes, target value {}", rva,
+                         bytes.size(), hex_dump(bytes));
 
     case FIXUP_TYPE::DELTA:
-      return format("RVA {:#010x}, {} bytes, delta {:#010x}", rva, size, value);
+      return fmt::format("RVA {:#010x}, {} bytes, delta {:#010x}", rva, size,
+                         value);
   }
   return "<unknown>";
 }
 
 std::string DynamicFixupARM64X::to_string() const {
-  using namespace fmt;
   std::ostringstream oss;
   oss << "Fixup RVAs (ARM64X)\n";
   for (size_t i = 0; i < entries_.size(); ++i) {
     const reloc_entry_t& entry = entries_[i];
-    oss << format("  [{:04d}] {}\n", i, entry.to_string());
+    oss << fmt::format("  [{:04d}] {}\n", i, entry.to_string());
   }
   return oss.str();
 }

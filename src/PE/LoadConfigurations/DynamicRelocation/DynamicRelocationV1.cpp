@@ -73,14 +73,13 @@ std::unique_ptr<DynamicRelocationV1>
 }
 
 std::string DynamicRelocationV1::to_string() const {
-  using namespace fmt;
   std::ostringstream oss;
   oss << "Dynamic Value Relocation Table (version: 1)\n";
   if (symbol() < IMAGE_DYNAMIC_RELOCATION::_RELOC_LAST_ENTRY) {
-    oss << format("Symbol VA: {:#018x} ({})\n", symbol(),
-                  PE::to_string((IMAGE_DYNAMIC_RELOCATION)symbol()));
+    oss << fmt::format("Symbol VA: {:#018x} ({})\n", symbol(),
+                       PE::to_string((IMAGE_DYNAMIC_RELOCATION)symbol()));
   } else {
-    oss << format("Symbol VA: {:#018x}\n", symbol());
+    oss << fmt::format("Symbol VA: {:#018x}\n", symbol());
   }
 
   if (const DynamicFixup* F = fixups()) {

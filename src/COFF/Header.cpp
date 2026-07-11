@@ -40,7 +40,6 @@ std::unique_ptr<Header> Header::create(BinaryStream& stream, KIND kind) {
 }
 
 std::string Header::to_string() const {
-  using namespace fmt;
   std::ostringstream oss;
 
   static constexpr auto WIDTH = 16;
@@ -48,14 +47,15 @@ std::string Header::to_string() const {
     oss << "BigObj ";
   }
   oss << "COFF Binary\n";
-  oss << format("{:>#{}x} Machine ({})\n", (uint16_t)machine(), WIDTH,
-                COFF::to_string(machine()));
-  oss << format("{:>{}} Number of sections\n", (uint16_t)nb_sections(), WIDTH);
-  oss << format("{:>#{}x} Time date stamp: {}\n", timedatestamp(), WIDTH,
-                ts_to_str(timedatestamp()));
-  oss << format("{:>#{}x} File pointer to symbol table\n",
-                pointerto_symbol_table(), WIDTH);
-  oss << format("{:>{}} Number of symbols", nb_symbols(), WIDTH);
+  oss << fmt::format("{:>#{}x} Machine ({})\n", (uint16_t)machine(), WIDTH,
+                     COFF::to_string(machine()));
+  oss << fmt::format("{:>{}} Number of sections\n", (uint16_t)nb_sections(),
+                     WIDTH);
+  oss << fmt::format("{:>#{}x} Time date stamp: {}\n", timedatestamp(), WIDTH,
+                     ts_to_str(timedatestamp()));
+  oss << fmt::format("{:>#{}x} File pointer to symbol table\n",
+                     pointerto_symbol_table(), WIDTH);
+  oss << fmt::format("{:>{}} Number of symbols", nb_symbols(), WIDTH);
   return oss.str();
 }
 }

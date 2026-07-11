@@ -106,7 +106,6 @@ optional<Section::ComdatInfo> Section::comdat_info() const {
 }
 
 std::string Section::to_string() const {
-  using namespace fmt;
   static constexpr auto WIDTH = 24;
   std::ostringstream os;
 

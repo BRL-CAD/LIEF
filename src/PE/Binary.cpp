@@ -1383,7 +1383,6 @@ void Binary::accept(Visitor& visitor) const {
 }
 
 std::ostream& Binary::print(std::ostream& os) const {
-  using namespace fmt;
   os << "DOS Header {\n" << indent(LIEF::to_string(dos_header()), 2) << "}\n";
 
   if (auto stub = dos_stub(); !stub.empty()) {

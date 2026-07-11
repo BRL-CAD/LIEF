@@ -923,34 +923,37 @@ void LoadConfiguration::accept(Visitor& visitor) const {
 }
 
 std::string LoadConfiguration::to_string() const {
-  using namespace fmt;
   static constexpr auto WIDTH = 65;
   std::ostringstream oss;
   oss << fmt::format("{:{}} {:#08x}\n", "Size:", WIDTH, size())
       << fmt::format("{:{}} {}\n", "Timestamp:", WIDTH, timedatestamp())
       << fmt::format("{:{}} {}.{}\n", "version:", WIDTH, major_version(),
-                minor_version())
-      << fmt::format("{:{}} {}\n", "GlobalFlags Clear:", WIDTH, global_flags_clear())
+                     minor_version())
+      << fmt::format("{:{}} {}\n", "GlobalFlags Clear:", WIDTH,
+                     global_flags_clear())
       << fmt::format("{:{}} {}\n", "GlobalFlags Set:", WIDTH, global_flags_set())
       << fmt::format("{:{}} {}\n", "Critical Section Default Timeout:", WIDTH,
-                critical_section_default_timeout())
+                     critical_section_default_timeout())
       << fmt::format("{:{}} {}\n", "Decommit Free Block Threshold:", WIDTH,
-                decommit_free_block_threshold())
+                     decommit_free_block_threshold())
       << fmt::format("{:{}} {}\n", "Decommit Total Free Threshold:", WIDTH,
-                decommit_total_free_threshold())
-      << fmt::format("{:{}} {}\n", "Lock Prefix Table:", WIDTH, lock_prefix_table())
+                     decommit_total_free_threshold())
+      << fmt::format("{:{}} {}\n", "Lock Prefix Table:", WIDTH,
+                     lock_prefix_table())
       << fmt::format("{:{}} {}\n", "Maximum Allocation Size:", WIDTH,
-                maximum_allocation_size())
+                     maximum_allocation_size())
       << fmt::format("{:{}} {}\n", "Virtual Memory Threshold:", WIDTH,
-                virtual_memory_threshold())
+                     virtual_memory_threshold())
       << fmt::format("{:{}} {}\n", "Process Affinity Mask:", WIDTH,
-                process_affinity_mask())
-      << fmt::format("{:{}} {}\n", "Process Heap Flags:", WIDTH, process_heap_flags())
+                     process_affinity_mask())
+      << fmt::format("{:{}} {}\n", "Process Heap Flags:", WIDTH,
+                     process_heap_flags())
       << fmt::format("{:{}} {}\n", "CSD Version:", WIDTH, csd_version())
       << fmt::format("{:{}} {}\n", "Dependent Load Flag:", WIDTH,
-                dependent_load_flags())
+                     dependent_load_flags())
       << fmt::format("{:{}} {}\n", "Edit List:", WIDTH, editlist())
-      << fmt::format("{:{}} {:#018x}\n", "Security Cookie:", WIDTH, security_cookie());
+      << fmt::format("{:{}} {:#018x}\n", "Security Cookie:", WIDTH,
+                     security_cookie());
 
   if (auto val = se_handler_table()) {
     oss << fmt::format("{:{}} {:#08x}\n", "SEH Table:", WIDTH, *val);
@@ -962,16 +965,18 @@ std::string LoadConfiguration::to_string() const {
 
   if (auto val = guard_cf_check_function_pointer()) {
     oss << fmt::format("{:{}} {:#018x}\n",
-                  "Guard CF address of check-function pointer:", WIDTH, *val);
+                       "Guard CF address of check-function pointer:", WIDTH, *val);
   }
 
   if (auto val = guard_cf_dispatch_function_pointer()) {
     oss << fmt::format("{:{}} {:#018x}\n",
-                  "Guard CF address of dispatch-function pointer:", WIDTH, *val);
+                       "Guard CF address of dispatch-function pointer:", WIDTH,
+                       *val);
   }
 
   if (auto val = guard_cf_function_table()) {
-    oss << fmt::format("{:{}} {:#018x}\n", "Guard CF function table:", WIDTH, *val);
+    oss << fmt::format("{:{}} {:#018x}\n", "Guard CF function table:", WIDTH,
+                       *val);
   }
 
   if (auto val = guard_cf_function_count()) {
@@ -980,64 +985,68 @@ std::string LoadConfiguration::to_string() const {
 
   if (auto val = guard_flags(); val && *val != 0) {
     oss << fmt::format("{:{}} {}\n", "Guard Flags:", WIDTH,
-                  fmt::join(guard_cf_flags_list(), ","));
+                       fmt::join(guard_cf_flags_list(), ","));
   }
 
   if (const CodeIntegrity* CI = code_integrity()) {
     oss << fmt::format("{:{}} {}\n", "Code Integrity Flags:", WIDTH, CI->flags())
         << fmt::format("{:{}} {:#010x}\n", "Code Integrity Catalog:", WIDTH,
-                  CI->catalog())
+                       CI->catalog())
         << fmt::format("{:{}} {:#010x}\n", "Code Integrity Catalog Offset:", WIDTH,
-                  CI->catalog_offset())
-        << fmt::format("{:{}} {}\n", "Code Integrity Reserved:", WIDTH, CI->reserved());
+                       CI->catalog_offset())
+        << fmt::format("{:{}} {}\n", "Code Integrity Reserved:", WIDTH,
+                       CI->reserved());
   }
 
   if (auto val = guard_address_taken_iat_entry_table()) {
     oss << fmt::format("{:{}} {:#018x}\n",
-                  "Guard CF address taken IAT entry table:", WIDTH, *val);
+                       "Guard CF address taken IAT entry table:", WIDTH, *val);
   }
 
   if (auto val = guard_address_taken_iat_entry_count()) {
-    oss << fmt::format("{:{}} {}\n", "Guard CF address taken IAT entry count:", WIDTH,
-                  *val);
+    oss << fmt::format("{:{}} {}\n",
+                       "Guard CF address taken IAT entry count:", WIDTH, *val);
   }
 
   if (auto val = guard_long_jump_target_table()) {
-    oss << fmt::format("{:{}} {:#018x}\n", "Guard CF long jump target table:", WIDTH,
-                  *val);
+    oss << fmt::format("{:{}} {:#018x}\n",
+                       "Guard CF long jump target table:", WIDTH, *val);
   }
 
   if (auto val = guard_long_jump_target_count()) {
-    oss << fmt::format("{:{}} {}\n", "Guard CF long jump target count:", WIDTH, *val);
+    oss << fmt::format("{:{}} {}\n", "Guard CF long jump target count:", WIDTH,
+                       *val);
   }
 
   if (auto val = dynamic_value_reloc_table()) {
-    oss << fmt::format("{:{}} {:#018x}\n", "Dynamic value relocation table:", WIDTH,
-                  *val);
+    oss << fmt::format("{:{}} {:#018x}\n",
+                       "Dynamic value relocation table:", WIDTH, *val);
   }
 
   if (auto val = hybrid_metadata_pointer()) {
-    oss << fmt::format("{:{}} {:#018x}\n", "Hybrid metadata pointer:", WIDTH, *val);
+    oss << fmt::format("{:{}} {:#018x}\n", "Hybrid metadata pointer:", WIDTH,
+                       *val);
   }
 
   if (auto val = guard_rf_failure_routine()) {
     oss << fmt::format("{:{}} {:#018x}\n",
-                  "Guard RF address of failure-function:", WIDTH, *val);
+                       "Guard RF address of failure-function:", WIDTH, *val);
   }
 
   if (auto val = guard_rf_failure_routine_function_pointer()) {
     oss << fmt::format("{:{}} {:#018x}\n",
-                  "Guard RF address of failure-function pointer:", WIDTH, *val);
+                       "Guard RF address of failure-function pointer:", WIDTH,
+                       *val);
   }
 
   if (auto val = dynamic_value_reloctable_offset()) {
     oss << fmt::format("{:{}} {:#018x}\n",
-                  "Dynamic value relocation table offset:", WIDTH, *val);
+                       "Dynamic value relocation table offset:", WIDTH, *val);
   }
 
   if (auto val = dynamic_value_reloctable_section()) {
-    oss << fmt::format("{:{}} {}\n", "Dynamic value relocation table section:", WIDTH,
-                  *val);
+    oss << fmt::format("{:{}} {}\n",
+                       "Dynamic value relocation table section:", WIDTH, *val);
   }
 
   if (auto val = reserved2()) {
@@ -1053,7 +1062,8 @@ std::string LoadConfiguration::to_string() const {
   }
 
   if (auto val = hotpatch_table_offset()) {
-    oss << fmt::format("{:{}} {:#010x}\n", "Hot patching table offset:", WIDTH, *val);
+    oss << fmt::format("{:{}} {:#010x}\n", "Hot patching table offset:", WIDTH,
+                       *val);
   }
 
   if (auto val = reserved3()) {
@@ -1062,15 +1072,17 @@ std::string LoadConfiguration::to_string() const {
 
   if (auto val = enclave_configuration_ptr()) {
     oss << fmt::format("{:{}} {:#018x}\n", "Enclave configuration pointer", WIDTH,
-                  *val);
+                       *val);
   }
 
   if (auto val = volatile_metadata_pointer()) {
-    oss << fmt::format("{:{}} {:#018x}\n", "Volatile metadata pointer", WIDTH, *val);
+    oss << fmt::format("{:{}} {:#018x}\n", "Volatile metadata pointer", WIDTH,
+                       *val);
   }
 
   if (auto val = guard_eh_continuation_table()) {
-    oss << fmt::format("{:{}} {:#018x}\n", "Guard EH continuation table", WIDTH, *val);
+    oss << fmt::format("{:{}} {:#018x}\n", "Guard EH continuation table", WIDTH,
+                       *val);
   }
 
   if (auto val = guard_eh_continuation_count()) {
@@ -1079,28 +1091,29 @@ std::string LoadConfiguration::to_string() const {
 
   if (auto val = guard_xfg_check_function_pointer()) {
     oss << fmt::format("{:{}} {:#018x}\n",
-                  "Guard XFG address of check-function pointer", WIDTH, *val);
+                       "Guard XFG address of check-function pointer", WIDTH, *val);
   }
 
   if (auto val = guard_xfg_dispatch_function_pointer()) {
     oss << fmt::format("{:{}} {:#018x}\n",
-                  "Guard XFG address of dispatch-function pointer", WIDTH, *val);
+                       "Guard XFG address of dispatch-function pointer", WIDTH,
+                       *val);
   }
 
   if (auto val = guard_xfg_table_dispatch_function_pointer()) {
     oss << fmt::format("{:{}} {:#018x}\n",
-                  "Guard XFG address of dispatch-table-function pointer", WIDTH,
-                  *val);
+                       "Guard XFG address of dispatch-table-function pointer",
+                       WIDTH, *val);
   }
 
   if (auto val = cast_guard_os_determined_failure_mode()) {
     oss << fmt::format("{:{}} {:#018x}\n", "CastGuard OS determined failure mode",
-                  WIDTH, *val);
+                       WIDTH, *val);
   }
 
   if (auto val = guard_memcpy_function_pointer()) {
     oss << fmt::format("{:{}} {:#018x}\n", "Guard memcpy function pointer", WIDTH,
-                  *val);
+                       *val);
   }
 
   if (auto val = uma_function_pointers()) {
@@ -1120,7 +1133,8 @@ std::string LoadConfiguration::to_string() const {
   }
 
   if (!guard_cf_functions_.empty()) {
-    oss << fmt::format("  Guard CF Function ({}) {{\n", guard_cf_functions_.size());
+    oss << fmt::format("  Guard CF Function ({}) {{\n",
+                       guard_cf_functions_.size());
     for (const guard_function_t& F : guard_cf_functions_) {
       oss << fmt::format("    {:#010x} ({})\n", F.rva, F.extra);
     }
@@ -1129,7 +1143,7 @@ std::string LoadConfiguration::to_string() const {
 
   if (!guard_address_taken_iat_entries_.empty()) {
     oss << fmt::format("  Guard CF Address Taken IAT ({}) {{\n",
-                  guard_address_taken_iat_entries_.size());
+                       guard_address_taken_iat_entries_.size());
     for (const guard_function_t& F : guard_address_taken_iat_entries_) {
       oss << fmt::format("    {:#010x} ({})\n", F.rva, F.extra);
     }
@@ -1138,7 +1152,7 @@ std::string LoadConfiguration::to_string() const {
 
   if (!guard_long_jump_targets_.empty()) {
     oss << fmt::format("  Guard CF Long Jump Target ({}) {{\n",
-                  guard_long_jump_targets_.size());
+                       guard_long_jump_targets_.size());
     for (const guard_function_t& F : guard_long_jump_targets_) {
       oss << fmt::format("    {:#010x} ({})\n", F.rva, F.extra);
     }
@@ -1147,7 +1161,7 @@ std::string LoadConfiguration::to_string() const {
 
   if (!guard_eh_continuation_functions_.empty()) {
     oss << fmt::format("  Guard EH Continuation ({}) {{\n",
-                  guard_eh_continuation_functions_.size());
+                       guard_eh_continuation_functions_.size());
     for (const guard_function_t& F : guard_eh_continuation_functions_) {
       oss << fmt::format("    {:#010x} ({})\n", F.rva, F.extra);
     }

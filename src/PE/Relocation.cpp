@@ -84,9 +84,8 @@ void Relocation::accept(LIEF::Visitor& visitor) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const Relocation& relocation) {
-  using namespace fmt;
-  os << format("Page RVA: {:#010x} (SizeOfBlock: {} bytes)\n",
-               relocation.virtual_address(), relocation.block_size());
+  os << fmt::format("Page RVA: {:#010x} (SizeOfBlock: {} bytes)\n",
+                    relocation.virtual_address(), relocation.block_size());
   for (const RelocationEntry& entry : relocation.entries()) {
     os << "  " << entry << '\n';
   }

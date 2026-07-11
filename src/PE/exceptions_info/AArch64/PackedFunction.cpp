@@ -48,12 +48,11 @@ std::unique_ptr<PackedFunction> PackedFunction::parse(Parser& /*ctx*/,
 }
 
 std::string PackedFunction::to_string() const {
-  using namespace fmt;
   std::ostringstream oss;
   oss << "Runtime Packed AArch64 Function {\n"
-      << format("  Range(RVA): {:#010x} - {:#010x}\n", rva_start(), rva_end())
-      << format("  Length={} FrameSize={:#04x} RegF={} RegI={} H={} CR={}\n",
-                length(), frame_size(), reg_F(), reg_I(), H(), CR());
+      << fmt::format("  Range(RVA): {:#010x} - {:#010x}\n", rva_start(), rva_end())
+      << fmt::format("  Length={} FrameSize={:#04x} RegF={} RegI={} H={} CR={}\n",
+                     length(), frame_size(), reg_F(), reg_I(), H(), CR());
   oss << '}';
   return oss.str();
 }
