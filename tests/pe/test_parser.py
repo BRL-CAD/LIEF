@@ -1153,3 +1153,14 @@ def test_issue_iat_hang():
     subprocess.check_call(
         [sys.executable, "-c", f'import lief; lief.parse("{target_pe}")'], timeout=10.0
     )
+
+
+@pytest.mark.private
+def test_data_directories_overflow():
+    MAX_DATA_DIRECTORIES = 30
+    sample = get_sample("private/PE/large_number_data_directories.pe")
+
+    pe = lief.PE.parse(sample)
+    assert pe is not None
+    assert pe.optional_header.numberof_rva_and_size == 0x10000000
+    assert len(pe.data_directories) == MAX_DATA_DIRECTORIES

@@ -461,6 +461,7 @@ ok_error_t Parser::parse_data_directories() {
       binary_->dos_header().addressof_new_exeheader() +
       sizeof(details::pe_header) + sizeof(pe_optional_header);
   static constexpr auto DEFAULT_NB = DataDirectory::DEFAULT_NB;
+  static constexpr auto MAX_DATA_DIRECTORIES = 30;
   binary_->data_directories_.reserve(DEFAULT_NB);
 
   stream_->setpos(directories_offset);
@@ -470,7 +471,13 @@ ok_error_t Parser::parse_data_directories() {
   // Nevertheless it seems that this requirement is not enforced by the PE loader.
   // The binary bc203f2b6a928f1457e9ca99456747bcb7adbbfff789d1c47e9479aac11598af
   // contains a non-null final data directory (watermarking?)
-  const uint32_t nb_dir = binary_->optional_header().numberof_rva_and_size();
+  uint32_t nb_dir = binary_->optional_header().numberof_rva_and_size();
+  if (nb_dir > MAX_DATA_DIRECTORIES) {
+    LIEF_WARN("The number of data directories ({}) is larger than the maximum "
+              "value ({}). The extra entries are ignored",
+              nb_dir, MAX_DATA_DIRECTORIES);
+    nb_dir = MAX_DATA_DIRECTORIES;
+  }
   for (size_t i = 0; i < nb_dir; ++i) {
     auto raw_dir = stream_->read<details::pe_data_directory>();
     if (!raw_dir) {
