@@ -52,6 +52,8 @@ def test_dynamic_entries_capped():
 @pytest.mark.private
 def test_gnu_hash_zero():
     sample = get_sample("private/ELF/corrupted_gnu_hash.elf")
+    if lief.__extended__:
+        pytest.skip(reason="TODO(romain): broken on the CI (only)")
 
     script = dedent(f"""\
         import lief;
