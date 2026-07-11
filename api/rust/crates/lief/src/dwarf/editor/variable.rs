@@ -2,8 +2,8 @@ use lief_ffi as ffi;
 
 use crate::common::FromFFI;
 
-use crate::dwarf::editor::types::EditorType;
 use crate::dwarf::editor::Type;
+use crate::dwarf::editor::types::EditorType;
 
 pub struct Variable {
     ptr: cxx::UniquePtr<ffi::DWARF_editor_Variable>,

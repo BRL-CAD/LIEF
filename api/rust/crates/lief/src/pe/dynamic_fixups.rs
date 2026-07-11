@@ -1,6 +1,6 @@
 use lief_ffi as ffi;
 
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::pe::Relocation;
 use crate::{declare_fwd_iterator, declare_iterator, to_slice};
 use std::marker::PhantomData;

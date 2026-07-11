@@ -1,7 +1,7 @@
 use lief_ffi as ffi;
 
 use crate::common::FromFFI;
-use crate::{to_result, to_slice, Error};
+use crate::{Error, to_result, to_slice};
 
 use std::fmt;
 use std::marker::PhantomData;

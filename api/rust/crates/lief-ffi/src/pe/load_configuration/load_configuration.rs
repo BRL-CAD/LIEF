@@ -108,7 +108,7 @@ pub mod ffi {
             is_set: Pin<&mut u32>,
         ) -> u64;
         fn guard_memcpy_function_pointer(self: &PE_LoadConfiguration, is_set: Pin<&mut u32>)
-            -> u64;
+        -> u64;
         fn uma_function_pointers(self: &PE_LoadConfiguration, is_set: Pin<&mut u32>) -> u64;
         fn guard_flags(self: &PE_LoadConfiguration, is_set: Pin<&mut u32>) -> u32;
         fn dynamic_value_reloctable_offset(

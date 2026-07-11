@@ -29,9 +29,9 @@ pub mod ffi {
         fn has_subcaches(self: &dsc_DyldSharedCache) -> bool;
         fn find_lib_from_va(self: &dsc_DyldSharedCache, va: u64) -> UniquePtr<dsc_Dylib>;
         fn find_lib_from_path(self: &dsc_DyldSharedCache, path: &CxxString)
-            -> UniquePtr<dsc_Dylib>;
+        -> UniquePtr<dsc_Dylib>;
         fn find_lib_from_name(self: &dsc_DyldSharedCache, name: &CxxString)
-            -> UniquePtr<dsc_Dylib>;
+        -> UniquePtr<dsc_Dylib>;
         fn enable_caching(self: &dsc_DyldSharedCache, dir: &CxxString);
         fn flush_cache(self: &dsc_DyldSharedCache);
         fn disassemble(

@@ -1,8 +1,8 @@
 use lief_ffi as ffi;
 
 use super::{Dylib, MappingInfo, SubCache};
-use crate::common::{into_optional, FromFFI};
 use crate::Error;
+use crate::common::{FromFFI, into_optional};
 use crate::{declare_iterator, declare_lazy_iterator, to_result};
 use std::path::Path;
 

@@ -1,7 +1,7 @@
 use super::Command;
 use lief_ffi as ffi;
 
-use crate::macho::binding_info::{Chained, CHAINED_FORMAT};
+use crate::macho::binding_info::{CHAINED_FORMAT, Chained};
 use crate::to_slice;
 use crate::{common::FromFFI, declare_iterator};
 use std::marker::PhantomData;

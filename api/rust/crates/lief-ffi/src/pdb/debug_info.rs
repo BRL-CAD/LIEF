@@ -17,7 +17,7 @@ pub mod ffi {
         fn age(self: &PDB_DebugInfo) -> u32;
         fn guid(self: &PDB_DebugInfo) -> UniquePtr<CxxString>;
         fn compilation_units(self: &PDB_DebugInfo)
-            -> UniquePtr<PDB_DebugInfo_it_compilation_units>;
+        -> UniquePtr<PDB_DebugInfo_it_compilation_units>;
         fn public_symbols(self: &PDB_DebugInfo) -> UniquePtr<PDB_DebugInfo_it_public_symbols>;
         fn types(self: &PDB_DebugInfo) -> UniquePtr<PDB_DebugInfo_it_types>;
         fn public_symbol_by_name(

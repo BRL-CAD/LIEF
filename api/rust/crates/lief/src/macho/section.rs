@@ -1,12 +1,12 @@
+use super::Relocation;
 use super::commands::segment::Segment;
 use super::thread_local_variables::ThreadLocalVariables;
-use super::Relocation;
 use lief_ffi as ffi;
 use std::fmt;
 use std::marker::PhantomData;
 use std::pin::Pin;
 
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::declare_iterator;
 use crate::generic;
 

@@ -1,7 +1,7 @@
 use lief_ffi as ffi;
 
 use super::DyldSharedCache;
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::dsc::UUID;
 use std::marker::PhantomData;
 

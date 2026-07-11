@@ -1,6 +1,6 @@
 use lief_ffi as ffi;
 
-use num_traits::{cast, Num};
+use num_traits::{Num, cast};
 use std::mem::size_of;
 use std::path::Path;
 use std::pin::Pin;
@@ -26,12 +26,12 @@ use super::{data_directory, signature};
 use crate::coff;
 use crate::coff::Symbol;
 
-use crate::common::{into_optional, AsFFI, FromFFI};
+use crate::Error;
+use crate::common::{AsFFI, FromFFI, into_optional};
 use crate::declare_iterator;
 use crate::generic;
 use crate::to_conv_result;
 use crate::to_slice;
-use crate::Error;
 
 use super::Algorithms;
 use super::{DosHeader, Header, OptionalHeader};

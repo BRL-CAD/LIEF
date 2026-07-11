@@ -1,6 +1,6 @@
 use lief_ffi as ffi;
 
-use crate::{common::into_optional, common::FromFFI, generic};
+use crate::{common::FromFFI, common::into_optional, generic};
 use std::marker::PhantomData;
 use std::option::Option;
 use std::path::Path;

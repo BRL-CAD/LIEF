@@ -2,7 +2,7 @@ use super::binary::Binary;
 use lief_ffi as ffi;
 
 use crate::{
-    common::{into_optional, AsFFI, FromFFI},
+    common::{AsFFI, FromFFI, into_optional},
     macho::header::CpuType,
 };
 use std::path::Path;

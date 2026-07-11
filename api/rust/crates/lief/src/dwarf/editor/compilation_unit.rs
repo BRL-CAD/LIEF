@@ -1,16 +1,16 @@
 use lief_ffi as ffi;
 
-use crate::{common::into_optional, common::FromFFI};
+use crate::{common::FromFFI, common::into_optional};
 use std::marker::PhantomData;
 use std::option::Option;
 
+use super::Type;
 use super::function::Function;
+use super::types::Function as FunctionType;
 use super::types::base;
 use super::types::struct_ty;
-use super::types::Function as FunctionType;
 use super::types::{Array, Base, EditorType, Enum, Pointer, Struct, Typedef};
 use super::variable::Variable;
-use super::Type;
 
 /// This structure represents an **editable** DWARF compilation unit
 pub struct CompilationUnit<'a> {

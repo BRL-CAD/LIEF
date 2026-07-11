@@ -1,6 +1,6 @@
 use lief_ffi as ffi;
 
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::dwarf::function::Function;
 use crate::dwarf::types::Type;
 use crate::dwarf::variable::Variable;

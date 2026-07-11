@@ -1,7 +1,7 @@
 use lief_ffi as ffi;
 
-use crate::common::into_optional;
 use crate::common::FromFFI;
+use crate::common::into_optional;
 use std::marker::PhantomData;
 
 /// This class materializes a scope in which Function, Variable, Type, ...

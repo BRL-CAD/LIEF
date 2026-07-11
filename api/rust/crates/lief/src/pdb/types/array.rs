@@ -2,7 +2,7 @@ use lief_ffi as ffi;
 
 use crate::pdb::types::PdbType;
 use crate::{
-    common::{into_optional, FromFFI},
+    common::{FromFFI, into_optional},
     pdb::Type,
 };
 use std::marker::PhantomData;

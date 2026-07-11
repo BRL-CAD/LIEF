@@ -1,9 +1,9 @@
 mod utils;
 
+use lief::Binary;
+use lief::elf::Notes;
 use lief::elf::note;
 use lief::elf::note::NoteBase;
-use lief::elf::Notes;
-use lief::Binary;
 
 fn parse_elf(name: &str) -> lief::elf::Binary {
     let path = utils::get_elf_sample(name).unwrap();

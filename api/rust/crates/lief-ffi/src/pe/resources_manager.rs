@@ -20,7 +20,7 @@ pub mod ffi {
         fn icons(self: &PE_ResourcesManager) -> UniquePtr<PE_ResourcesManager_it_icons>;
         fn version(self: &PE_ResourcesManager) -> UniquePtr<PE_ResourcesManager_it_version>;
         fn accelerator(self: &PE_ResourcesManager)
-            -> UniquePtr<PE_ResourcesManager_it_accelerator>;
+        -> UniquePtr<PE_ResourcesManager_it_accelerator>;
         fn string_table(
             self: &PE_ResourcesManager,
         ) -> UniquePtr<PE_ResourcesManager_it_string_table_entry>;

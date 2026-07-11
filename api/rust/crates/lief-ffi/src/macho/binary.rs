@@ -138,7 +138,7 @@ pub mod ffi {
             error: Pin<&mut u32>,
         ) -> u64;
         fn segment_from_offset(self: &MachO_Binary, offset: u64)
-            -> UniquePtr<MachO_SegmentCommand>;
+        -> UniquePtr<MachO_SegmentCommand>;
         fn segment_from_virtual_address(
             self: &MachO_Binary,
             va: u64,

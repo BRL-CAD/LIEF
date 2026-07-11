@@ -2,7 +2,7 @@ use std::ffi::c_void;
 
 use lief_ffi as ffi;
 
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::elf::{Binary, ParserConfig};
 use crate::runtime;
 

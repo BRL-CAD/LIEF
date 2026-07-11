@@ -2,7 +2,7 @@ use std::mem::size_of;
 use std::path::Path;
 use std::pin::Pin;
 
-use num_traits::{cast, Num};
+use num_traits::{Num, cast};
 
 use lief_ffi as ffi;
 
@@ -20,10 +20,10 @@ use super::segment::{self, Segments};
 use super::symbol::{DynamicSymbols, ExportedSymbols, ImportedSymbols, SymtabSymbols};
 use super::symbol_versioning::{SymbolVersion, SymbolVersionDefinition, SymbolVersionRequirement};
 use super::{Segment, Symbol};
-use crate::elf::dynamic::DynamicEntry;
 use crate::Error;
+use crate::elf::dynamic::DynamicEntry;
 
-use crate::common::{into_optional, AsFFI, FromFFI};
+use crate::common::{AsFFI, FromFFI, into_optional};
 use crate::generic;
 use crate::{declare_iterator, to_conv_result, to_result, to_slice};
 
@@ -828,21 +828,13 @@ impl Binary {
     pub fn section_idx_by_name(&self, name: &str) -> Option<usize> {
         cxx::let_cxx_string!(__cxx_s = name.to_string());
         let idx = self.ptr.get_section_idx_by_name(&__cxx_s);
-        if idx < 0 {
-            None
-        } else {
-            Some(idx as usize)
-        }
+        if idx < 0 { None } else { Some(idx as usize) }
     }
 
     /// Get the index of the given section. Returns `None` if not found.
     pub fn section_idx(&self, section: &Section) -> Option<usize> {
         let idx = self.ptr.get_section_idx_by_section(section.as_ffi());
-        if idx < 0 {
-            None
-        } else {
-            Some(idx as usize)
-        }
+        if idx < 0 { None } else { Some(idx as usize) }
     }
 
     /// Relocate the PHDR table using the given strategy.

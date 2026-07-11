@@ -312,8 +312,8 @@ pub use crate::macho::function_variant_fixups::ffi::MachO_FunctionVariantFixups_
 pub use crate::macho::function_variant_fixups::ffi::MachO_FunctionVariantFixups_it_fixups;
 pub use crate::macho::function_variants::ffi::MachO_FunctionVariants;
 pub use crate::macho::function_variants::ffi::MachO_FunctionVariants_RuntimeTable;
-pub use crate::macho::function_variants::ffi::MachO_FunctionVariants_RuntimeTableEntry;
 pub use crate::macho::function_variants::ffi::MachO_FunctionVariants_RuntimeTable_it_entries;
+pub use crate::macho::function_variants::ffi::MachO_FunctionVariants_RuntimeTableEntry;
 pub use crate::macho::function_variants::ffi::MachO_FunctionVariants_it_runtime_table;
 pub use crate::macho::header::ffi::MachO_Header;
 pub use crate::macho::indirect_binding_info::ffi::MachO_IndirectBindingInfo;
@@ -423,9 +423,9 @@ pub use crate::pe::debug::code_view::ffi::PE_CodeView;
 pub use crate::pe::debug::code_view_pdb::ffi::PE_CodeViewPDB;
 pub use crate::pe::debug::debug::ffi::PE_Debug;
 pub use crate::pe::debug::ex_dll_characteristics::ffi::PE_ExDllCharacteristics;
+pub use crate::pe::debug::fpo::ffi::PE_FPO;
 pub use crate::pe::debug::fpo::ffi::PE_FPO_entry_t;
 pub use crate::pe::debug::fpo::ffi::PE_FPO_it_entries;
-pub use crate::pe::debug::fpo::ffi::PE_FPO;
 pub use crate::pe::debug::pdb_checksum::ffi::PE_PDBChecksum;
 pub use crate::pe::debug::pogo::ffi::PE_Pogo;
 pub use crate::pe::debug::pogo::ffi::PE_Pogo_it_entries;
@@ -468,13 +468,13 @@ pub use crate::pe::load_configuration::dynamic_relocation::dynamic_fixup::ffi::P
 pub use crate::pe::load_configuration::dynamic_relocation::dynamic_fixup::ffi::PE_DynamicFixupGeneric_it_relocations;
 pub use crate::pe::load_configuration::dynamic_relocation::dynamic_fixup::ffi::PE_DynamicFixupUnknown;
 pub use crate::pe::load_configuration::dynamic_relocation::dynamic_fixup::ffi::PE_FunctionOverride;
-pub use crate::pe::load_configuration::dynamic_relocation::dynamic_fixup::ffi::PE_FunctionOverrideInfo;
-pub use crate::pe::load_configuration::dynamic_relocation::dynamic_fixup::ffi::PE_FunctionOverrideInfo_it_relocations;
 pub use crate::pe::load_configuration::dynamic_relocation::dynamic_fixup::ffi::PE_FunctionOverride_image_bdd_dynamic_relocation_t;
 pub use crate::pe::load_configuration::dynamic_relocation::dynamic_fixup::ffi::PE_FunctionOverride_image_bdd_info_t;
 pub use crate::pe::load_configuration::dynamic_relocation::dynamic_fixup::ffi::PE_FunctionOverride_image_bdd_info_t_it_relocations;
 pub use crate::pe::load_configuration::dynamic_relocation::dynamic_fixup::ffi::PE_FunctionOverride_it_bdd_info;
 pub use crate::pe::load_configuration::dynamic_relocation::dynamic_fixup::ffi::PE_FunctionOverride_it_func_overriding_info;
+pub use crate::pe::load_configuration::dynamic_relocation::dynamic_fixup::ffi::PE_FunctionOverrideInfo;
+pub use crate::pe::load_configuration::dynamic_relocation::dynamic_fixup::ffi::PE_FunctionOverrideInfo_it_relocations;
 pub use crate::pe::load_configuration::dynamic_relocation::dynamic_relocation::ffi::PE_DynamicRelocation;
 pub use crate::pe::load_configuration::dynamic_relocation::dynamic_relocation::ffi::PE_DynamicRelocationV1;
 pub use crate::pe::load_configuration::dynamic_relocation::dynamic_relocation::ffi::PE_DynamicRelocationV2;
@@ -610,6 +610,8 @@ pub use crate::runtime::windows::module::ffi::runtime_windows_find_module;
 pub use crate::runtime::windows::peb::ffi::runtime_windows_PEB;
 pub use crate::runtime::windows::process::ffi::runtime_windows_Process;
 pub use crate::stream::ffi::RustStream;
+pub use crate::utils::ffi::LIEFVersion;
+pub use crate::utils::ffi::Range;
 pub use crate::utils::ffi::demangle;
 pub use crate::utils::ffi::dump;
 pub use crate::utils::ffi::dump_with_limit;
@@ -617,8 +619,6 @@ pub use crate::utils::ffi::extended_version;
 pub use crate::utils::ffi::extended_version_info;
 pub use crate::utils::ffi::is_extended;
 pub use crate::utils::ffi::version;
-pub use crate::utils::ffi::LIEFVersion;
-pub use crate::utils::ffi::Range;
 
 // AsRef impls for inheritance chains. The unsafe pointer cast is safe
 // because every type uses the Mirror<T> pattern with single inheritance

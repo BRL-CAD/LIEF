@@ -4,10 +4,10 @@ use lief_ffi as ffi;
 
 use std::marker::PhantomData;
 
-use crate::common::{into_optional, into_ranges, FromFFI};
-use crate::declare_fwd_iterator;
 use crate::DeclOpt;
 use crate::Range;
+use crate::common::{FromFFI, into_optional, into_ranges};
+use crate::declare_fwd_iterator;
 
 use super::{Function, Variable};
 use crate::dwarf::function::Functions;

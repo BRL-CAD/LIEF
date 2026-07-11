@@ -2,8 +2,8 @@
 
 use std::marker::PhantomData;
 
-use crate::common::into_optional;
 use crate::common::FromFFI;
+use crate::common::into_optional;
 use crate::declare_iterator;
 use crate::pe::Section;
 use crate::to_slice;

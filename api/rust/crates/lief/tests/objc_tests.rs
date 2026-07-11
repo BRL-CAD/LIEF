@@ -89,9 +89,11 @@ fn explore_metadata(name: &str, metadata: &lief::objc::Metadata) {
 
     if name == "Module_Framework" {
         assert!(metadata.class_by_name("GADGestureRecognizer").is_some());
-        assert!(metadata
-            .class_by_name("GADGestureRecognizer_xxxx")
-            .is_none());
+        assert!(
+            metadata
+                .class_by_name("GADGestureRecognizer_xxxx")
+                .is_none()
+        );
 
         assert!(metadata.protocol_by_name("PINCaching").is_some());
         assert!(metadata.protocol_by_name("PINCaching_xxx").is_none());

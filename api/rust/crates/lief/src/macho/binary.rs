@@ -1,4 +1,4 @@
-use num_traits::{cast, Num};
+use num_traits::{Num, cast};
 use std::mem::size_of;
 use std::path::Path;
 use std::pin::Pin;
@@ -48,7 +48,7 @@ use super::symbol::{ExportedSymbols, Symbol, Symbols};
 use crate::Error;
 use lief_ffi as ffi;
 
-use crate::common::{into_optional, AsFFI, FromFFI};
+use crate::common::{AsFFI, FromFFI, into_optional};
 use crate::objc::Metadata;
 use crate::{declare_fwd_iterator, declare_iterator, generic, to_conv_result, to_result, to_slice};
 

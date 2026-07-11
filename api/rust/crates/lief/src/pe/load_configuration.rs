@@ -3,7 +3,7 @@ use super::chpe_metadata_x86;
 use super::dynamic_relocation::DynamicRelocation;
 use super::enclave_configuration::EnclaveConfiguration;
 use super::volatile_metadata::VolatileMetadata;
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::pe::code_integrity::CodeIntegrity;
 use crate::{declare_iterator, to_conv_opt, to_opt};
 use bitflags::bitflags;

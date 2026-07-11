@@ -2,7 +2,7 @@ use lief_ffi as ffi;
 
 use crate::{common::FromFFI, to_opt_trait, to_opt_trait_conv};
 
-use crate::{declare_fwd_iterator, DeclOpt};
+use crate::{DeclOpt, declare_fwd_iterator};
 use std::marker::PhantomData;
 
 pub mod array;

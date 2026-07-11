@@ -32,7 +32,7 @@ pub mod ffi {
         type MachO_SegmentCommand_it_relocations;
 
         fn next(self: Pin<&mut MachO_SegmentCommand_it_relocations>)
-            -> UniquePtr<MachO_Relocation>;
+        -> UniquePtr<MachO_Relocation>;
         fn size(self: &MachO_SegmentCommand_it_relocations) -> u64;
 
         type MachO_SegmentCommand_it_sections;

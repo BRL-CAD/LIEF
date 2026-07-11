@@ -1,5 +1,5 @@
 use super::Command;
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::declare_iterator;
 use crate::to_slice;
 use lief_ffi as ffi;
@@ -138,11 +138,7 @@ impl Segment<'_> {
     /// The original index of this segment or -1 if not defined
     pub fn index(&self) -> Option<u8> {
         let idx = self.ptr.index();
-        if idx < 0 {
-            None
-        } else {
-            Some(idx as u8)
-        }
+        if idx < 0 { None } else { Some(idx as u8) }
     }
 
     /// Return the [`Section`] with the given name (if any)

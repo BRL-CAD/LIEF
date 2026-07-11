@@ -1,13 +1,13 @@
 use lief_ffi as ffi;
 
-use crate::{common::FromFFI, Error};
+use crate::{Error, common::FromFFI};
 
+use crate::DeclOpt;
 use crate::common::into_optional;
 use crate::debug_location::DebugLocation;
 use crate::declare_fwd_iterator;
 use crate::dwarf::Scope;
 use crate::to_conv_result;
-use crate::DeclOpt;
 use std::marker::PhantomData;
 
 pub mod array;

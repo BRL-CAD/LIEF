@@ -4,7 +4,7 @@ pub mod module;
 pub mod process;
 
 #[doc(inline)]
-pub use module::{dlopen, Module};
+pub use module::{Module, dlopen};
 
 #[doc(inline)]
 pub use host::Host;

@@ -130,7 +130,7 @@ pub mod ffi {
         type PE_FunctionOverrideInfo_it_relocations;
 
         fn next(self: Pin<&mut PE_FunctionOverrideInfo_it_relocations>)
-            -> UniquePtr<PE_Relocation>;
+        -> UniquePtr<PE_Relocation>;
         fn size(self: &PE_FunctionOverrideInfo_it_relocations) -> u64;
 
         type PE_FunctionOverride_image_bdd_dynamic_relocation_t;

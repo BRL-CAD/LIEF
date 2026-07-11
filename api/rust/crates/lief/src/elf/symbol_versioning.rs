@@ -1,4 +1,4 @@
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::declare_iterator;
 use lief_ffi as ffi;
 use std::fmt;

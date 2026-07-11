@@ -1,11 +1,11 @@
 use lief_ffi as ffi;
 
-use super::commands::dylib::Dylib;
 use super::commands::Segment;
+use super::commands::dylib::Dylib;
 use super::symbol::Symbol;
 use std::{fmt, marker::PhantomData};
 
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 
 #[derive(Debug)]
 /// This enum exposes all the different types of binding operations that

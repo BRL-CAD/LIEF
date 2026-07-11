@@ -1,7 +1,7 @@
 use super::{Header, Relocation, Section, String, Symbol};
 use crate::assembly::Instructions;
-use crate::common::into_optional;
 use crate::common::FromFFI;
+use crate::common::into_optional;
 use crate::{declare_iterator, declare_lazy_iterator};
 use lief_ffi as ffi;
 use std::path::Path;

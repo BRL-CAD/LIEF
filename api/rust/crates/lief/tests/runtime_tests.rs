@@ -94,15 +94,19 @@ fn test_windows_process() {
     assert_ne!(first.dll_base(), 0);
     assert!(first.size_of_image() > 0);
     assert!(!first.base_dll_name().is_empty());
-    assert!(first
-        .full_dll_name()
-        .to_lowercase()
-        .ends_with(&first.base_dll_name().to_lowercase()));
+    assert!(
+        first
+            .full_dll_name()
+            .to_lowercase()
+            .ends_with(&first.base_dll_name().to_lowercase())
+    );
 
     // ntdll.dll is always loaded in a Windows process.
-    assert!(entries
-        .iter()
-        .any(|e| e.base_dll_name().eq_ignore_ascii_case("ntdll.dll")));
+    assert!(
+        entries
+            .iter()
+            .any(|e| e.base_dll_name().eq_ignore_ascii_case("ntdll.dll"))
+    );
 }
 
 fn test_linux_process() {

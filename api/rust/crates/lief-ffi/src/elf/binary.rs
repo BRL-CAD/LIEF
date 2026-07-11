@@ -217,7 +217,7 @@ pub mod ffi {
         fn dynamic_entry_by_tag(self: &ELF_Binary, tag: u64) -> UniquePtr<ELF_DynamicEntry>;
         fn segment_by_type(self: &ELF_Binary, ty: u64) -> UniquePtr<ELF_Segment>;
         fn add_segment(self: Pin<&mut ELF_Binary>, segment: &ELF_Segment)
-            -> UniquePtr<ELF_Segment>;
+        -> UniquePtr<ELF_Segment>;
         fn remove_segment(self: Pin<&mut ELF_Binary>, segment: &ELF_Segment, clear: bool);
         fn remove_segments_by_type(self: Pin<&mut ELF_Binary>, ty: u64, clear: bool);
         fn has_dynamic_entry_tag(self: &ELF_Binary, tag: u64) -> bool;

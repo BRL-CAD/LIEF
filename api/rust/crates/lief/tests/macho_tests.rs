@@ -1,14 +1,14 @@
 mod utils;
+use lief::Binary;
 use lief::generic::Binary as GenericBinary;
 use lief::generic::Symbol;
 use lief::logging;
+use lief::macho::MachOSection;
+use lief::macho::Relocation;
 use lief::macho::binding_info::{self, AsGeneric};
 use lief::macho::builder::Config;
 use lief::macho::commands::{Command, Commands};
 use lief::macho::header::CpuType;
-use lief::macho::MachOSection;
-use lief::macho::Relocation;
-use lief::Binary;
 use std::env;
 use std::path::Path;
 

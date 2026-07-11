@@ -3,8 +3,8 @@
 use super::Relocation;
 use super::Symbol;
 use crate::coff;
-use crate::common::into_optional;
 use crate::common::FromFFI;
+use crate::common::into_optional;
 use crate::declare_iterator;
 use crate::generic;
 use crate::pe;

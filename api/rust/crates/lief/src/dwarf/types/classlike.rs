@@ -1,12 +1,12 @@
 use lief_ffi as ffi;
 
 use super::Type;
-use crate::common::{into_optional, FromFFI};
-use crate::declare_fwd_iterator;
-use crate::dwarf::types::DwarfType;
-use crate::dwarf::Function;
-use crate::to_result;
 use crate::Error;
+use crate::common::{FromFFI, into_optional};
+use crate::declare_fwd_iterator;
+use crate::dwarf::Function;
+use crate::dwarf::types::DwarfType;
+use crate::to_result;
 use std::marker::PhantomData;
 
 /// Trait shared by [`Structure`], [`Class`], [`Union`] or [`Packed`]

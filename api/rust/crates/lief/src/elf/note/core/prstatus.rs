@@ -5,7 +5,7 @@ use std::time::Duration;
 use crate::common::FromFFI;
 use crate::elf::header::Arch;
 use crate::elf::note::NoteBase;
-use crate::{to_result, Error};
+use crate::{Error, to_result};
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

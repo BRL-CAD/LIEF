@@ -41,13 +41,13 @@ pub mod ffi {
             name: &CxxString,
         ) -> UniquePtr<DWARF_Variable>;
         fn functions(self: &DWARF_CompilationUnit)
-            -> UniquePtr<DWARF_CompilationUnit_it_functions>;
+        -> UniquePtr<DWARF_CompilationUnit_it_functions>;
         fn imported_functions(
             self: &DWARF_CompilationUnit,
         ) -> UniquePtr<DWARF_CompilationUnit_it_functions>;
         fn types(self: &DWARF_CompilationUnit) -> UniquePtr<DWARF_CompilationUnit_it_types>;
         fn variables(self: &DWARF_CompilationUnit)
-            -> UniquePtr<DWARF_CompilationUnit_it_variables>;
+        -> UniquePtr<DWARF_CompilationUnit_it_variables>;
         fn function_by_address(
             self: &DWARF_CompilationUnit,
             addr: u64,

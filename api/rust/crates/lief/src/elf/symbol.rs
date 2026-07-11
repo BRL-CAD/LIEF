@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use std::pin::Pin;
 
 use super::SymbolVersion;
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::declare_iterator;
 use crate::elf::Section;
 use crate::generic;

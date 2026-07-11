@@ -1,5 +1,5 @@
-use lief::generic;
 use lief::Binary;
+use lief::generic;
 
 use lief::elf;
 

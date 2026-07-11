@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 
 use crate::common::FromFFI;
 use crate::elf::note::NoteBase;
-use crate::{to_result, Error};
+use crate::{Error, to_result};
 
 /// Note representing core signal information (`NT_SIGINFO`)
 pub struct SigInfo<'a> {

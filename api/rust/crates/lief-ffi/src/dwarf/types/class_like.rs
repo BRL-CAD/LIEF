@@ -21,7 +21,7 @@ pub mod ffi {
         ) -> UniquePtr<DWARF_types_ClassLike_Member>;
         fn members(self: &DWARF_types_ClassLike) -> UniquePtr<DWARF_types_ClassLike_it_members>;
         fn functions(self: &DWARF_types_ClassLike)
-            -> UniquePtr<DWARF_types_ClassLike_it_functions>;
+        -> UniquePtr<DWARF_types_ClassLike_it_functions>;
 
         type DWARF_types_ClassLike_Member;
 

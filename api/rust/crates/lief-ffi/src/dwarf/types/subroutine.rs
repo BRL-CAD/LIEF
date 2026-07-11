@@ -18,7 +18,7 @@ pub mod ffi {
         type DWARF_types_Subroutine_it_parameters;
 
         fn next(self: Pin<&mut DWARF_types_Subroutine_it_parameters>)
-            -> UniquePtr<DWARF_Parameter>;
+        -> UniquePtr<DWARF_Parameter>;
         fn size(self: &DWARF_types_Subroutine_it_parameters) -> u64;
     }
     impl UniquePtr<DWARF_types_Subroutine> {}

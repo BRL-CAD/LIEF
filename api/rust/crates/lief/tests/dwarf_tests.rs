@@ -411,9 +411,11 @@ fn explore_dwarf(name: &str, dwarf: &lief::dwarf::DebugInfo) {
         }
     }
     if name == "libLIEF.so" {
-        assert!(dwarf
-            .variable_by_name("_ZN3fmt3v1012format_facetISt6localeE2idE")
-            .is_some());
+        assert!(
+            dwarf
+                .variable_by_name("_ZN3fmt3v1012format_facetISt6localeE2idE")
+                .is_some()
+        );
         assert!(dwarf.variable_by_name("foo").is_none());
 
         assert!(dwarf.variable_by_addr(0x44f5f8).is_some());
@@ -428,11 +430,13 @@ fn explore_dwarf(name: &str, dwarf: &lief::dwarf::DebugInfo) {
         assert!(dwarf.function_by_addr(0x2e6b40).is_some());
         assert!(dwarf.function_by_addr(0xdeadc0de).is_none());
 
-        assert!(dwarf
-            .type_by_name(
-                "unique_ptr<LIEF::BinaryStream, std::default_delete<LIEF::BinaryStream> >"
-            )
-            .is_some());
+        assert!(
+            dwarf
+                .type_by_name(
+                    "unique_ptr<LIEF::BinaryStream, std::default_delete<LIEF::BinaryStream> >"
+                )
+                .is_some()
+        );
         assert!(dwarf.type_by_name("foo").is_none());
     }
 }

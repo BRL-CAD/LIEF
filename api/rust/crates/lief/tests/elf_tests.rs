@@ -1,16 +1,16 @@
 mod utils;
+use lief::Binary;
+use lief::elf::Notes;
 use lief::elf::builder::Config;
 use lief::elf::dynamic;
 use lief::elf::dynamic::DynamicEntry;
 use lief::elf::note::NoteBase;
 use lief::elf::relocation;
 use lief::elf::segment;
-use lief::elf::Notes;
 use lief::generic::Binary as GenericBinary;
 use lief::generic::Section;
 use lief::generic::Symbol;
 use lief::logging;
-use lief::Binary;
 use std::env;
 
 fn explore_elf(name: &str, elf: &lief::elf::Binary) {
@@ -194,19 +194,23 @@ fn explore_elf(name: &str, elf: &lief::elf::Binary) {
         assert!(elf.segment_from_offset(0).is_some());
         assert!(elf.segment_from_offset(0x100000000).is_none());
 
-        assert!(elf
-            .section_from_offset(0x318, /*skip_nobits*/ true)
-            .is_some());
-        assert!(elf
-            .section_from_offset(0x100000000, /*skip_nobits*/ true)
-            .is_none());
+        assert!(
+            elf.section_from_offset(0x318, /*skip_nobits*/ true)
+                .is_some()
+        );
+        assert!(
+            elf.section_from_offset(0x100000000, /*skip_nobits*/ true)
+                .is_none()
+        );
 
-        assert!(elf
-            .section_from_virtual_address(0x400318, /*skip_nobits*/ true)
-            .is_some());
-        assert!(elf
-            .section_from_virtual_address(0x100000000, /*skip_nobits*/ true)
-            .is_none());
+        assert!(
+            elf.section_from_virtual_address(0x400318, /*skip_nobits*/ true)
+                .is_some()
+        );
+        assert!(
+            elf.section_from_virtual_address(0x100000000, /*skip_nobits*/ true)
+                .is_none()
+        );
         assert!(!elf.content_from_virtual_address(0x400318, 0x10).is_empty());
 
         assert!(

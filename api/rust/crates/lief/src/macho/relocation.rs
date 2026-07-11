@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use super::commands::segment::Segment;
 use super::section::Section;
 use super::symbol::Symbol;
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::declare_iterator;
 use crate::generic;
 use lief_ffi as ffi;

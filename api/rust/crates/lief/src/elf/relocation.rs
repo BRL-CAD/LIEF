@@ -2,12 +2,12 @@ use std::marker::PhantomData;
 
 use lief_ffi as ffi;
 
+use crate::Error;
 use crate::elf::Section;
 use crate::generic;
-use crate::Error;
 
-use crate::common::into_optional;
 use crate::common::FromFFI;
+use crate::common::into_optional;
 use crate::{declare_iterator, to_result};
 
 use super::Symbol;

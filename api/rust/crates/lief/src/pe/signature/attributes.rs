@@ -4,9 +4,9 @@ use lief_ffi as ffi;
 
 use crate::common::FromFFI;
 use crate::declare_iterator;
+use crate::pe::Algorithms;
 use crate::pe::signature::ContentInfo;
 use crate::pe::signature::X509;
-use crate::pe::Algorithms;
 use crate::to_slice;
 
 use super::{Signature, SignerInfo};

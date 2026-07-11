@@ -11,7 +11,7 @@ pub use host::{Host, Version};
 pub use ldr_data_table_entry::{LdrDataTableEntries, LdrDataTableEntry};
 
 #[doc(inline)]
-pub use module::{dlopen, find_module, Module};
+pub use module::{Module, dlopen, find_module};
 
 #[doc(inline)]
 pub use peb::PEB;

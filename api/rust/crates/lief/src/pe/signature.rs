@@ -20,8 +20,8 @@ pub use x509::{Certificates, KeyUsage, VerificationFlags as CertVerificationFlag
 
 use std::io::{Read, Seek};
 
-use crate::common::into_optional;
 use crate::common::FromFFI;
+use crate::common::into_optional;
 use crate::declare_iterator;
 use crate::pe::Algorithms;
 use crate::to_slice;

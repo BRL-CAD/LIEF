@@ -2,10 +2,10 @@ use lief_ffi as ffi;
 
 use std::marker::PhantomData;
 
-use crate::common::FromFFI;
-use crate::declare_fwd_iterator;
 use crate::DebugLocation;
 use crate::DeclOpt;
+use crate::common::FromFFI;
+use crate::declare_fwd_iterator;
 
 pub struct Function<'a> {
     ptr: cxx::UniquePtr<ffi::PDB_Function>,

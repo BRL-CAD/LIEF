@@ -16,7 +16,7 @@ pub mod ffi {
         fn import_entry_size(self: &PE_EnclaveConfiguration) -> u32;
         fn nb_imports(self: &PE_EnclaveConfiguration) -> u32;
         fn imports(self: &PE_EnclaveConfiguration)
-            -> UniquePtr<PE_EnclaveConfiguration_it_imports>;
+        -> UniquePtr<PE_EnclaveConfiguration_it_imports>;
         fn image_version(self: &PE_EnclaveConfiguration) -> u32;
         fn security_version(self: &PE_EnclaveConfiguration) -> u32;
         fn enclave_size(self: &PE_EnclaveConfiguration) -> u64;

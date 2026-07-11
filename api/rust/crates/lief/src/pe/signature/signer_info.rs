@@ -1,8 +1,8 @@
 use std::marker::PhantomData;
 
-use super::attributes::Attribute;
 use super::X509;
-use crate::common::{into_optional, FromFFI};
+use super::attributes::Attribute;
+use crate::common::{FromFFI, into_optional};
 use crate::declare_iterator;
 use crate::pe::Algorithms;
 use crate::to_slice;

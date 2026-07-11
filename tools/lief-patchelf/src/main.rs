@@ -1,8 +1,8 @@
 use anyhow::{Context, Ok, Result};
-use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
-use clap_complete::aot::{generate, Generator, Shell};
+use clap::{Arg, ArgAction, ArgMatches, Command, value_parser};
+use clap_complete::aot::{Generator, Shell, generate};
 use indoc::indoc;
-use lief::elf::{dynamic, Segment};
+use lief::elf::{Segment, dynamic};
 use lief::generic::Symbol;
 use lief::{
     self,

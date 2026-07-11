@@ -1,7 +1,7 @@
 //! COFF relocation module
 
 use super::{Section, Symbol};
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::generic;
 use std::marker::PhantomData;
 

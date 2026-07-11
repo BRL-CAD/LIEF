@@ -3,7 +3,7 @@ use lief_ffi as ffi;
 use std::marker::PhantomData;
 use std::pin::Pin;
 
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::to_slice;
 use crate::{declare_iterator, generic};
 

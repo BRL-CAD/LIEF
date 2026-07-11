@@ -1,8 +1,8 @@
 use lief_ffi as ffi;
 
-use crate::common::{into_optional, FromFFI};
-use crate::dwarf::types::DwarfType;
+use crate::common::{FromFFI, into_optional};
 use crate::dwarf::Type;
+use crate::dwarf::types::DwarfType;
 use std::marker::PhantomData;
 
 /// This structure represents a `DW_TAG_atomic_type`

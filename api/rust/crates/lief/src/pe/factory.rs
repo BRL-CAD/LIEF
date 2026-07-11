@@ -2,7 +2,7 @@
 
 use lief_ffi as ffi;
 
-use crate::common::{into_optional, AsFFI, FromFFI};
+use crate::common::{AsFFI, FromFFI, into_optional};
 use crate::pe;
 
 /// Factory for creating PE binaries from scratch

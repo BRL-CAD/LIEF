@@ -2,11 +2,11 @@ use crate::to_ok_result;
 use bitflags::bitflags;
 
 use lief_ffi as ffi;
-use num_traits::{cast, Num};
+use num_traits::{Num, cast};
 
 use crate::{
-    common::{into_optional, FromFFI},
     Error,
+    common::{FromFFI, into_optional},
 };
 
 bitflags! {

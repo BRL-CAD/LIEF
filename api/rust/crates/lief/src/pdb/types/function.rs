@@ -1,7 +1,7 @@
 use lief_ffi as ffi;
 
 use super::Type;
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::declare_fwd_iterator;
 use crate::pdb::types::PdbType;
 use std::marker::PhantomData;

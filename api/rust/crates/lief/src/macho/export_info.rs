@@ -3,9 +3,9 @@ use lief_ffi as ffi;
 use bitflags::bitflags;
 use std::{fmt, marker::PhantomData};
 
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 
-use super::{commands::Dylib, Symbol};
+use super::{Symbol, commands::Dylib};
 
 /// This structure represents an export (info) in a Mach-O binary
 pub struct ExportInfo<'a> {

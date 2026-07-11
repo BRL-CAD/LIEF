@@ -1,6 +1,6 @@
 use super::Command;
 use super::Segment;
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::{declare_iterator, to_slice};
 use lief_ffi as ffi;
 use std::marker::PhantomData;

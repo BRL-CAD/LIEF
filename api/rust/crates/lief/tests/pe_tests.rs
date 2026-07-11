@@ -1,17 +1,17 @@
 mod utils;
+use lief::Binary;
 use lief::generic::Binary as GenericBinary;
 use lief::generic::Section as GenericSection;
 use lief::generic::Symbol;
 use lief::logging;
+use lief::pe::ParserConfig;
 use lief::pe::debug::Entries as DebugEntries;
 use lief::pe::load_configuration::LoadConfiguration;
 use lief::pe::resources::{Node, NodeBase};
+use lief::pe::signature::Signature;
 use lief::pe::signature::attributes::Attribute;
 use lief::pe::signature::content_info::Content;
-use lief::pe::signature::Signature;
-use lief::pe::ParserConfig;
-use lief::pe::{data_directory, signature, Algorithms};
-use lief::Binary;
+use lief::pe::{Algorithms, data_directory, signature};
 use std::env;
 use std::fmt::format;
 use std::io::Cursor;
@@ -383,20 +383,23 @@ fn explore_pe(bin_name: &str, pe: &lief::pe::Binary) {
         assert!(pe.section_from_rva(0xA85000).is_some());
         assert!(pe.section_from_rva(0x100A85000).is_none());
 
-        assert!(!pe
-            .content_from_virtual_address(0x140000000 + 0xA85000, 0x10)
-            .is_empty());
+        assert!(
+            !pe.content_from_virtual_address(0x140000000 + 0xA85000, 0x10)
+                .is_empty()
+        );
         assert!(!pe.content_from_virtual_address(0xA85000, 0x10).is_empty());
-        assert!(pe
-            .content_from_virtual_address(0xaaaaaaaaaaaa, 0x10)
-            .is_empty());
+        assert!(
+            pe.content_from_virtual_address(0xaaaaaaaaaaaa, 0x10)
+                .is_empty()
+        );
 
         assert!(pe.section_by_name(".data").is_some());
         assert!(pe.section_by_name(".xdata").is_none());
 
-        assert!(pe
-            .data_directory_by_type(data_directory::Type::IMPORT_TABLE)
-            .is_some());
+        assert!(
+            pe.data_directory_by_type(data_directory::Type::IMPORT_TABLE)
+                .is_some()
+        );
 
         assert!(pe.import_by_name("BOOTVID.dll").is_some());
         assert!(pe.import_by_name("foo.dll").is_none());

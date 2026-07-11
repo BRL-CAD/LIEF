@@ -21,7 +21,7 @@
 //! See: [`crate::dsc::enable_cache`] and [`crate::dsc::enable_cache_from_dir`]
 use crate::common::into_optional;
 use lief_ffi as ffi;
-use std::ffi::{c_char, CString};
+use std::ffi::{CString, c_char};
 use std::path::Path;
 
 pub mod dyld_shared_cache;

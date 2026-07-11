@@ -37,11 +37,7 @@ impl PublicSymbol<'_> {
     /// Name of the section in which this symbol is defined (e.g. `.text`).
     pub fn section_name(&self) -> Option<String> {
         let name = self.ptr.section_name().to_string();
-        if !name.is_empty() {
-            Some(name)
-        } else {
-            None
-        }
+        if !name.is_empty() { Some(name) } else { None }
     }
 
     /// **Relative** Virtual Address of this symbol.

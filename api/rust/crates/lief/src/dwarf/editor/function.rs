@@ -1,9 +1,9 @@
 use lief_ffi as ffi;
 
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 
-use crate::dwarf::editor::types::EditorType;
 use crate::dwarf::editor::Variable;
+use crate::dwarf::editor::types::EditorType;
 
 /// This structure represents an **editable** DWARF function (`DW_TAG_subprogram`)
 pub struct Function {

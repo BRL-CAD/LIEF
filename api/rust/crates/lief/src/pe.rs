@@ -92,7 +92,7 @@ pub use tls::TLS;
 #[doc(inline)]
 pub use volatile_metadata::VolatileMetadata;
 
-use crate::common::{into_optional, AsFFI};
+use crate::common::{AsFFI, into_optional};
 
 /// PE type: 32-bit or 64-bit
 #[allow(non_camel_case_types)]

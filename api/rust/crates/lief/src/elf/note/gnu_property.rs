@@ -1,9 +1,9 @@
 use lief_ffi as ffi;
 use std::marker::PhantomData;
 
-use super::properties::{Properties, PropertyType};
 use super::NoteBase;
-use crate::common::{into_optional, FromFFI};
+use super::properties::{Properties, PropertyType};
+use crate::common::{FromFFI, into_optional};
 use crate::declare_fwd_iterator;
 
 /// Note representing a GNU Property (`NT_GNU_PROPERTY_TYPE_0`)

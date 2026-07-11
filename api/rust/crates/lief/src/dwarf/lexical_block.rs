@@ -1,7 +1,7 @@
 use lief_ffi as ffi;
 
-use crate::common::{into_ranges, FromFFI};
-use crate::{declare_fwd_iterator, to_opt, Range};
+use crate::common::{FromFFI, into_ranges};
+use crate::{Range, declare_fwd_iterator, to_opt};
 use std::marker::PhantomData;
 
 /// This structure represents a DWARF lexical block (`DW_TAG_lexical_block`)

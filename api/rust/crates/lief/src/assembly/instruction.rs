@@ -6,9 +6,9 @@ use bitflags::bitflags;
 
 use crate::to_slice;
 
+use crate::Error;
 use crate::common::FromFFI;
 use crate::to_conv_result;
-use crate::Error;
 
 use super::aarch64;
 use super::arm;

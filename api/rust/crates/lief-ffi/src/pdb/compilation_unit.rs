@@ -17,7 +17,7 @@ pub mod ffi {
         fn to_string(self: &PDB_CompilationUnit) -> UniquePtr<CxxString>;
         fn to_decl(self: &PDB_CompilationUnit) -> UniquePtr<CxxString>;
         fn to_decl_with_opt(self: &PDB_CompilationUnit, opt: &LIEF_DeclOpt)
-            -> UniquePtr<CxxString>;
+        -> UniquePtr<CxxString>;
 
         type PDB_CompilationUnit_it_functions;
 

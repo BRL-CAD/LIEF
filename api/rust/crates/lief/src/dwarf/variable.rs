@@ -1,11 +1,11 @@
 use lief_ffi as ffi;
 
 use super::Type;
-use crate::common::into_optional;
 use crate::common::FromFFI;
+use crate::common::into_optional;
 use crate::dwarf::Scope;
-use crate::{declare_fwd_iterator, to_result, Error};
 use crate::{DebugLocation, DeclOpt};
+use crate::{Error, declare_fwd_iterator, to_result};
 use std::marker::PhantomData;
 
 /// This class represents a DWARF variable which can be owned by a

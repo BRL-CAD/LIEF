@@ -1,8 +1,8 @@
 use lief_ffi as ffi;
 
 use crate::common::FromFFI;
-use crate::pdb::types::classlike::ClassLike;
 use crate::pdb::types::PdbType;
+use crate::pdb::types::classlike::ClassLike;
 use std::marker::PhantomData;
 
 /// This structure wraps a `LF_UNION` PDB type

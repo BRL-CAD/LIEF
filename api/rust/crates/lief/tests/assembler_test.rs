@@ -97,7 +97,7 @@ fn test_api() {
     }
 
     reassemble_from("MachO/ios17/DebugHierarchyKit", 0x16650, 100); // ARM64E
-                                                                    //reassemble_from("MachO/macho-issue-1110.bin", 0x00000b10, 10); // PPC
+    //reassemble_from("MachO/macho-issue-1110.bin", 0x00000b10, 10); // PPC
     reassemble_from("PE/ntoskrnl.exe", 0x140200000, 300);
     reassemble_from("ELF/ELF32_x86_library_libshellx.so", 0x000010c0, 300);
     //reassemble_from("ELF/libmonochrome-armv7.so", 0x0468b701, 300); // Thumb

@@ -3,7 +3,7 @@
 use lief_ffi as ffi;
 
 use super::dynamic_fixups::DynamicFixup;
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use std::marker::PhantomData;
 
 pub const IMAGE_DYNAMIC_RELOCATION_GUARD_RF_PROLOGUE: u32 = 1u32;

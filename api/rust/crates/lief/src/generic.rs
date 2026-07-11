@@ -1,5 +1,5 @@
 use crate::assembly::{AssemblerConfig, Instructions};
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::{declare_fwd_iterator, declare_lazy_iterator, to_slice};
 use bitflags::bitflags;
 use lief_ffi as ffi;
@@ -379,11 +379,7 @@ pub trait DebugInfo {
             &__cxx_s,
             std::pin::Pin::new(&mut is_set),
         );
-        if is_set == 0 {
-            None
-        } else {
-            Some(value)
-        }
+        if is_set == 0 { None } else { Some(value) }
     }
 }
 

@@ -1,14 +1,14 @@
 use lief_ffi as ffi;
 
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::generic;
 use std::marker::PhantomData;
 use std::path::Path;
 
+use super::PublicSymbol;
 use super::compilation_unit::CompilationUnits;
 use super::public_symbol::PublicSymbols;
 use super::types::{Type, Types};
-use super::PublicSymbol;
 
 /// Main interface over a PDB.
 ///

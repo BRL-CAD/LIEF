@@ -85,28 +85,28 @@ class LIEF_API x509 : public Object {
   enum class VERIFICATION_FLAGS : uint32_t {
     OK = 0,                   /**< The verification succeed  */
     BADCERT_EXPIRED = 1 << 0, /**< The certificate validity has expired. */
-    BADCERT_REVOKED =
-        1 << 1, /**< The certificate has been revoked (is on a CRL). */
+    BADCERT_REVOKED = 1
+        << 1, /**< The certificate has been revoked (is on a CRL). */
     BADCERT_CN_MISMATCH = 1 << 2, /**< The certificate Common Name (CN) does not
                                      match with the expected CN. */
-    BADCERT_NOT_TRUSTED =
-        1 << 3, /**< The certificate is not correctly signed by the trusted CA. */
-    BADCRL_NOT_TRUSTED =
-        1 << 4, /**< The CRL is not correctly signed by the trusted CA. */
+    BADCERT_NOT_TRUSTED = 1
+        << 3, /**< The certificate is not correctly signed by the trusted CA. */
+    BADCRL_NOT_TRUSTED = 1
+        << 4, /**< The CRL is not correctly signed by the trusted CA. */
     BADCRL_EXPIRED = 1 << 5,      /**< The CRL is expired. */
     BADCERT_MISSING = 1 << 6,     /**< Certificate was missing. */
     BADCERT_SKIP_VERIFY = 1 << 7, /**< Certificate verification was skipped. */
     BADCERT_OTHER = 1 << 8,  /**< Other reason (can be used by verify callback) */
     BADCERT_FUTURE = 1 << 9, /**< The certificate validity starts in the future. */
     BADCRL_FUTURE = 1 << 10, /**< The CRL is from the future */
-    BADCERT_KEY_USAGE =
-        1 << 11, /**< Usage does not match the keyUsage extension. */
-    BADCERT_EXT_KEY_USAGE =
-        1 << 12, /**< Usage does not match the extendedKeyUsage extension. */
-    BADCERT_NS_CERT_TYPE =
-        1 << 13, /**< Usage does not match the nsCertType extension. */
-    BADCERT_BAD_MD =
-        1 << 14, /**< The certificate is signed with an unacceptable hash. */
+    BADCERT_KEY_USAGE = 1
+        << 11, /**< Usage does not match the keyUsage extension. */
+    BADCERT_EXT_KEY_USAGE = 1
+        << 12, /**< Usage does not match the extendedKeyUsage extension. */
+    BADCERT_NS_CERT_TYPE = 1
+        << 13, /**< Usage does not match the nsCertType extension. */
+    BADCERT_BAD_MD = 1
+        << 14, /**< The certificate is signed with an unacceptable hash. */
     BADCERT_BAD_PK = 1 << 15,  /**< The certificate is signed with an unacceptable
                                   PK alg (eg RSA vs ECDSA). */
     BADCERT_BAD_KEY = 1 << 16, /**< The certificate is signed with an unacceptable

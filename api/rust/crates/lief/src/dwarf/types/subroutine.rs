@@ -1,10 +1,10 @@
 use lief_ffi as ffi;
 
 use super::Type;
-use crate::common::{into_optional, FromFFI};
+use crate::common::{FromFFI, into_optional};
 use crate::declare_fwd_iterator;
-use crate::dwarf::types::DwarfType;
 use crate::dwarf::Parameters;
+use crate::dwarf::types::DwarfType;
 use std::marker::PhantomData;
 
 /// This structure represents a `DW_TAG_subroutine_type`

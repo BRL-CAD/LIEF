@@ -52,12 +52,16 @@ fn run_ios_181(cache: &lief::dsc::DyldSharedCache) {
     assert!(cache.find_lib_from_va(0x20d0a4010).is_some());
     assert!(cache.find_lib_from_va(0).is_none());
 
-    assert!(cache
-        .find_lib_from_path("/usr/lib/libobjc.A.dylib")
-        .is_some());
-    assert!(cache
-        .find_lib_from_path("/usr/lib/libobjc.X.dylib")
-        .is_none());
+    assert!(
+        cache
+            .find_lib_from_path("/usr/lib/libobjc.A.dylib")
+            .is_some()
+    );
+    assert!(
+        cache
+            .find_lib_from_path("/usr/lib/libobjc.X.dylib")
+            .is_none()
+    );
 
     assert!(cache.find_lib_from_name("liblockdown.dylib").is_some());
     assert!(cache.find_lib_from_path("liblockdown.A.dylib").is_none());
