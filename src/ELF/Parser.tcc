@@ -1385,11 +1385,13 @@ ok_error_t Parser::parse_dynamic_entries(BinaryStream& stream) {
   Elf_Off dynamic_string_offset = get_dynamic_string_table(&stream);
 
   bool end_of_dynamic = false;
-  while (stream) {
+  uint32_t count = 0;
+  while (stream && count < max_nb_entries) {
     const auto res_entry = stream.read<Elf_Dyn>();
     if (!res_entry) {
       break;
     }
+    ++count;
     const auto entry = *res_entry;
 
     std::unique_ptr<DynamicEntry> dynamic_entry;

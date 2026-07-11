@@ -2,6 +2,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import lief
 import pytest
 from utils import address_space_limiter, get_sample, parse_elf
 
@@ -37,3 +38,11 @@ def test_section_overflow():
         timeout=60.0,
         preexec_fn=address_space_limiter(),
     )
+
+
+@pytest.mark.private
+def test_dynamic_entries_capped():
+    sample = get_sample("private/ELF/dynamic_no_null.elf")
+    elf = lief.ELF.parse(sample)
+    assert elf is not None
+    assert len(elf.dynamic_entries) == 1000
