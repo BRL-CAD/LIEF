@@ -2,7 +2,8 @@ import ctypes
 from pathlib import Path
 
 import lief
-from utils import check_layout, glibc_version, parse_elf
+import pytest
+from utils import check_layout, get_sample, glibc_version, parse_elf
 
 
 def test_relr_relocations(tmp_path: Path):
@@ -58,3 +59,18 @@ def test_relr_addend(tmp_path: Path):
     assert new_elf is not None
     check_layout(new_elf)
     assert new_elf.get_int_from_virtual_address(0x21F40, 8) == 0xA680
+
+
+@pytest.mark.private
+def test_relr_bitmap_issues():
+    sample = get_sample("private/ELF/relr_bitmap.elf")
+    elf = lief.ELF.parse(sample)
+    assert elf is not None
+
+    relr = [
+        r for r in elf.relocations if r.encoding == lief.ELF.Relocation.ENCODING.RELR
+    ]
+    # Mirrors Parser::NB_MAX_RELOCATIONS
+    NB_MAX_RELOCATIONS = 3000000
+
+    assert len(relr) <= NB_MAX_RELOCATIONS + 63

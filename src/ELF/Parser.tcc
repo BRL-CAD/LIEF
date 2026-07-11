@@ -1194,7 +1194,14 @@ ok_error_t Parser::parse_relative_relocations(uint64_t offset, uint64_t size) {
     default: break;
   }
 
+  size_t nb_relocs = 0;
   while (rel_stream->pos() < (offset + size)) {
+    if (nb_relocs >= NB_MAX_RELOCATIONS) {
+      LIEF_WARN("RELR relocations: the number of relocations exceeds the limit "
+                "({}). The table is likely corrupted",
+                NB_MAX_RELOCATIONS);
+      break;
+    }
     auto opt_relr = rel_stream->read<Elf_Relr>();
     if (!opt_relr) {
       break;
@@ -1206,6 +1213,7 @@ ok_error_t Parser::parse_relative_relocations(uint64_t offset, uint64_t size) {
           std::make_unique<Relocation>(r_offset, type, Relocation::ENCODING::RELR);
       reloc->purpose(Relocation::PURPOSE::DYNAMIC);
       insert_relocation(std::move(reloc));
+      ++nb_relocs;
       base = rel + sizeof(Elf_Addr);
     } else {
       for (Elf_Addr offset = base; (rel >>= 1) != 0; offset += sizeof(Elf_Addr)) {
@@ -1215,6 +1223,7 @@ ok_error_t Parser::parse_relative_relocations(uint64_t offset, uint64_t size) {
                                                     Relocation::ENCODING::RELR);
           reloc->purpose(Relocation::PURPOSE::DYNAMIC);
           insert_relocation(std::move(reloc));
+          ++nb_relocs;
         }
       }
       base += (8 * sizeof(Elf_Relr) - 1) * sizeof(Elf_Addr);
