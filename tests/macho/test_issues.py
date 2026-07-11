@@ -215,3 +215,32 @@ def test_dyld_corrupted_indices():
 
     assert "<invalid>" in di.show_rebases_opcodes
     assert "<invalid>" in di.show_bind_opcodes
+
+
+@pytest.mark.private
+def test_dyld_chained_fixups_underflow():
+    sample = get_sample("private/MachO/chained_underflow.macho")
+    subprocess.check_call(
+        [
+            sys.executable,
+            "-c",
+            dedent(f"""\
+            import lief
+            cfg = lief.MachO.ParserConfig()
+            cfg.from_dyld_shared_cache = True
+            fat = lief.MachO.parse(r"{sample}", cfg)
+            assert fat is not None
+            b = fat.at(0)
+            assert b is not None
+            [s.name for s in b.segments]"""),
+        ],
+        timeout=30.0,
+    )
+
+    cfg = lief.MachO.ParserConfig()
+    cfg.from_dyld_shared_cache = True
+    fat = lief.MachO.parse(sample, cfg)
+    assert fat is not None
+    target = fat.at(0)
+    assert target is not None
+    assert {s.name for s in target.segments} == {"__TEXT", "__LINKEDIT"}

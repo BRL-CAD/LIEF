@@ -1094,6 +1094,13 @@ ok_error_t BinaryParser::parse_load_commands() {
           LIEF_DEBUG("{}.file_size: {:#x}", lnk->name(), lnk->file_size());
           break;
         }
+
+        if (chained->data_offset() < lnk->file_offset()) {
+          LIEF_WARN("LC_DYLD_CHAINED_FIXUPS payload (offset: {:#x}) starts "
+                    "before the '{}' segment",
+                    chained->data_offset(), lnk->name());
+          break;
+        }
         const uint64_t rel_offset = chained->data_offset() - lnk->file_offset();
         chained->content_ = content.subspan(rel_offset, chained->data_size());
         break;
