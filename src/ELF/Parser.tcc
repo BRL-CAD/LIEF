@@ -435,10 +435,11 @@ ok_error_t Parser::process_dynamic_table() {
     DynamicEntry* dt_verdef_num = binary_->get(DynamicEntry::TAG::VERDEFNUM);
     if (dt_verdef != nullptr && dt_verdef_num != nullptr) {
       const uint64_t virtual_address = dt_verdef->value();
-      const auto size = static_cast<uint32_t>(dt_verdef_num->value());
+      const uint32_t nb_entries =
+          std::min<uint32_t>(NB_MAX_SYMBOLS, dt_verdef_num->value());
 
       if (auto res = binary_->virtual_address_to_offset(virtual_address)) {
-        parse_symbol_version_definition<ELF_T>(*res, size);
+        parse_symbol_version_definition<ELF_T>(*res, nb_entries);
       } else {
         LIEF_WARN("Can't convert DT_VERDEF.virtual_address into an offset ({:#x})",
                   virtual_address);

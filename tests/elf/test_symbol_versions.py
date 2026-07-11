@@ -196,5 +196,13 @@ def test_verneed_next_wrap_no_oom():
     subprocess.check_call(
         [sys.executable, "-c", f'import lief; lief.parse(r"{sample}")'],
         timeout=60.0,
-        preexec_fn=address_space_limiter,
+        preexec_fn=address_space_limiter(),
     )
+
+
+@pytest.mark.private
+def test_capped_verdef():
+    sample = get_sample("private/ELF/verdef_num.elf")
+    elf = lief.ELF.parse(sample)
+    assert elf is not None
+    assert len(elf.symbols_version_definition) == 1_000_000
