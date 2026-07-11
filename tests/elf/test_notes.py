@@ -1,3 +1,5 @@
+import subprocess
+import sys
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
@@ -5,7 +7,7 @@ from typing import cast
 
 import lief
 import pytest
-from utils import check_layout, parse_elf
+from utils import address_space_limiter, check_layout, get_sample, parse_elf
 
 CONFIG = lief.ELF.Builder.config_t()
 CONFIG.notes = True
@@ -345,4 +347,36 @@ def test_create_custom_note(tmp_path: Path):
     assert (
         bytes(notes[3].description)
         == b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed"
+    )
+
+
+@pytest.mark.private
+def test_cwe_789_namesz():
+    test_case = get_sample("private/ELF/CWE_789_note_namesz.elf")
+    elf = lief.ELF.parse(test_case)
+    assert elf is not None
+    assert len(elf.notes) == 0
+
+
+@pytest.mark.private
+def test_cwe_789_descsz():
+    test_case = get_sample("private/ELF/CWE_789_note_descsz.elf")
+    elf = lief.ELF.parse(test_case)
+    assert elf is not None
+    for note in elf.notes:
+        assert len(note.description) <= 1024 * 1024
+
+
+@pytest.mark.linux
+@pytest.mark.private
+@pytest.mark.parametrize(
+    "test_case",
+    ["CWE_789_note_namesz.elf", "CWE_789_note_descsz.elf"],
+)
+def test_note_oversized_sizes_no_oom(test_case: str):
+    sample = Path(get_sample(f"private/ELF/{test_case}")).absolute()
+    subprocess.check_call(
+        [sys.executable, "-c", f'import lief; lief.parse(r"{sample}")'],
+        timeout=60.0,
+        preexec_fn=address_space_limiter(),
     )

@@ -414,6 +414,12 @@ std::unique_ptr<Note> Note::create(BinaryStream& stream, std::string section_nam
   if (namesz == 0) { // System reserves
     return nullptr;
   }
+
+  if (namesz > stream.size() - stream.pos()) {
+    LIEF_ERR("Note name size ({:#x}) is larger than the remaining stream", namesz);
+    return nullptr;
+  }
+
   std::vector<uint8_t> name_buffer(namesz, 0);
   if (!stream.read_data(name_buffer, namesz)) {
     LIEF_ERR("Failed to read note name");

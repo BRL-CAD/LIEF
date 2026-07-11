@@ -562,3 +562,19 @@ def align(value: int, alignment: int) -> int:
         return value
 
     return value + (-value % alignment)
+
+
+def address_space_limiter(maxsize: int = 2 * 1024 * 1024 * 1024):
+    """
+    Cap the address space to 2 GiB (by default) so an oversized note allocation
+    fails fast instead of thrashing/OOM-killing the host.
+    """
+    try:
+        import resource
+    except ImportError:
+        return None
+
+    def _limit():
+        resource.setrlimit(resource.RLIMIT_AS, (maxsize, maxsize))
+
+    return _limit
