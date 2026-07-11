@@ -18,10 +18,11 @@ def check_opcode(
     # lief-doc: downcast-start
     inst: lief.assembly.Instruction
 
-    if isinstance(inst, lief.assembly.riscv.Instruction):
-        opcode: lief.assembly.riscv.OPCODE = inst.opcode
-        # lief-doc: downcast-end
-        return opcode
+    match inst:
+        case lief.assembly.riscv.Instruction():
+            opcode: lief.assembly.riscv.OPCODE = inst.opcode
+            # lief-doc: downcast-end
+            return opcode
     return None
 
 
@@ -45,14 +46,15 @@ def operands_aarch64(macho: lief.MachO.Binary) -> None:
             print(f"Resolved: {inst.branch_target}")
 
         for idx, operand in enumerate(inst.operands):
-            if isinstance(operand, lief.assembly.aarch64.operands.Register):
-                print(f"op[{idx}]: REG - {operand.value}")
-            if isinstance(operand, lief.assembly.aarch64.operands.Memory):
-                print(f"op[{idx}]: MEM - {operand.base}")
-            if isinstance(operand, lief.assembly.aarch64.operands.PCRelative):
-                print(f"op[{idx}]: PCR - {operand.value}")
-            if isinstance(operand, lief.assembly.aarch64.operands.Immediate):
-                print(f"op[{idx}]: IMM - {operand.value}")
+            match operand:
+                case lief.assembly.aarch64.operands.Register():
+                    print(f"op[{idx}]: REG - {operand.value}")
+                case lief.assembly.aarch64.operands.Memory():
+                    print(f"op[{idx}]: MEM - {operand.base}")
+                case lief.assembly.aarch64.operands.PCRelative():
+                    print(f"op[{idx}]: PCR - {operand.value}")
+                case lief.assembly.aarch64.operands.Immediate():
+                    print(f"op[{idx}]: IMM - {operand.value}")
     # lief-doc: operands-aarch64-end
 
 
@@ -67,14 +69,15 @@ def operands_x86(elf: lief.ELF.Binary) -> None:
             print(f"Resolved: {inst.branch_target}")
 
         for idx, operand in enumerate(inst.operands):
-            if isinstance(operand, lief.assembly.x86.operands.Register):
-                print(f"op[{idx}]: REG - {operand.value}")
-            if isinstance(operand, lief.assembly.x86.operands.Memory):
-                print(f"op[{idx}]: MEM - {operand.base}")
-            if isinstance(operand, lief.assembly.x86.operands.PCRelative):
-                print(f"op[{idx}]: PCR - {operand.value}")
-            if isinstance(operand, lief.assembly.x86.operands.Immediate):
-                print(f"op[{idx}]: IMM - {operand.value}")
+            match operand:
+                case lief.assembly.x86.operands.Register():
+                    print(f"op[{idx}]: REG - {operand.value}")
+                case lief.assembly.x86.operands.Memory():
+                    print(f"op[{idx}]: MEM - {operand.base}")
+                case lief.assembly.x86.operands.PCRelative():
+                    print(f"op[{idx}]: PCR - {operand.value}")
+                case lief.assembly.x86.operands.Immediate():
+                    print(f"op[{idx}]: IMM - {operand.value}")
     # lief-doc: operands-x86-end
 
 
