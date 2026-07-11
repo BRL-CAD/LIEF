@@ -1,5 +1,6 @@
 import lief
-from utils import parse_pe
+import pytest
+from utils import get_sample, parse_pe
 
 
 def test_simple():
@@ -112,3 +113,17 @@ def test_cmd():
     assert ShellExecuteExW.iat_value == 0x4AD155A0
     assert ShellExecuteExW.data == 0x2A700
     assert ShellExecuteExW.hint == 0
+
+
+@pytest.mark.private
+def test_delay_import_names_corrupted():
+    sample = get_sample("private/PE/delay_import_names_corrupted.pe")
+
+    pe = lief.PE.parse(sample)
+    assert pe is not None
+    assert pe.has_delay_imports
+    assert len(pe.delay_imports) == 1
+
+    # Mirrors Parser::MAX_IMPORT_ENTRIES
+    MAX_IMPORT_ENTRIES = 0x10000
+    assert len(pe.delay_imports[0].entries) == MAX_IMPORT_ENTRIES

@@ -740,9 +740,16 @@ ok_error_t Parser::parse_delay_names_table(DelayImport& import,
   }
 
   while (*nstream && entry_val && *entry_val != 0) {
-    auto entry = std::make_unique<DelayImportEntry>(*entry_val, type_);
     // Index of the current entry (-1 as we start with a read())
     const size_t index = (nstream->pos() - names_offset) / sizeof(ptr_t) - 1;
+
+    if (index >= MAX_IMPORT_ENTRIES) {
+      LIEF_WARN("Delay import '{}' exceeded the max number of entries ({})",
+                import.name(), MAX_IMPORT_ENTRIES);
+      break;
+    }
+
+    auto entry = std::make_unique<DelayImportEntry>(*entry_val, type_);
     const uint32_t iat_pos = index * sizeof(ptr_t);
 
     if (auto iat_value = stream_->peek<ptr_t>(iat_offset + iat_pos)) {
@@ -755,7 +762,9 @@ ok_error_t Parser::parse_delay_names_table(DelayImport& import,
       uint64_t hint_off = binary_->rva_to_offset(entry->hint_name_rva());
       const uint64_t name_off = hint_off + sizeof(uint16_t);
 
-      if (auto entry_name = stream_->peek_string_at(name_off)) {
+      if (auto entry_name =
+              stream_->peek_string_at(name_off, MAX_IMPORT_NAME_SIZE))
+      {
         entry->name_ = std::move(*entry_name);
       }
 
