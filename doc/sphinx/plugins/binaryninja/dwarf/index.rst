@@ -34,7 +34,7 @@ overview of what is and is not exported.
 - :fa-check:`check` Function
 - :fa-check:`check` Data Variables
 - :fa-check:`check` Types
-- :xmark:`mark` Comments
+- :fa-check:`check` Comments
 
 **BinaryNinja::Function**
 
@@ -46,14 +46,14 @@ overview of what is and is not exported.
 - :fa-check:`check` Stack variables
 - :fa-check:`check` Types of stack variables
 - :fa-check:`check` Basic Blocks
-- :xmark:`mark` Comments
+- :fa-check:`check` Comments
 
 **BinaryNinja::DataVariable**
 
 - :fa-check:`check` Name
 - :fa-check:`check` Type
 - :fa-check:`check` Address
-- :xmark:`mark` Comments
+- :fa-check:`check` Comments
 
 **BinaryNinja::Type**
 
