@@ -23333,6 +23333,8 @@ class SYSREG(enum.Enum):
     NUM_TARGET_SYSREGS = 1665
 
 class Instruction(lief.assembly.Instruction):
+    __match_args__: tuple = ...
+
     @property
     def opcode(self) -> OPCODE: ...
 

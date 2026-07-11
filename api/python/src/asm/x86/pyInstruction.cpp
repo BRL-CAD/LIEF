@@ -15,6 +15,8 @@ void create<x86::Instruction>(nb::module_& m) {
     R"doc(This class represents a x86/x86-64 instruction)doc"_doc
   );
 
+  obj.attr("__match_args__") = nb::make_tuple("opcode", "operands");
+
   obj
     .def_prop_ro("operands", [] (const x86::Instruction& self) {
         auto ops = LIEF::py::owning_range(self.operands());

@@ -45378,6 +45378,8 @@ class REG(enum.Enum):
     NUM_TARGET_REGS = 388
 
 class Instruction(lief.assembly.Instruction):
+    __match_args__: tuple = ...
+
     @property
     def operands(self) -> Iterator[Optional[Operand]]: ...
 

@@ -17,6 +17,8 @@ void create<aarch64::Instruction>(nb::module_& m) {
     )doc"_doc
   );
 
+  obj.attr("__match_args__") = nb::make_tuple("opcode", "operands");
+
   obj
     .def_prop_ro("opcode", &Instruction::opcode,
       R"doc(The instruction opcode as defined in LLVM)doc"_doc

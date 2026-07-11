@@ -9046,5 +9046,7 @@ class OPCODE(enum.Enum):
     INSTRUCTION_LIST_END = 4519
 
 class Instruction(lief.assembly.Instruction):
+    __match_args__: tuple = ...
+
     @property
     def opcode(self) -> OPCODE: ...

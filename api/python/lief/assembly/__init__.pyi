@@ -17,6 +17,8 @@ class Engine:
     pass
 
 class Instruction:
+    __match_args__: tuple = ...
+
     class MemoryAccess(enum.Flag):
         @staticmethod
         def from_value(arg: int, /) -> Instruction.MemoryAccess: ...

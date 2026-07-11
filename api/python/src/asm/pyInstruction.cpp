@@ -20,6 +20,8 @@ void create<assembly::Instruction>(nb::module_& m) {
     )doc"_doc
   );
 
+  obj.attr("__match_args__") = nb::make_tuple("mnemonic");
+
   enum_<assembly::Instruction::MemoryAccess>(obj, "MemoryAccess", nb::is_flag())
     .value("NONE", Instruction::MemoryAccess::NONE)
     .value("READ", Instruction::MemoryAccess::READ)

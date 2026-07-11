@@ -6736,6 +6736,8 @@ class REG(enum.Enum):
     NUM_TARGET_REGS = 442
 
 class Instruction(lief.assembly.Instruction):
+    __match_args__: tuple = ...
+
     @property
     def opcode(self) -> OPCODE: ...
 
