@@ -45,6 +45,7 @@ class LayoutChecker {
   bool check_dynamic();
   bool check_notes();
   bool check_tls();
+  bool check_mips_rld_map();
 
   bool check() {
     if (!check_header()) {
@@ -57,6 +58,9 @@ class LayoutChecker {
       return false;
     }
     if (!check_dynamic()) {
+      return false;
+    }
+    if (!check_mips_rld_map()) {
       return false;
     }
     if (!check_notes()) {
@@ -555,6 +559,49 @@ bool LayoutChecker::check_dynamic() {
     }
   }
 
+  return true;
+}
+
+bool LayoutChecker::check_mips_rld_map() {
+  // DT_MIPS_RLD_MAP_REL stores the offset of the run-time loader map
+  // **relative** to the address of its own dynamic entry.
+  // When `DT_MIPS_RLD_MAP` is also present (absolute version)
+  // both tags must reference the same address
+  const bool is64 = this->is64();
+
+  const DynamicEntry* rld_map_rel = elf.get(DynamicEntry::TAG::MIPS_RLD_MAP_REL);
+  if (rld_map_rel == nullptr) {
+    return true;
+  }
+  const DynamicEntry* rld_map = elf.get(DynamicEntry::TAG::MIPS_RLD_MAP);
+  const Segment* pt_dynamic = elf.get(Segment::TYPE::DYNAMIC);
+
+  if (rld_map == nullptr || pt_dynamic == nullptr) {
+    return true;
+  }
+
+  const uint64_t dynent_size =
+      is64 ? sizeof(details::Elf64_Dyn) : sizeof(details::Elf32_Dyn);
+
+  uint64_t index = 0;
+  for (const DynamicEntry& entry : elf.dynamic_entries()) {
+    if (entry.tag() == DynamicEntry::TAG::MIPS_RLD_MAP_REL) {
+      break;
+    }
+    ++index;
+  }
+
+  const uint64_t entry_va = pt_dynamic->virtual_address() + index * dynent_size;
+  uint64_t resolved = entry_va + rld_map_rel->value();
+  if (!is64) {
+    resolved &= 0xffffffff;
+  }
+
+  if (resolved != rld_map->value()) {
+    return error("DT_MIPS_RLD_MAP_REL resolves to {:#x} but DT_MIPS_RLD_MAP "
+                 "points to {:#x}",
+                 resolved, rld_map->value());
+  }
   return true;
 }
 

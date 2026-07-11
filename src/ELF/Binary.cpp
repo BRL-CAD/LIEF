@@ -1906,6 +1906,8 @@ static void do_dynamic_entry_shift(uint64_t from, uint64_t shift,
     case DynamicEntry::TAG::MIPS_INTERFACE:
     case DynamicEntry::TAG::MIPS_AUX_DYNAMIC:
     case DynamicEntry::TAG::MIPS_PLTGOT:
+    // Absolute address of the runtime loader map, used for debugging.
+    case DynamicEntry::TAG::MIPS_RLD_MAP:
     {
       if (entry.value() >= from) {
         entry.value(entry.value() + shift);
@@ -2009,13 +2011,15 @@ static void do_dynamic_entry_shift(uint64_t from, uint64_t shift,
       return;
     }
 
+    // DT_MIPS_RLD_MAP_REL holds an offset **relative** to the address of its own
+    // entry
+    case DynamicEntry::TAG::MIPS_RLD_MAP_REL:
+
     // Not yet documented types
     // If a type is here despite having a description then there is not enough
     // clarity about whether we affect it.
     // TODO: These should be reduced to zero by moving them to the correct
     // category.
-    case DynamicEntry::TAG::MIPS_RLD_MAP: /**< Address of run time loader map, used
-                                             for debugging. */
     case DynamicEntry::TAG::MIPS_DELTA_CLASS: /**< Delta C++ class definition. */
     case DynamicEntry::TAG::MIPS_DELTA_INSTANCE: /**< Delta C++ class instances. */
     case DynamicEntry::TAG::MIPS_DELTA_RELOC:    /**< Delta relocations. */
@@ -2026,7 +2030,6 @@ static void do_dynamic_entry_shift(uint64_t from, uint64_t shift,
     case DynamicEntry::TAG::MIPS_PIXIE_INIT: /**< Pixie information (??? [sic]). */
     case DynamicEntry::TAG::MIPS_DYNSTR_ALIGN: /**< Unknown. */
     case DynamicEntry::TAG::MIPS_RWPLT:
-    case DynamicEntry::TAG::MIPS_RLD_MAP_REL:
     case DynamicEntry::TAG::MIPS_XHASH:
     case DynamicEntry::TAG::AARCH64_BTI_PLT:
     case DynamicEntry::TAG::AARCH64_PAC_PLT:

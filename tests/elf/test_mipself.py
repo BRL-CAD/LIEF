@@ -1,5 +1,7 @@
+from pathlib import Path
+
 import lief
-from utils import parse_elf
+from utils import check_layout, parse_elf
 
 
 def test_mipsel():
@@ -50,3 +52,26 @@ def test_mipsel():
         assert inst[0].to_string() == "0x000fa4: lui $gp, 0x2"
         assert inst[190] is not None
         assert inst[190].to_string() == "0x00129c: nop"
+
+
+def test_add_library_mips_be(tmp_path: Path):
+    """
+    Adding a DT_NEEDED entry through add_library (see issue/)
+    """
+    elf = parse_elf("ELF/elf_reader.mips.elf")
+
+    assert elf.header.identity_class == lief.ELF.Header.CLASS.ELF32
+    assert elf.header.identity_data == lief.ELF.Header.ELF_DATA.MSB
+    assert elf.header.machine_type == lief.ELF.ARCH.MIPS
+
+    entry = elf.add_library("libfoo_be.so")
+    assert entry.tag == lief.ELF.DynamicEntry.TAG.NEEDED
+    assert entry.name == "libfoo_be.so"
+
+    output = tmp_path / "elf_reader.mips.add_library.elf"
+    elf.write(output)
+
+    check_layout(output)
+
+    new = parse_elf(output)
+    assert new.get_library("libfoo_be.so") is not None

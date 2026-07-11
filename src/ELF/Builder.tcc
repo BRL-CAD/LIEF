@@ -1029,7 +1029,15 @@ ok_error_t Builder::build_dynamic_section() {
   LIEF_DEBUG("[+] Building .dynamic");
 
   const auto& dynstr_map = static_cast<ExeLayout*>(layout_.get())->dynstr_map();
+
+  uint64_t dynamic_va = 0;
+  if (const Segment* dyn_seg = binary_->get(Segment::TYPE::DYNAMIC)) {
+    dynamic_va = dyn_seg->virtual_address();
+  }
+  const DynamicEntry* mips_rld_map = binary_->get(DynamicEntry::TAG::MIPS_RLD_MAP);
+
   vector_iostream dynamic_table_raw(should_swap());
+  size_t dyn_idx = 0;
   for (std::unique_ptr<DynamicEntry>& entry : binary_->dynamic_entries_) {
 
     switch (entry->tag()) {
@@ -1180,6 +1188,15 @@ ok_error_t Builder::build_dynamic_section() {
         break;
       }
 
+      case DynamicEntry::TAG::MIPS_RLD_MAP_REL:
+      {
+        if (mips_rld_map != nullptr && dynamic_va != 0) {
+          const uint64_t entry_va = dynamic_va + dyn_idx * sizeof(Elf_Dyn);
+          entry->value(mips_rld_map->value() - entry_va);
+        }
+        break;
+      }
+
       default:
       {
         break;
@@ -1191,6 +1208,7 @@ ok_error_t Builder::build_dynamic_section() {
     dynhdr.d_un.d_val = static_cast<Elf_Xword>(entry->value());
 
     dynamic_table_raw.write<Elf_Dyn>(dynhdr);
+    ++dyn_idx;
   }
 
   std::vector<uint8_t> raw = dynamic_table_raw.raw();
