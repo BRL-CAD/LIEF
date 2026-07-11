@@ -841,9 +841,10 @@ ok_error_t Parser::parse_sections() {
     section->datahandler_ = binary_->datahandler_.get();
 
     const uint64_t section_start = section->file_offset();
-    const uint64_t section_end = section_start + section->size();
     bool access_content = true;
-    if (section_start > stream_->size() || section_end > stream_->size()) {
+    if (section_start > stream_->size() ||
+        section->size() > stream_->size() - section_start)
+    {
       access_content = false;
       if (section->type() != Section::TYPE::NOBITS) {
         LIEF_WARN("Can't access the content of section #{}", i);

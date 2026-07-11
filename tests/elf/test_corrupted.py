@@ -1,4 +1,9 @@
-from utils import parse_elf
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+from utils import address_space_limiter, get_sample, parse_elf
 
 
 def test_symbols():
@@ -20,3 +25,15 @@ def test_relocations():
 
     assert relocations[10].symbol is not None
     assert relocations[10].symbol.name == "strlen"
+
+
+@pytest.mark.linux
+@pytest.mark.private
+def test_section_overflow():
+    sample = Path(get_sample("private/ELF/section_overflow.elf")).absolute()
+
+    subprocess.check_call(
+        [sys.executable, "-c", f'import lief; lief.parse(r"{sample}")'],
+        timeout=60.0,
+        preexec_fn=address_space_limiter(),
+    )
