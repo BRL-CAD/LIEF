@@ -2918,7 +2918,7 @@ ok_error_t BinaryParser::parse_fixup_seg(SpanStream& stream,
         offset_in_page = overflow_val & ~DYLD_CHAINED_PTR_START_LAST;
         uint64_t page_content_start =
             seg_info.segment_offset +
-            (static_cast<uint64_t>(page_idx * seg_info.page_size));
+            (static_cast<uint64_t>(page_idx) * seg_info.page_size);
         uint64_t chain_address = imagebase + page_content_start + offset_in_page;
         uint64_t chain_offset =
             (chain_address - segment->virtual_address()) + segment->file_offset();
@@ -2936,7 +2936,7 @@ ok_error_t BinaryParser::parse_fixup_seg(SpanStream& stream,
     } else {
       uint64_t page_content_start =
           seg_info.segment_offset +
-          (static_cast<uint64_t>(page_idx * seg_info.page_size));
+          (static_cast<uint64_t>(page_idx) * seg_info.page_size);
       uint64_t chain_address = imagebase + page_content_start + offset_in_page;
       uint64_t chain_offset =
           (chain_address - segment->virtual_address()) + segment->file_offset();
