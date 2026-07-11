@@ -175,6 +175,10 @@ span<const uint8_t> Section::content() const {
   if (relative_offset < 0) {
     relative_offset = virtual_address_ - segment_->virtual_address();
   }
+
+  if (relative_offset < 0) {
+    return {};
+  }
   span<const uint8_t> content = segment_->content();
   if (relative_offset > (int64_t)content.size() ||
       (relative_offset + size_) > content.size())

@@ -1,4 +1,7 @@
+import subprocess
+import sys
 from pathlib import Path
+from textwrap import dedent
 
 import lief
 import pytest
@@ -155,3 +158,31 @@ def test_large_dyld_rebase_count():
     # The display walker must stay bounded as well (no multi-GB string).
     opcodes_repr = dyld_info.show_rebases_opcodes
     assert opcodes_repr.count("rebase(") < 0x1000
+
+
+@pytest.mark.private
+def test_negative_relative_offset():
+    sample = Path(get_sample("private/MachO/negative_relative_offset.macho")).absolute()
+
+    subprocess.check_call(
+        [
+            sys.executable,
+            "-c",
+            dedent("""\
+            import lief
+            import sys
+            fat = lief.MachO.parse(sys.argv[1])
+            b = fat.at(0)
+            assert b is not None
+            [bytes(s.content) for s in b.sections]"""),
+            str(sample),
+        ],
+        timeout=30.0,
+    )
+
+    fat = lief.MachO.parse(sample)
+    assert fat is not None
+    target = fat.at(0)
+    assert target is not None
+    assert len(target.sections) == 1
+    assert bytes(target.sections[0].content) == b""
