@@ -215,6 +215,14 @@ def test_guard_cf_functions():
     assert functions[163].extra == 0
 
 
+def test_guard_cf_functions_large():
+    pe = parse_pe("PE/Solitaire.exe")
+    lconfig = pe.load_configuration
+    assert lconfig is not None
+    assert lconfig.guard_cf_function_count == 34814
+    assert len(lconfig.guard_cf_functions) == 34814
+
+
 def test_guard_cf_iat_taken():
     input_path = Path(
         get_sample("PE/win11_arm64x_Windows.Media.Protection.PlayReady.dll")

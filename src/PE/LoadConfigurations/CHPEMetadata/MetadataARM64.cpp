@@ -265,11 +265,15 @@ ok_error_t CHPEMetadataARM64::parse_code_map(Parser& ctx,
 
   ScopedStream stream(ctx.stream(), offset);
 
-  // std::min to prevent corrupted count
-  size_t reserved = std::min<size_t>(count, 15);
-  metadata.range_entries_.reserve(reserved);
+  // Bound the loop to the number of 8-byte entries the stream can still provide
+  // so a corrupted count can't drive it (and the allocations) past the data.
+  const uint64_t available =
+      stream->size() - std::min<uint64_t>(stream->pos(), stream->size());
+  const uint64_t nb =
+      std::min<uint64_t>(count, available / (2 * sizeof(uint32_t)));
+  metadata.range_entries_.reserve(std::min<uint64_t>(nb, 15));
 
-  for (size_t i = 0; i < count; ++i) {
+  for (size_t i = 0; i < nb; ++i) {
     auto start_offset = stream->read<uint32_t>();
     if (!start_offset) {
       return make_error_code(start_offset.error());
@@ -293,11 +297,15 @@ ok_error_t CHPEMetadataARM64::parse_redirections(Parser& ctx,
   const size_t count = metadata.redirection_metadata_count();
 
   ScopedStream stream(ctx.stream(), offset);
-  // std::min to prevent corrupted count
-  size_t reserved = std::min<size_t>(count, 15);
-  metadata.redirection_entries_.reserve(reserved);
+  // Bound the loop to the number of 8-byte entries the stream can still provide
+  // so a corrupted count can't drive it (and the allocations) past the data.
+  const uint64_t available =
+      stream->size() - std::min<uint64_t>(stream->pos(), stream->size());
+  const uint64_t nb =
+      std::min<uint64_t>(count, available / (2 * sizeof(uint32_t)));
+  metadata.redirection_entries_.reserve(std::min<uint64_t>(nb, 15));
 
-  for (size_t i = 0; i < count; ++i) {
+  for (size_t i = 0; i < nb; ++i) {
     auto src = stream->read<uint32_t>();
     if (!src) {
       return make_error_code(src.error());
@@ -320,9 +328,14 @@ ok_error_t CHPEMetadataARM64::parse_code_ranges_to_entry_points(
   const size_t count = metadata.code_ranges_to_entry_points_count();
 
   ScopedStream stream(ctx.stream(), offset);
-  // std::min to prevent corrupted count
-  size_t reserved = std::min<size_t>(count, 15);
-  metadata.redirection_entries_.reserve(reserved);
+  // Each entry is 3 x 4-byte fields (see the struct below). Bound the loop to
+  // what the stream can still provide so a corrupted count can't drive it (and
+  // the allocations) past the data.
+  const uint64_t available =
+      stream->size() - std::min<uint64_t>(stream->pos(), stream->size());
+  const uint64_t nb =
+      std::min<uint64_t>(count, available / (3 * sizeof(uint32_t)));
+  metadata.code_range_entry_point_entries_.reserve(std::min<uint64_t>(nb, 15));
 
   // Definition in ntimage.h:
   //
@@ -333,7 +346,7 @@ ok_error_t CHPEMetadataARM64::parse_code_ranges_to_entry_points(
   //     ULONG EntryPoint;
   // } IMAGE_ARM64EC_CODE_RANGE_ENTRY_POINT;
   // ```
-  for (size_t i = 0; i < count; ++i) {
+  for (size_t i = 0; i < nb; ++i) {
     auto StartRva = stream->read<uint32_t>();
     if (!StartRva) {
       LIEF_DEBUG("Failed to read IMAGE_ARM64EC_CODE_RANGE_ENTRY_POINT.StartRva");

@@ -526,10 +526,15 @@ ok_error_t LoadConfiguration::parse_seh_table(Parser& /*ctx*/,
     return ok();
   }
 
-  LIEF_DEBUG("SEH Table parsing (#{})", count);
+  const uint64_t available =
+      stream.size() - std::min<uint64_t>(stream.pos(), stream.size());
 
-  config.seh_rva_.reserve(std::min<uint64_t>(MAX_RESERVE, count));
-  for (size_t i = 0; i < count; ++i) {
+  const uint64_t nb = std::min<uint64_t>(count, available / sizeof(uint32_t));
+
+  LIEF_DEBUG("SEH Table parsing (#{}, bounded to #{})", count, nb);
+
+  config.seh_rva_.reserve(std::min<uint64_t>(MAX_RESERVE, nb));
+  for (size_t i = 0; i < nb; ++i) {
     auto rva = stream.read<uint32_t>();
     if (!rva) {
       return make_error_code(rva.error());
@@ -552,12 +557,23 @@ ok_error_t LoadConfiguration::parse_guard_functions(
 
   const uint32_t stride = config.guard_flags().value_or(0) >> 28;
 
-  LIEF_DEBUG("Parsing GF (#{}, stride={})", count, stride);
 
-  (config.*dst).reserve(std::min<uint64_t>(MAX_RESERVE, count));
+  uint64_t entry_size = sizeof(uint32_t);
+  if (stride >= 1) {
+    entry_size += stride;
+  }
+
+  const uint64_t available =
+      stream.size() - std::min<uint64_t>(stream.pos(), stream.size());
+
+  const uint64_t nb = std::min<uint64_t>(count, available / entry_size);
+
+  LIEF_DEBUG("Parsing GF (#{}, bounded to #{}, stride={})", count, nb, stride);
+
+  (config.*dst).reserve(std::min<uint64_t>(MAX_RESERVE, nb));
 
   bool once_stride = false;
-  for (size_t i = 0; i < count; ++i) {
+  for (size_t i = 0; i < nb; ++i) {
     auto rva = stream.read<uint32_t>();
     if (!rva) {
       LIEF_DEBUG("Failed to read RVA at index {} ({}:{})", i, __FUNCTION__,
