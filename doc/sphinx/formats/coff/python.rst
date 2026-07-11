@@ -98,7 +98,7 @@ AuxiliaryCLRToken
   :top-classes: lief._lief.COFF.AuxiliarySymbol
   :parts: 2
 
-.. autoclass:: lief.COFF.AuxiliarySymbol
+.. autoclass:: lief.COFF.AuxiliaryCLRToken
 
 ----------
 

@@ -44,7 +44,8 @@ void create<LazyLoadDylibInfo>(nb::module_& m) {
   nb::class_<Fixup>(cmd, "Fixup",
     R"doc(
     A single lazy-binding fixup decoded from the chain referenced by
-    :attr:`~.chain_start_image_offset` and decoded according to :attr:`~.pointer_format`.
+    :attr:`~.chain_start_image_offset` and decoded according to
+    :attr:`~lief.MachO.LazyLoadDylibInfo.pointer_format`.
     )doc"_doc)
     .def_prop_rw("address",
         nb::overload_cast<>(&Fixup::address, nb::const_),
@@ -52,7 +53,8 @@ void create<LazyLoadDylibInfo>(nb::module_& m) {
         "Virtual address of the slot bound by this fixup"_doc)
 
     .def_prop_ro("ordinal", &Fixup::ordinal,
-        "Index of the bound symbol in :attr:`~.symbols`"_doc)
+        "Index of the bound symbol in "
+        ":attr:`~lief.MachO.LazyLoadDylibInfo.symbols`"_doc)
 
     .def_prop_ro("symbol", &Fixup::symbol,
         "Name of the bound symbol (resolved from :attr:`~.ordinal`)"_doc)

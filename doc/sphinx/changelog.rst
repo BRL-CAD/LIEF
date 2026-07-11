@@ -2443,4 +2443,9 @@ Acknowledgements
 
 First public release
 
+.. toctree::
+   :hidden:
+
+   changelog/pe-0-17-0
+
 .. include:: ./_cross_api.rst

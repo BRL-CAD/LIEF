@@ -449,10 +449,10 @@ Resource Var File Info
 
 ----------
 
-Resource Var File Info
-**********************
+Resource String File Info
+*************************
 
-.. autoclass:: lief.PE.ResourceVarFileInfo
+.. autoclass:: lief.PE.ResourceStringFileInfo
 
 ----------
 

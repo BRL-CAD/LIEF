@@ -62,38 +62,48 @@ class LIEF_API DyldChainedFixups : public LoadCommand {
   /// The relocations provided by this structure can be accessed through
   /// SegmentCommand::relocations
   struct chained_starts_in_segment {
-    uint32_t offset = 0; ///< Original offset of the structure, relative to
-                         ///< DyldChainedFixups::starts_offset
-    uint32_t size =
-        0; ///< sizeof(size) + sizeof(page_size) + ... + sizeof(pointer_format)
-    uint16_t page_size = 0; ///< Likely 0x1000 for x86/x86_64 architectures and
-                            ///< 0x4000 for ARM64 architecture
-    uint64_t segment_offset =
-        0; ///< Offset of the segment's data from the beginning of the file (it
-           ///< should match SegmentCommand::file_offset)
-    uint32_t max_valid_pointer =
-        0; ///< for 32-bit OS, any value beyond this is not a pointer
-    DYLD_CHAINED_PTR_FORMAT pointer_format =
-        DYLD_CHAINED_PTR_FORMAT::NONE; ///< How pointers are encoded
+    /// Original offset of the structure, relative to
+    /// DyldChainedFixups::starts_offset
+    uint32_t offset = 0;
+
+    /// sizeof(size) + sizeof(page_size) + ... + sizeof(pointer_format)
+    uint32_t size = 0;
+
+    /// Likely 0x1000 for x86/x86_64 architectures and 0x4000 for ARM64
+    /// architecture
+    uint16_t page_size = 0;
+
+    /// Offset of the segment's data from the beginning of the file (it
+    /// should match SegmentCommand::file_offset)
+    uint64_t segment_offset = 0;
+
+    /// for 32-bit OS, any value beyond this is not a pointer
+    uint32_t max_valid_pointer = 0;
+
+    /// How pointers are encoded
+    DYLD_CHAINED_PTR_FORMAT pointer_format = DYLD_CHAINED_PTR_FORMAT::NONE;
 
     /// How many pages are in the page_start array
     size_t page_count() const {
       return page_start.size();
     }
 
-    std::vector<uint16_t> page_start;   ///< Offset in the SegmentCommand of the
-                                        ///< first element of the chain
-    std::vector<uint16_t> chain_starts; ///< Currently not supported
+    /// Offset in the SegmentCommand of the
+    /// first element of the chain
+    std::vector<uint16_t> page_start;
 
-    SegmentCommand&
-        segment; ///< Segment in which the rebase/bind fixups take place
+    /// Currently not supported
+    std::vector<uint16_t> chain_starts;
+
+    /// Segment in which the rebase/bind fixups take place
+    SegmentCommand& segment;
 
     LIEF_API friend std::ostream&
         operator<<(std::ostream& os, const chained_starts_in_segment& info);
 
     static chained_starts_in_segment
         create_empty_chained(SegmentCommand& segment) {
-      return chained_starts_in_segment(0, segment);
+      return {0, segment};
     }
 
     private:
