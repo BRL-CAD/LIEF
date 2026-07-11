@@ -439,7 +439,7 @@ class LIEF_API Binary : public LIEF::Binary {
   /// If there is an error, this function returns a ``nullptr``. Otherwise, it
   /// returns the relocation added.
   Relocation* add_object_relocation(const Relocation& relocation,
-                                    const Section& section);
+                                    const Section& section) LIEF_LIFETIMEBOUND;
 
   /// Return `plt.got` relocations
   it_pltgot_relocations pltgot_relocations() LIEF_LIFETIMEBOUND;
@@ -534,21 +534,21 @@ class LIEF_API Binary : public LIEF::Binary {
 
   /// Return the `.text` section. If the section
   /// can't be found, it returns a nullptr
-  Section* text_section() {
+  Section* text_section() LIEF_LIFETIMEBOUND {
     return get_section(".text");
   }
 
   /// Return the `.dynamic` section. If the section
   /// can't be found, it returns a nullptr
-  Section* dynamic_section();
+  Section* dynamic_section() LIEF_LIFETIMEBOUND;
 
   /// Return the hash section. If the section
   /// can't be found, it returns a nullptr
-  Section* hash_section();
+  Section* hash_section() LIEF_LIFETIMEBOUND;
 
   /// Return section which holds the symtab symbols. If the section
   /// can't be found, it returns a nullptr
-  Section* symtab_symbols_section();
+  Section* symtab_symbols_section() LIEF_LIFETIMEBOUND;
 
   /// Return program image base. For instance ``0x40000``
   ///
@@ -567,7 +567,7 @@ class LIEF_API Binary : public LIEF::Binary {
   /// If the binary does not have an interpreter, it returns an empty string
   ///
   /// @see has_interpreter
-  const std::string& interpreter() const {
+  const std::string& interpreter() const LIEF_LIFETIMEBOUND {
     return interpreter_;
   }
 
@@ -690,7 +690,8 @@ class LIEF_API Binary : public LIEF::Binary {
                                 const std::string& name = "") LIEF_LIFETIMEBOUND;
 
   /// Add a library as dependency
-  DynamicEntryLibrary& add_library(const std::string& library_name);
+  DynamicEntryLibrary&
+      add_library(const std::string& library_name) LIEF_LIFETIMEBOUND;
 
   /// Remove the given library from the dependencies
   void remove_library(const std::string& library_name);
@@ -873,6 +874,7 @@ class LIEF_API Binary : public LIEF::Binary {
   const Section* section_from_virtual_address(
       uint64_t address, bool skip_nobits = true
   ) const LIEF_LIFETIMEBOUND;
+
   Section*
       section_from_virtual_address(uint64_t address,
                                    bool skip_nobits = true) LIEF_LIFETIMEBOUND {
@@ -886,6 +888,7 @@ class LIEF_API Binary : public LIEF::Binary {
   /// if a segment can't be found.
   const Segment*
       segment_from_virtual_address(uint64_t address) const LIEF_LIFETIMEBOUND;
+
   Segment* segment_from_virtual_address(uint64_t address) LIEF_LIFETIMEBOUND {
     return const_cast<Segment*>(
         static_cast<const Binary*>(this)->segment_from_virtual_address(address)
@@ -1101,74 +1104,74 @@ class LIEF_API Binary : public LIEF::Binary {
 
   std::ostream& print(std::ostream& os) const override;
 
-  Binary& operator+=(const DynamicEntry& entry) {
+  Binary& operator+=(const DynamicEntry& entry) LIEF_LIFETIMEBOUND {
     add(entry);
     return *this;
   }
-  Binary& operator+=(const Section& section) {
+  Binary& operator+=(const Section& section) LIEF_LIFETIMEBOUND {
     add(section);
     return *this;
   }
 
-  Binary& operator+=(const Segment& segment) {
+  Binary& operator+=(const Segment& segment) LIEF_LIFETIMEBOUND {
     add(segment);
     return *this;
   }
 
-  Binary& operator+=(const Note& note) {
+  Binary& operator+=(const Note& note) LIEF_LIFETIMEBOUND {
     add(note);
     return *this;
   }
 
-  Binary& operator-=(const DynamicEntry& entry) {
+  Binary& operator-=(const DynamicEntry& entry) LIEF_LIFETIMEBOUND {
     remove(entry);
     return *this;
   }
 
-  Binary& operator-=(DynamicEntry::TAG tag) {
+  Binary& operator-=(DynamicEntry::TAG tag) LIEF_LIFETIMEBOUND {
     remove(tag);
     return *this;
   }
 
-  Binary& operator-=(const Note& note) {
+  Binary& operator-=(const Note& note) LIEF_LIFETIMEBOUND {
     remove(note);
     return *this;
   }
 
-  Binary& operator-=(Note::TYPE type) {
+  Binary& operator-=(Note::TYPE type) LIEF_LIFETIMEBOUND {
     remove(type);
     return *this;
   }
 
-  Segment* operator[](Segment::TYPE type) {
+  Segment* operator[](Segment::TYPE type) LIEF_LIFETIMEBOUND {
     return get(type);
   }
 
-  const Segment* operator[](Segment::TYPE type) const {
+  const Segment* operator[](Segment::TYPE type) const LIEF_LIFETIMEBOUND {
     return get(type);
   }
 
-  DynamicEntry* operator[](DynamicEntry::TAG tag) {
+  DynamicEntry* operator[](DynamicEntry::TAG tag) LIEF_LIFETIMEBOUND {
     return get(tag);
   }
 
-  const DynamicEntry* operator[](DynamicEntry::TAG tag) const {
+  const DynamicEntry* operator[](DynamicEntry::TAG tag) const LIEF_LIFETIMEBOUND {
     return get(tag);
   }
 
-  Note* operator[](Note::TYPE type) {
+  Note* operator[](Note::TYPE type) LIEF_LIFETIMEBOUND {
     return get(type);
   }
 
-  const Note* operator[](Note::TYPE type) const {
+  const Note* operator[](Note::TYPE type) const LIEF_LIFETIMEBOUND {
     return get(type);
   }
 
-  Section* operator[](Section::TYPE type) {
+  Section* operator[](Section::TYPE type) LIEF_LIFETIMEBOUND {
     return get(type);
   }
 
-  const Section* operator[](Section::TYPE type) const {
+  const Section* operator[](Section::TYPE type) const LIEF_LIFETIMEBOUND {
     return get(type);
   }
 
@@ -1223,7 +1226,8 @@ class LIEF_API Binary : public LIEF::Binary {
   LIEF_LOCAL LIEF::Binary::functions_t armexid_functions() const;
 
   template<Header::FILE_TYPE OBJECT_TYPE, bool note = false>
-  LIEF_LOCAL Segment* add_segment(const Segment& segment, uint64_t base);
+  LIEF_LOCAL Segment* add_segment(const Segment& segment,
+                                  uint64_t base) LIEF_LIFETIMEBOUND;
 
   LIEF_LOCAL uint64_t relocate_phdr_table_auto();
   LIEF_LOCAL uint64_t relocate_phdr_table_pie();
@@ -1232,16 +1236,18 @@ class LIEF_API Binary : public LIEF::Binary {
   LIEF_LOCAL uint64_t relocate_phdr_table_v3();
 
   template<Segment::TYPE PT>
-  LIEF_LOCAL Segment* extend_segment(const Segment& segment, uint64_t size);
+  LIEF_LOCAL Segment* extend_segment(const Segment& segment,
+                                     uint64_t size) LIEF_LIFETIMEBOUND;
 
   template<bool LOADED>
-  LIEF_LOCAL Section* add_section(const Section& section, SEC_INSERT_POS pos);
+  LIEF_LOCAL Section* add_section(const Section& section,
+                                  SEC_INSERT_POS pos) LIEF_LIFETIMEBOUND;
 
-  std::vector<Symbol*> symtab_dyn_symbols() const;
+  std::vector<Symbol*> symtab_dyn_symbols() const LIEF_LIFETIMEBOUND;
 
   LIEF_LOCAL std::string shstrtab_name() const;
-  LIEF_LOCAL Section* add_frame_section(const Section& sec);
-  LIEF_LOCAL Section* add_section(std::unique_ptr<Section> sec);
+  LIEF_LOCAL Section* add_frame_section(const Section& sec) LIEF_LIFETIMEBOUND;
+  LIEF_LOCAL Section* add_section(std::unique_ptr<Section> sec) LIEF_LIFETIMEBOUND;
 
   LIEF_LOCAL LIEF::Binary::functions_t tor_functions(DynamicEntry::TAG tag) const;
 

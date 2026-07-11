@@ -121,7 +121,7 @@ class ref_iterator {
     std::advance(it_, distance_);
   }
 
-  ref_iterator& operator=(ref_iterator other) {
+  ref_iterator& operator=(ref_iterator other) LIEF_LIFETIMEBOUND {
     swap(other);
     return *this;
   }
@@ -136,7 +136,7 @@ class ref_iterator {
   }
 
 
-  ref_iterator& operator++() {
+  ref_iterator& operator++() LIEF_LIFETIMEBOUND {
     it_ = std::next(it_);
     distance_++;
     return *this;
@@ -148,7 +148,7 @@ class ref_iterator {
     return retval;
   }
 
-  ref_iterator& operator--() {
+  ref_iterator& operator--() LIEF_LIFETIMEBOUND {
     if (it_ != std::begin(container_)) {
       it_ = std::prev(it_);
       distance_--;
@@ -163,16 +163,18 @@ class ref_iterator {
   }
 
 
-  ref_iterator&
-      operator+=(const typename ref_iterator::difference_type& movement) {
+  ref_iterator& operator+=(
+      const typename ref_iterator::difference_type& movement
+  ) LIEF_LIFETIMEBOUND {
     std::advance(it_, movement);
     distance_ += movement;
     return *this;
   }
 
 
-  ref_iterator&
-      operator-=(const typename ref_iterator::difference_type& movement) {
+  ref_iterator& operator-=(
+      const typename ref_iterator::difference_type& movement
+  ) LIEF_LIFETIMEBOUND {
     return (*this) += -movement;
   }
 
@@ -414,7 +416,7 @@ class filter_iterator {
     std::advance(it_, distance_);
   }
 
-  filter_iterator& operator=(filter_iterator other) {
+  filter_iterator& operator=(filter_iterator other) LIEF_LIFETIMEBOUND {
     swap(other);
     return *this;
   }
@@ -430,14 +432,14 @@ class filter_iterator {
   }
 
 
-  filter_iterator& def(filter_t func) {
+  filter_iterator& def(filter_t func) LIEF_LIFETIMEBOUND {
     filters_.push_back(func);
     size_c_ = 0;
     size_cached_ = false;
     return *this;
   }
 
-  filter_iterator& operator++() {
+  filter_iterator& operator++() LIEF_LIFETIMEBOUND {
     next();
     return *this;
   }
@@ -939,12 +941,12 @@ class iterator_adaptor_base
   // We have to explicitly provide ++ and -- rather than letting the facade
   // forward to += because WrappedIteratorT might not support +=.
   using BaseT::operator++;
-  DerivedT& operator++() {
+  DerivedT& operator++() LIEF_LIFETIMEBOUND {
     ++I;
     return *static_cast<DerivedT*>(this);
   }
   using BaseT::operator--;
-  DerivedT& operator--() {
+  DerivedT& operator--() LIEF_LIFETIMEBOUND {
     static_assert(
         BaseT::IsBidirectional,
         "The decrement operator is only defined for bidirectional iterators."
