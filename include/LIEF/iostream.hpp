@@ -250,15 +250,17 @@ class LIEF_API vector_iostream {
 
   template<class T>
   T* edit_as() {
-    assert(((size_t)current_pos_ + sizeof(T)) <= raw_->size());
+    const auto end = static_cast<size_t>(current_pos_) + sizeof(T);
+    if (raw_->size() < end) {
+      return nullptr;
+    }
     return reinterpret_cast<T*>(raw_->data() + current_pos_);
   }
 
   template<class T>
   T* edit_as(size_t pos) {
     seekp(pos);
-    assert(((size_t)current_pos_ + sizeof(T)) <= raw_->size());
-    return reinterpret_cast<T*>(raw_->data() + current_pos_);
+    return edit_as<T>();
   }
 
   const vector_iostream& copy_into(const span<uint8_t>& sp, size_t sz) const {
