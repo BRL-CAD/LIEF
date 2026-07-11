@@ -36,6 +36,17 @@ impl Class<'_> {
         into_optional(self.ptr.super_class())
     }
 
+    /// (raw) name of the superclass (empty for root classes or when it could
+    /// not be resolved).
+    pub fn super_name(&self) -> String {
+        self.ptr.super_name().to_string()
+    }
+
+    /// Demangled name of the superclass.
+    pub fn demangled_super_name(&self) -> String {
+        self.ptr.demangled_super_name().to_string()
+    }
+
     pub fn is_meta(&self) -> bool {
         self.ptr.is_meta()
     }

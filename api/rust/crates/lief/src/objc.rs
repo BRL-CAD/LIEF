@@ -14,6 +14,7 @@
 //! }
 //! ```
 
+pub mod category;
 pub mod class;
 pub mod decl_opt;
 pub mod ivar;
@@ -27,6 +28,9 @@ pub use metadata::Metadata;
 
 #[doc(inline)]
 pub use class::Class;
+
+#[doc(inline)]
+pub use category::Category;
 
 #[doc(inline)]
 pub use method::Method;

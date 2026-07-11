@@ -28,7 +28,23 @@ void create<objc::Class>(nb::module_& m) {
     )
     .def_prop_ro("super_class", &objc::Class::super_class,
       R"doc(
-      Parent class in case of inheritance
+      Parent class in case of inheritance.
+
+      This is set **only** when the superclass is defined in the same binary.
+      For root classes (e.g. ``NSObject``) or superclasses imported from another
+      image, it is ``None`` even though :attr:`super_name` /
+      :attr:`demangled_super_name` may still be resolved.
+      )doc"_doc, nb::keep_alive<0, 1>()
+    )
+    .def_prop_ro("super_name", &objc::Class::super_name,
+      R"doc(
+      (raw) name of the superclass (empty for root classes or when it could not
+      be resolved).
+      )doc"_doc
+    )
+    .def_prop_ro("demangled_super_name", &objc::Class::demangled_super_name,
+      R"doc(
+      Demangled name of the superclass.
       )doc"_doc
     )
     .def_prop_ro("is_meta", &objc::Class::is_meta,

@@ -18,6 +18,7 @@
 
 #include "LIEF/rust/ObjC/Class.hpp"
 #include "LIEF/rust/ObjC/Protocol.hpp"
+#include "LIEF/rust/ObjC/Category.hpp"
 #include "LIEF/rust/ObjC/DeclOpt.hpp"
 
 #include "LIEF/rust/Iterator.hpp"
@@ -54,6 +55,19 @@ class ObjC_Metadata : private Mirror<LIEF::objc::Metadata> {
     }
   };
 
+  class it_categories
+    : public ForwardIterator<ObjC_Category, LIEF::objc::Category::Iterator> {
+    public:
+    it_categories(const ObjC_Metadata::lief_t& src) :
+      ForwardIterator(src.categories()) {}
+    auto next() {
+      return ForwardIterator::next();
+    }
+    auto size() const {
+      return ForwardIterator::size();
+    }
+  };
+
   auto get_class(const std::string& name) const {
     return details::try_unique<ObjC_Class>(get().get_class(name));
   }
@@ -70,6 +84,10 @@ class ObjC_Metadata : private Mirror<LIEF::objc::Metadata> {
     return std::make_unique<it_protocols>(get());
   }
 
+  auto categories() const {
+    return std::make_unique<it_categories>(get());
+  }
+
   auto to_decl() const {
     return to_unique_string(get().to_decl());
   }
@@ -81,3 +99,4 @@ class ObjC_Metadata : private Mirror<LIEF::objc::Metadata> {
 
 using ObjC_Metadata_it_classes = ObjC_Metadata::it_classes;
 using ObjC_Metadata_it_protocols = ObjC_Metadata::it_protocols;
+using ObjC_Metadata_it_categories = ObjC_Metadata::it_categories;

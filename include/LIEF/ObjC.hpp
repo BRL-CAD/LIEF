@@ -17,6 +17,7 @@
 #define LIEF_OBJC_H
 #include <LIEF/ObjC/Metadata.hpp>
 #include <LIEF/ObjC/Class.hpp>
+#include <LIEF/ObjC/Category.hpp>
 #include <LIEF/ObjC/IVar.hpp>
 #include <LIEF/ObjC/Method.hpp>
 #include <LIEF/ObjC/Property.hpp>

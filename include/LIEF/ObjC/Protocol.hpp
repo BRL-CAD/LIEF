@@ -14,6 +14,7 @@
  */
 #ifndef LIEF_OBJC_PROTOCOL_H
 #define LIEF_OBJC_PROTOCOL_H
+#include <LIEF/compiler_attributes.hpp>
 #include <LIEF/visibility.h>
 #include <LIEF/iterators.hpp>
 
@@ -87,20 +88,25 @@ class LIEF_API Protocol {
   public:
   using methods_it = iterator_range<Method::Iterator>;
   using properties_it = iterator_range<Property::Iterator>;
+  using protocols_it = iterator_range<Iterator>;
 
   Protocol(std::unique_ptr<details::Protocol> impl);
 
   /// Mangled name of the protocol
   std::string mangled_name() const;
 
+  /// Iterator over the protocols adopted by this protocol (e.g. the
+  /// `<Bar, Baz>` in `@protocol Foo <Bar, Baz>`).
+  protocols_it protocols() const LIEF_LIFETIMEBOUND;
+
   /// Iterator over the methods that could be overridden
-  methods_it optional_methods() const;
+  methods_it optional_methods() const LIEF_LIFETIMEBOUND;
 
   /// Iterator over the methods of this protocol that must be implemented
-  methods_it required_methods() const;
+  methods_it required_methods() const LIEF_LIFETIMEBOUND;
 
   /// Iterator over the properties defined in this protocol
-  properties_it properties() const;
+  properties_it properties() const LIEF_LIFETIMEBOUND;
 
   /// Generate a header-like string for this specific protocol.
   ///

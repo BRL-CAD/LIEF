@@ -10,11 +10,17 @@ pub mod ffi {
         type ObjC_Protocol;
 
         fn mangled_name(self: &ObjC_Protocol) -> UniquePtr<CxxString>;
+        fn protocols(self: &ObjC_Protocol) -> UniquePtr<ObjC_Protocol_it_protocols>;
         fn optional_methods(self: &ObjC_Protocol) -> UniquePtr<ObjC_Protocol_it_opt_methods>;
         fn required_methods(self: &ObjC_Protocol) -> UniquePtr<ObjC_Protocol_it_req_methods>;
         fn properties(self: &ObjC_Protocol) -> UniquePtr<ObjC_Protocol_it_properties>;
         fn to_decl(self: &ObjC_Protocol) -> UniquePtr<CxxString>;
         fn to_decl_with_opt(self: &ObjC_Protocol, opt: &ObjC_DeclOpt) -> UniquePtr<CxxString>;
+
+        type ObjC_Protocol_it_protocols;
+
+        fn next(self: Pin<&mut ObjC_Protocol_it_protocols>) -> UniquePtr<ObjC_Protocol>;
+        fn size(self: &ObjC_Protocol_it_protocols) -> u64;
 
         type ObjC_Protocol_it_opt_methods;
 
@@ -33,6 +39,7 @@ pub mod ffi {
     }
 
     impl UniquePtr<ObjC_Protocol> {}
+    impl UniquePtr<ObjC_Protocol_it_protocols> {}
     impl UniquePtr<ObjC_Protocol_it_opt_methods> {}
     impl UniquePtr<ObjC_Protocol_it_properties> {}
     impl UniquePtr<ObjC_Protocol_it_req_methods> {}

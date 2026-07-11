@@ -15,6 +15,7 @@
 // NOLINTBEGIN
 #include "LIEF/ObjC/Metadata.hpp"
 #include "LIEF/ObjC/Class.hpp"
+#include "LIEF/ObjC/Category.hpp"
 #include "LIEF/MachO/Binary.hpp"
 
 #include "logging.hpp"
@@ -44,6 +45,9 @@ class MethodIt {};
 class Protocol {};
 class ProtocolIt {};
 
+class Category {};
+class CategoryIt {};
+
 class IVar {};
 class IVarIt {};
 
@@ -67,6 +71,10 @@ Metadata::classes_it Metadata::classes() const {
 
 Metadata::protocols_it Metadata::protocols() const {
   return make_empty_iterator<Protocol>();
+}
+
+Metadata::categories_it Metadata::categories() const {
+  return make_empty_iterator<Category>();
 }
 
 std::unique_ptr<Class> Metadata::get_class(const std::string& /*name*/) const {
@@ -148,6 +156,14 @@ std::unique_ptr<Class> Class::super_class() const {
   return nullptr;
 }
 
+std::string Class::super_name() const {
+  return "";
+}
+
+std::string Class::demangled_super_name() const {
+  return "";
+}
+
 bool Class::is_meta() const {
   return false;
 }
@@ -226,6 +242,10 @@ std::string Protocol::mangled_name() const {
   return "";
 }
 
+Protocol::protocols_it Protocol::protocols() const {
+  return make_empty_iterator<Protocol>();
+}
+
 std::string Protocol::to_decl(const DeclOpt&) const {
   return "";
 }
@@ -239,6 +259,82 @@ Protocol::methods_it Protocol::required_methods() const {
 }
 
 Protocol::properties_it Protocol::properties() const {
+  return make_empty_iterator<Property>();
+}
+
+// ----------------------------------------------------------------------------
+// ObjC/Category.hpp
+// ----------------------------------------------------------------------------
+Category::Iterator::Iterator() :
+  impl_(nullptr) {}
+
+Category::Iterator::Iterator(std::unique_ptr<details::CategoryIt>) :
+  impl_(nullptr) {}
+
+Category::Iterator::Iterator(const Iterator&) :
+  impl_(nullptr) {}
+
+Category::Iterator& Category::Iterator::operator=(const Iterator&) {
+  return *this;
+}
+
+Category::Iterator::Iterator(Iterator&&) noexcept = default;
+Category::Iterator& Category::Iterator::operator=(Iterator&&) noexcept = default;
+
+Category::Iterator::~Iterator() = default;
+
+bool operator==(const Category::Iterator&, const Category::Iterator&) {
+  return true;
+}
+
+Category::Iterator& Category::Iterator::operator++() {
+  return *this;
+}
+
+Category::Iterator& Category::Iterator::operator--() {
+  return *this;
+}
+
+void Category::Iterator::load() const {}
+
+const Category& Category::Iterator::operator*() const {
+  return *cached_;
+}
+
+const Category* Category::Iterator::operator->() const {
+  return nullptr;
+}
+
+std::unique_ptr<Category> Category::Iterator::yield() {
+  return nullptr;
+}
+
+Category::Category(std::unique_ptr<details::Category> impl) :
+  impl_(std::move(impl)) {}
+
+Category::~Category() = default;
+
+std::string Category::name() const {
+  return "";
+}
+
+std::string Category::class_name() const {
+  return "";
+}
+
+std::string Category::to_decl(const DeclOpt&) const {
+  return "";
+}
+
+Category::methods_t Category::methods() const {
+  return make_empty_iterator<Method>();
+}
+
+Category::protocols_t Category::protocols() const {
+  return make_empty_iterator<Protocol>();
+}
+
+Category::properties_t Category::properties() const {
   return make_empty_iterator<Property>();
 }
 

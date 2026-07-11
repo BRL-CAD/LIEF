@@ -4,7 +4,7 @@ use crate::common::{into_optional, FromFFI};
 use crate::declare_fwd_iterator;
 use std::marker::PhantomData;
 
-use super::{Class, DeclOpt, Protocol};
+use super::{Category, Class, DeclOpt, Protocol};
 
 /// This structure is the main interface to inspect Objective-C metadata
 ///
@@ -32,6 +32,12 @@ impl Metadata<'_> {
     /// Return an iterator over the Objective-C protocols declared in this binary (`@protocol`).
     pub fn protocols(&self) -> Protocols<'_> {
         Protocols::new(self.ptr.protocols())
+    }
+
+    /// Return an iterator over the Objective-C categories declared in this binary
+    /// (e.g. `@interface NSString (MyAdditions)`).
+    pub fn categories(&self) -> Categories<'_> {
+        Categories::new(self.ptr.categories())
     }
 
     /// Try to find the Objective-C class with the given **mangled** name
@@ -73,4 +79,12 @@ declare_fwd_iterator!(
     ffi::ObjC_Protocol,
     ffi::ObjC_Metadata,
     ffi::ObjC_Metadata_it_protocols
+);
+
+declare_fwd_iterator!(
+    Categories,
+    Category<'a>,
+    ffi::ObjC_Category,
+    ffi::ObjC_Metadata,
+    ffi::ObjC_Metadata_it_categories
 );

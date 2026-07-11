@@ -27,6 +27,12 @@ impl Protocol<'_> {
         self.ptr.mangled_name().to_string()
     }
 
+    /// Iterator over the protocols adopted by this protocol (e.g. the
+    /// `<Bar, Baz>` in `@protocol Foo <Bar, Baz>`).
+    pub fn protocols(&self) -> Protocols<'_> {
+        Protocols::new(self.ptr.protocols())
+    }
+
     /// Iterator over the methods that could be overridden
     pub fn optional_methods(&self) -> OptionalMethods<'_> {
         OptionalMethods::new(self.ptr.optional_methods())
@@ -53,6 +59,14 @@ impl Protocol<'_> {
         self.ptr.to_decl_with_opt(&opt.to_ffi()).to_string()
     }
 }
+
+declare_fwd_iterator!(
+    Protocols,
+    Protocol<'a>,
+    ffi::ObjC_Protocol,
+    ffi::ObjC_Protocol,
+    ffi::ObjC_Protocol_it_protocols
+);
 
 declare_fwd_iterator!(
     OptionalMethods,

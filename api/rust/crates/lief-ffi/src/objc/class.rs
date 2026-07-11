@@ -17,6 +17,8 @@ pub mod ffi {
         fn demangled_name(self: &ObjC_Class) -> UniquePtr<CxxString>;
         fn is_meta(self: &ObjC_Class) -> bool;
         fn super_class(self: &ObjC_Class) -> UniquePtr<ObjC_Class>;
+        fn super_name(self: &ObjC_Class) -> UniquePtr<CxxString>;
+        fn demangled_super_name(self: &ObjC_Class) -> UniquePtr<CxxString>;
         fn methods(self: &ObjC_Class) -> UniquePtr<ObjC_Class_it_methods>;
         fn protocols(self: &ObjC_Class) -> UniquePtr<ObjC_Class_it_protocols>;
         fn properties(self: &ObjC_Class) -> UniquePtr<ObjC_Class_it_properties>;

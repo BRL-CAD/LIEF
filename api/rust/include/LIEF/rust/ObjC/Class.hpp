@@ -95,6 +95,14 @@ class ObjC_Class : private Mirror<LIEF::objc::Class> {
     return details::try_unique<ObjC_Class>(get().super_class());
   }
 
+  auto super_name() const {
+    return to_unique_string(get().super_name());
+  }
+
+  auto demangled_super_name() const {
+    return to_unique_string(get().demangled_super_name());
+  }
+
   auto methods() const {
     return std::make_unique<it_methods>(get());
   }

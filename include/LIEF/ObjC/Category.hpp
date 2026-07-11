@@ -12,16 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef LIEF_OBJC_CLASS_H
-#define LIEF_OBJC_CLASS_H
-
-#include <LIEF/visibility.h>
+#ifndef LIEF_OBJC_CATEGORY_H
+#define LIEF_OBJC_CATEGORY_H
 #include <LIEF/compiler_attributes.hpp>
+#include <LIEF/visibility.h>
+#include <LIEF/iterators.hpp>
 
-#include <LIEF/ObjC/IVar.hpp>
-#include <LIEF/ObjC/Protocol.hpp>
 #include <LIEF/ObjC/Method.hpp>
 #include <LIEF/ObjC/Property.hpp>
+#include <LIEF/ObjC/Protocol.hpp>
 #include <LIEF/ObjC/DeclOpt.hpp>
 
 #include <memory>
@@ -31,24 +30,26 @@ namespace LIEF {
 namespace objc {
 
 namespace details {
-class Class;
-class ClassIt;
+class Category;
+class CategoryIt;
 }
 
-/// This class represents an Objective-C class (`@interface`)
-class LIEF_API Class {
+/// This class represents an Objective-C category (e.g.
+/// `@interface NSString (MyAdditions)`)
+class LIEF_API Category {
   public:
   class Iterator final
-    : public iterator_facade_base<Iterator, std::bidirectional_iterator_tag, Class,
-                                  std::ptrdiff_t, const Class*, const Class&> {
+    : public iterator_facade_base<Iterator, std::bidirectional_iterator_tag,
+                                  Category, std::ptrdiff_t, const Category*,
+                                  const Category&> {
     public:
-    using implementation = details::ClassIt;
+    using implementation = details::CategoryIt;
     using iterator_facade_base::operator++;
     using iterator_facade_base::operator--;
 
     LIEF_API Iterator();
 
-    LIEF_API Iterator(std::unique_ptr<details::ClassIt> impl);
+    LIEF_API Iterator(std::unique_ptr<details::CategoryIt> impl);
 
     LIEF_API Iterator(const Iterator&);
     LIEF_API Iterator& operator=(const Iterator&);
@@ -70,81 +71,58 @@ class LIEF_API Class {
     // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
     LIEF_API Iterator& operator--();
 
-    LIEF_API const Class& operator*() const;
+    LIEF_API const Category& operator*() const;
 
     // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
-    LIEF_API const Class* operator->() const;
+    LIEF_API const Category* operator->() const;
 
-    /// Transfer ownership of the class at the current position to the
+    /// Transfer ownership of the category at the current position to the
     /// caller. Returns `nullptr` if the iterator is past-the-end.
-    LIEF_API std::unique_ptr<Class> yield();
+    LIEF_API std::unique_ptr<Category> yield();
 
     private:
     void load() const;
 
-    std::unique_ptr<details::ClassIt> impl_;
-    mutable std::unique_ptr<Class> cached_;
+    std::unique_ptr<details::CategoryIt> impl_;
+    mutable std::unique_ptr<Category> cached_;
   };
 
   public:
-  /// Iterator for the class's methods
+  /// Iterator for the category's methods
   using methods_t = iterator_range<Method::Iterator>;
 
-  /// Iterator for the protocols implemented by this class
+  /// Iterator for the protocols adopted by this category
   using protocols_t = iterator_range<Protocol::Iterator>;
 
-  /// Iterator for the properties declared by this class
+  /// Iterator for the properties declared by this category
   using properties_t = iterator_range<Property::Iterator>;
 
-  /// Iterator for the instance variables defined by this class
-  using ivars_t = iterator_range<IVar::Iterator>;
+  Category(std::unique_ptr<details::Category> impl);
 
-  Class(std::unique_ptr<details::Class> impl);
-
-  /// Name of the class
+  /// Name of the category
   std::string name() const;
 
-  /// Demangled name of the class
-  std::string demangled_name() const;
+  /// (demangled) name of the class extended by this category
+  std::string class_name() const;
 
-  /// Parent class in case of inheritance.
-  ///
-  /// This returns the superclass object **only** when it is defined in the same
-  /// binary. For root classes (e.g. `NSObject`) or superclasses imported from
-  /// another image, it returns a null pointer even though the name can still be
-  /// resolved through super_name() / demangled_super_name().
-  std::unique_ptr<Class> super_class() const LIEF_LIFETIMEBOUND;
-
-  /// (raw) name of the superclass (empty for root classes or when it could not
-  /// be resolved).
-  std::string super_name() const;
-
-  /// Demangled name of the superclass.
-  std::string demangled_super_name() const;
-
-  bool is_meta() const;
-
-  /// Iterator over the different methods defined by this class
+  /// Iterator over the different methods defined by this category
   methods_t methods() const LIEF_LIFETIMEBOUND;
 
-  /// Iterator over the different protocols implemented by this class
+  /// Iterator over the different protocols adopted by this category
   protocols_t protocols() const LIEF_LIFETIMEBOUND;
 
-  /// Iterator over the properties of this class
+  /// Iterator over the properties of this category
   properties_t properties() const LIEF_LIFETIMEBOUND;
 
-  /// Iterator over the different instance variables defined in this class
-  ivars_t ivars() const LIEF_LIFETIMEBOUND;
-
-  /// Generate a header-like string for this specific class.
+  /// Generate a header-like string for this specific category.
   ///
   /// The generated output can be configured with DeclOpt
   std::string to_decl(const DeclOpt& opt = DeclOpt()) const;
 
-  ~Class();
+  ~Category();
 
   private:
-  std::unique_ptr<details::Class> impl_;
+  std::unique_ptr<details::Category> impl_;
 };
 
 }

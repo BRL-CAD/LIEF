@@ -84,23 +84,23 @@ def test_droidguard():
         metadata, Path(get_sample("private/MachO/Module_Framework.objdump"))
     )
     assert YTILogAttestationRequest.to_decl() == dedent("""\
-        @interface YTILogAttestationRequest
+        @interface YTILogAttestationRequest : GPBMessage
         // Address: 0x0001f125c8
         + (NSObject *)descriptor:(YTILogAttestationRequest *)self :(SEL)id;
-        @property void context;
-        @property void hasContext;
-        @property void challenge;
-        @property void hasChallenge;
-        @property void xguardClientResponseOneOfCase;
-        @property void botguardResponse;
-        @property void droidguardResponse;
-        @property void iosguardResponse;
-        @property void webResponse;
-        @property void androidResponse;
-        @property void iosResponse;
-        @property void engagementType;
-        @property void hasEngagementType;
-        @property void idsArray;
-        @property void idsArray_Count;
+        @property(nonatomic, retain, readwrite) YTIInnerTubeContext *context;
+        @property(nonatomic, readwrite) bool hasContext;
+        @property(nonatomic, copy, readwrite) NSString *challenge;
+        @property(nonatomic, readwrite) bool hasChallenge;
+        @property(nonatomic, readonly) int xguardClientResponseOneOfCase;
+        @property(nonatomic, copy, readwrite) NSString *botguardResponse;
+        @property(nonatomic, copy, readwrite) NSString *droidguardResponse;
+        @property(nonatomic, copy, readwrite) NSData *iosguardResponse;
+        @property(nonatomic, copy, readwrite) NSString *webResponse;
+        @property(nonatomic, copy, readwrite) NSString *androidResponse;
+        @property(nonatomic, copy, readwrite) NSData *iosResponse;
+        @property(nonatomic, readwrite) int engagementType;
+        @property(nonatomic, readwrite) bool hasEngagementType;
+        @property(nonatomic, retain, readwrite) NSMutableArray *idsArray;
+        @property(nonatomic, readonly) unsigned long long idsArray_Count;
         @end
         """)

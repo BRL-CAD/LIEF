@@ -7,6 +7,7 @@
 namespace LIEF::objc {
 class Metadata;
 class Class;
+class Category;
 class IVar;
 class Property;
 class Method;
@@ -21,6 +22,7 @@ void init(nb::module_& m) {
   create<LIEF::objc::DeclOpt>(objc);
   create<LIEF::objc::Metadata>(objc);
   create<LIEF::objc::Class>(objc);
+  create<LIEF::objc::Category>(objc);
   create<LIEF::objc::IVar>(objc);
   create<LIEF::objc::Protocol>(objc);
   create<LIEF::objc::Method>(objc);

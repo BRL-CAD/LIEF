@@ -2,6 +2,7 @@ target_sources(pyLIEF PRIVATE
   init.cpp
   objects/pyMetadata.cpp
   objects/pyClass.cpp
+  objects/pyCategory.cpp
   objects/pyMethod.cpp
   objects/pyIVar.cpp
   objects/pyProtocol.cpp

@@ -6,6 +6,7 @@ pub mod ffi {
         type ObjC_Class = crate::objc::class::ffi::ObjC_Class;
         type ObjC_DeclOpt = crate::objc::decl_opt::ffi::ObjC_DeclOpt;
         type ObjC_Protocol = crate::objc::protocol::ffi::ObjC_Protocol;
+        type ObjC_Category = crate::objc::category::ffi::ObjC_Category;
 
         type ObjC_Metadata;
 
@@ -13,6 +14,7 @@ pub mod ffi {
         fn get_protocol(self: &ObjC_Metadata, name: &CxxString) -> UniquePtr<ObjC_Protocol>;
         fn classes(self: &ObjC_Metadata) -> UniquePtr<ObjC_Metadata_it_classes>;
         fn protocols(self: &ObjC_Metadata) -> UniquePtr<ObjC_Metadata_it_protocols>;
+        fn categories(self: &ObjC_Metadata) -> UniquePtr<ObjC_Metadata_it_categories>;
         fn to_decl(self: &ObjC_Metadata) -> UniquePtr<CxxString>;
         fn to_decl_with_opt(self: &ObjC_Metadata, opt: &ObjC_DeclOpt) -> UniquePtr<CxxString>;
 
@@ -25,9 +27,15 @@ pub mod ffi {
 
         fn next(self: Pin<&mut ObjC_Metadata_it_protocols>) -> UniquePtr<ObjC_Protocol>;
         fn size(self: &ObjC_Metadata_it_protocols) -> u64;
+
+        type ObjC_Metadata_it_categories;
+
+        fn next(self: Pin<&mut ObjC_Metadata_it_categories>) -> UniquePtr<ObjC_Category>;
+        fn size(self: &ObjC_Metadata_it_categories) -> u64;
     }
 
     impl UniquePtr<ObjC_Metadata> {}
     impl UniquePtr<ObjC_Metadata_it_classes> {}
     impl UniquePtr<ObjC_Metadata_it_protocols> {}
+    impl UniquePtr<ObjC_Metadata_it_categories> {}
 }

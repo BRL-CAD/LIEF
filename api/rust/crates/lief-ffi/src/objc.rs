@@ -1,3 +1,4 @@
+pub mod category;
 pub mod class;
 pub mod decl_opt;
 pub mod i_var;
