@@ -262,6 +262,12 @@ ok_error_t BinaryParser::parse_load_commands() {
       break;
     }
 
+    if (command->cmdsize < sizeof(details::load_command)) {
+      LIEF_ERR("Load command #{} has an invalid cmdsize ({:#x})", i,
+               command->cmdsize);
+      break;
+    }
+
     std::unique_ptr<LoadCommand> load_command;
     const auto cmd_type = static_cast<LoadCommand::TYPE>(command->cmd);
 

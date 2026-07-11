@@ -244,6 +244,33 @@ def test_symtab_uncapped_alloc():
 
 
 @pytest.mark.private
+def test_zero_cmdsize():
+    sample = get_sample("private/MachO/zero_cmdsize.macho")
+    subprocess.check_call(
+        [
+            sys.executable,
+            "-c",
+            dedent(f"""\
+            import lief
+            fat = lief.MachO.parse(r"{sample}")
+            assert fat is not None
+            b = fat.at(0)
+            assert b is not None
+            assert [s.name for s in b.segments] == ["__TEXT"]
+            assert len(b.commands) == 1"""),
+        ],
+        timeout=30.0,
+        preexec_fn=address_space_limiter(),
+    )
+
+    target = parse_macho(sample).at(0)
+    assert target is not None
+
+    assert [s.name for s in target.segments] == ["__TEXT"]
+    assert len(target.commands) == 1
+
+
+@pytest.mark.private
 def test_dyld_chained_fixups_underflow():
     sample = get_sample("private/MachO/chained_underflow.macho")
     subprocess.check_call(
