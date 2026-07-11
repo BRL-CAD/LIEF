@@ -168,6 +168,9 @@ void Parser::parse_quickening_info<details::VDEX6>() {
           }
 
           auto index = stream_->read_uleb128();
+          if (!index) {
+            break;
+          }
           method.insert_dex2dex_info(static_cast<int32_t>(*pc),
                                      static_cast<uint16_t>(*index));
         }
