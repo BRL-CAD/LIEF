@@ -281,6 +281,11 @@ void Parser::parse_quickening_info<details::VDEX10>() {
       }
     }
 
+    if (code_item_end < current_code_item) {
+      LIEF_WARN("Inconsistent code-item range for DEX file #{}", i);
+      break;
+    }
+
     size_t nb_code_item =
         (code_item_end - current_code_item) /
         (2 * sizeof(uint32_t)); // Each array entry is composed of:
