@@ -1,4 +1,5 @@
 import hashlib
+import struct
 import subprocess
 import sys
 from hashlib import md5
@@ -1164,3 +1165,28 @@ def test_data_directories_overflow():
     assert pe is not None
     assert pe.optional_header.numberof_rva_and_size == 0x10000000
     assert len(pe.data_directories) == MAX_DATA_DIRECTORIES
+
+
+@pytest.mark.private
+def test_section_padding_underflow():
+    sample = get_sample("private/PE/section_padding_underflow.pe")
+    pe = lief.PE.parse(sample)
+    assert pe is not None
+    assert pe.sections[0].pointerto_raw_data == 8
+
+    before = pe.sections[0].pointerto_raw_data
+    assert pe.add_section(lief.PE.Section(".lief")) is not None
+
+    assert pe.sections[0].pointerto_raw_data > before
+
+
+@pytest.mark.private
+def test_section_padding_no_content():
+    sample = get_sample("private/PE/section_padding_no_content.pe")
+    pe = lief.PE.parse(sample)
+    assert pe is not None
+    assert all(section.pointerto_raw_data == 0 for section in pe.sections)
+
+    before = pe.sections[0].pointerto_raw_data
+    assert pe.add_section(lief.PE.Section(".lief")) is not None
+    assert pe.sections[0].pointerto_raw_data > before

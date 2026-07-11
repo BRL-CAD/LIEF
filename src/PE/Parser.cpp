@@ -282,6 +282,7 @@ ok_error_t Parser::read_section_content(const details::pe_section& raw_sec,
 
 ok_error_t Parser::parse_sections() {
   static constexpr size_t NB_MAX_SECTIONS = 1000;
+  static constexpr uint32_t SENTINEL = std::numeric_limits<uint32_t>::max();
   LIEF_DEBUG("Parsing sections");
 
   const uint32_t pe_header_off = binary_->dos_header().addressof_new_exeheader();
@@ -289,7 +290,7 @@ ok_error_t Parser::parse_sections() {
   const uint32_t sections_offset =
       opt_header_off + binary_->header().sizeof_optional_header();
 
-  uint32_t first_section_offset = UINT_MAX;
+  uint32_t first_section_offset = SENTINEL;
 
   uint32_t numberof_sections = binary_->header().numberof_sections();
   if (numberof_sections > NB_MAX_SECTIONS) {
@@ -333,6 +334,16 @@ ok_error_t Parser::parse_sections() {
 
   const uint32_t last_section_header_offset =
       sections_offset + numberof_sections * sizeof(details::pe_section);
+
+  if (first_section_offset == SENTINEL ||
+      first_section_offset < last_section_header_offset)
+  {
+    binary_->available_sections_space_ = -1;
+    LIEF_DEBUG("No usable section header padding (first section offset: {:#x})",
+               first_section_offset);
+    return ok();
+  }
+
   const size_t padding_size = first_section_offset - last_section_header_offset;
   if (!stream_->peek_data(binary_->section_offset_padding_,
                           last_section_header_offset, padding_size))
@@ -340,9 +351,7 @@ ok_error_t Parser::parse_sections() {
     LIEF_ERR("Failed to read section header padding");
   }
   binary_->available_sections_space_ =
-      (first_section_offset - last_section_header_offset) /
-          sizeof(details::pe_section) -
-      1;
+      (int32_t)(padding_size / sizeof(details::pe_section)) - 1;
   LIEF_DEBUG("Number of sections that could be added: #{:d}",
              binary_->available_sections_space_);
   return ok();
