@@ -18,6 +18,8 @@ void create<powerpc::operands::Immediate>(nb::module_& m) {
     )doc"_doc
   );
 
+  obj.attr("__match_args__") = nb::make_tuple("value");
+
   obj
     .def_prop_ro("value", &operands::Immediate::value,
       R"doc(The constant value wrapped by this operand)doc"_doc

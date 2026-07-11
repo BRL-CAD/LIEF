@@ -24,6 +24,8 @@ void create<x86::operands::Memory>(nb::module_& m) {
     )doc"_doc
   );
 
+  obj.attr("__match_args__") = nb::make_tuple("base", "scaled_register", "segment_register", "scale", "displacement");
+
   obj
     .def_prop_ro("base", &x86::operands::Memory::base,
       R"doc(

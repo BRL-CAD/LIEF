@@ -18,6 +18,8 @@ void create<ebpf::operands::Memory>(nb::module_& m) {
     )doc"_doc
   );
 
+  obj.attr("__match_args__") = nb::make_tuple("base", "displacement");
+
   obj
     .def_prop_ro("base", &operands::Memory::base,
       R"doc(

@@ -53,6 +53,8 @@ void create<mips::operands::Memory>(nb::module_& m) {
     )doc"_doc
   );
 
+  obj.attr("__match_args__") = nb::make_tuple("base", "offset");
+
   obj
     .def_prop_ro("base", &operands::Memory::base,
       R"doc(

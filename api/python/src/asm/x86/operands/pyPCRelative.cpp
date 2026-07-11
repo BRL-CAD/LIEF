@@ -18,6 +18,8 @@ void create<x86::operands::PCRelative>(nb::module_& m) {
     )doc"_doc
   );
 
+  obj.attr("__match_args__") = nb::make_tuple("value");
+
   obj
     .def_prop_ro("value", &x86::operands::PCRelative::value,
       R"doc(

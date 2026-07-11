@@ -17,6 +17,8 @@ void create<riscv::operands::PCRelative>(nb::module_& m) {
     )doc"_doc
   );
 
+  obj.attr("__match_args__") = nb::make_tuple("value");
+
   obj
     .def_prop_ro("value", &riscv::operands::PCRelative::value,
       R"doc(

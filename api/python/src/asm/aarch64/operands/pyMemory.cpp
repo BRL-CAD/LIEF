@@ -69,6 +69,8 @@ void create<aarch64::operands::Memory>(nb::module_& m) {
     .def_ro("value", &operands::Memory::shift_info_t::value)
   ;
 
+  obj.attr("__match_args__") = nb::make_tuple("base", "offset", "shift");
+
   obj
     .def_prop_ro("base", &operands::Memory::base,
       R"doc(
