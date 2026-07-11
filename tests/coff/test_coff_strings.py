@@ -1,7 +1,19 @@
 from textwrap import dedent
 
 import lief
+import pytest
 from utils import get_sample, parse_coff
+
+
+@pytest.mark.private
+def test_string_table_offset_overflow():
+    coff = parse_coff("private/COFF/coff_strtab_overflow.obj")
+    assert coff.sections[0].name == "/18"
+    assert coff.sections[0].coff_string is None
+
+    pristine = parse_coff("COFF/dwarf.obj")
+    assert pristine.sections[0].coff_string is not None
+    assert pristine.sections[0].coff_string.string == ".debug_rnglists"
 
 
 def test_coff_sec_string():
