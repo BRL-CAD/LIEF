@@ -66,7 +66,9 @@ ok_error_t Parser::parse_binary() {
   if (binary_->header_.section_headers_offset() > 0) {
     parse_sections<ELF_T>();
   } else {
-    LIEF_WARN("The current binary doesn't have a section header");
+    if (binary_->header().file_type() != Header::FILE_TYPE::CORE) {
+      LIEF_WARN("The current binary doesn't have a section header");
+    }
   }
 
   // Parse segments
