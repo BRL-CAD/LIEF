@@ -542,6 +542,12 @@ class LIEF_API Binary : public LIEF::Binary {
   /// Return the CodeViewPDB object if present
   const CodeViewPDB* codeview_pdb() const LIEF_LIFETIMEBOUND;
 
+  CodeViewPDB* codeview_pdb() LIEF_LIFETIMEBOUND {
+    return const_cast<CodeViewPDB*>(
+        static_cast<const Binary*>(this)->codeview_pdb()
+    );
+  }
+
   /// Return the LoadConfiguration object or a nullptr if the binary does not
   /// use the LoadConfiguration
   const LoadConfiguration* load_configuration() const LIEF_LIFETIMEBOUND {
