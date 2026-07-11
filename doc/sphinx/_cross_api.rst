@@ -878,6 +878,8 @@
 
 .. |lief-elf-binary-add| lief-api:: lief.ELF.Binary.add()
 
+    :rust:method:`lief::elf::Binary::add_section [struct]`
+    :rust:method:`lief::elf::Binary::add_segment [struct]`
     :py:func:`lief.ELF.Binary.add`
     :cpp:func:`LIEF::ELF::Binary::add`
 
