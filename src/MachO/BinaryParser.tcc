@@ -358,7 +358,7 @@ ok_error_t BinaryParser::parse_load_commands() {
         uint64_t max_sects = 0;
         if (segment_cmd->cmdsize >= sizeof(segment_command_t)) {
           max_sects = (segment_cmd->cmdsize - sizeof(segment_command_t)) /
-                      sizeof(section_t) :
+                      sizeof(section_t);
         }
 
         if (nsects > max_sects) {
