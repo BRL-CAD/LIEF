@@ -172,3 +172,47 @@ def test_issue_743(tmp_path: Path):
             stdout = proc.stdout.read()
             proc.poll()
             assert "Debian GLIBC 2.36-9+deb12u8" in stdout
+
+
+def test_issue_1342(tmp_path: Path):
+    elf = parse_elf("ELF/issue_1309.so")
+    assert (
+        len(
+            [
+                r
+                for r in elf.dynamic_relocations
+                if r.encoding == lief.ELF.Relocation.ENCODING.RELR
+            ]
+        )
+        == 3
+    )
+
+    dt_relrsz = elf[lief.ELF.DynamicEntry.TAG.ANDROID_RELRSZ]
+    assert dt_relrsz is not None
+    assert dt_relrsz.value == 0x10
+
+    new_reloc = lief.ELF.Relocation(
+        0xFEA0,
+        lief.ELF.Relocation.TYPE.X86_64_RELATIVE,
+        lief.ELF.Relocation.ENCODING.RELR,
+    )
+    elf.add_dynamic_relocation(new_reloc)
+
+    out = tmp_path / "issue_1342.so"
+    elf.write(out)
+
+    new = parse_elf(out)
+    check_layout(new)
+
+    relr_relocations = [
+        r
+        for r in new.dynamic_relocations
+        if r.encoding == lief.ELF.Relocation.ENCODING.RELR
+    ]
+
+    assert len(relr_relocations) == 4
+
+    dt_relrsz = new[lief.ELF.DynamicEntry.TAG.ANDROID_RELRSZ]
+    assert dt_relrsz is not None
+    assert dt_relrsz.value == 0x18
+    assert any(r.address == 0x10EA0 for r in relr_relocations)

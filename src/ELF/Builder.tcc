@@ -517,10 +517,6 @@ ok_error_t Builder::build_exe_lib() {
     build_notes<ELF_T>();
   }
 
-  if (config_.dynamic_section && binary_->has(Segment::TYPE::DYNAMIC)) {
-    build_dynamic_section<ELF_T>();
-  }
-
   if (config_.symtab && binary_->has(DynamicEntry::TAG::SYMTAB)) {
     build_dynamic_symbols<ELF_T>();
   }
@@ -559,6 +555,10 @@ ok_error_t Builder::build_exe_lib() {
 
   if (config_.static_symtab && binary_->has(Section::TYPE::SYMTAB)) {
     build_symtab_symbols<ELF_T>();
+  }
+
+  if (config_.dynamic_section && binary_->has(Segment::TYPE::DYNAMIC)) {
+    build_dynamic_section<ELF_T>();
   }
 
   // Build sections

@@ -671,11 +671,6 @@ Binary::it_const_dynamic_relocations Binary::dynamic_relocations() const {
 }
 
 Relocation& Binary::add_dynamic_relocation(const Relocation& relocation) {
-  if (!relocation.is_rel() && !relocation.is_rela()) {
-    LIEF_WARN("Only regular REL/RELA relocations are supported");
-    static Relocation None;
-    return None;
-  }
   auto relocation_ptr = std::make_unique<Relocation>(relocation);
   relocation_ptr->purpose(Relocation::PURPOSE::DYNAMIC);
   relocation_ptr->architecture_ = header().machine_type();
@@ -697,20 +692,45 @@ Relocation& Binary::add_dynamic_relocation(const Relocation& relocation) {
     relocation_ptr->symbol(inner_sym);
   }
 
-  // Update the Dynamic Section (Thanks to @yd0b0N)
-  bool is_rela = relocation.is_rela();
-  auto tag_sz = is_rela ? DynamicEntry::TAG::RELASZ : DynamicEntry::TAG::RELSZ;
+  const uint64_t psize = ptr_size();
 
-  auto tag_ent = is_rela ? DynamicEntry::TAG::RELAENT : DynamicEntry::TAG::RELENT;
+  const uint64_t default_rela =
+      psize == 8 ? sizeof(details::Elf64_Rela) : sizeof(details::Elf32_Rela);
 
-  DynamicEntry* dt_sz = get(tag_sz);
-  DynamicEntry* dt_ent = get(tag_ent);
-  if (dt_sz != nullptr && dt_ent != nullptr) {
-    dt_sz->value(dt_sz->value() + dt_ent->value());
+  const uint64_t default_rel =
+      psize == 8 ? sizeof(details::Elf64_Rel) : sizeof(details::Elf32_Rel);
+
+  if (relocation.is_rela()) {
+    if (DynamicEntry* dt_size = get(DynamicEntry::TAG::RELASZ)) {
+      dt_size->value(dt_size->value() +
+                     entry_size(DynamicEntry::TAG::RELAENT, default_rela));
+    } else if (DynamicEntry* dt_size = get(DynamicEntry::TAG::ANDROID_RELASZ)) {
+      dt_size->value(dt_size->value() + default_rela);
+    }
+  } else if (relocation.is_rel()) {
+    if (DynamicEntry* dt_size = get(DynamicEntry::TAG::RELSZ)) {
+      dt_size->value(dt_size->value() +
+                     entry_size(DynamicEntry::TAG::RELENT, default_rel));
+    } else if (DynamicEntry* dt_size = get(DynamicEntry::TAG::ANDROID_RELSZ)) {
+      dt_size->value(dt_size->value() + default_rela);
+    }
+  } else if (relocation.is_relatively_encoded()) {
+    if (DynamicEntry* dt_size = get(DynamicEntry::TAG::RELRSZ)) {
+      dt_size->value(dt_size->value() +
+                     entry_size(DynamicEntry::TAG::RELRENT, psize));
+    } else if (DynamicEntry* dt_size = get(DynamicEntry::TAG::ANDROID_RELRSZ)) {
+      dt_size->value(dt_size->value() +
+                     entry_size(DynamicEntry::TAG::ANDROID_RELRENT, psize));
+    }
+  } else if (relocation.is_android_packed()) {
+    if (DynamicEntry* dt_size = get(DynamicEntry::TAG::ANDROID_RELASZ)) {
+      dt_size->value(dt_size->value() + default_rela);
+    } else if (DynamicEntry* dt_size = get(DynamicEntry::TAG::ANDROID_RELSZ)) {
+      dt_size->value(dt_size->value() + default_rela);
+    }
   }
 
-  relocations_.push_back(std::move(relocation_ptr));
-  return *relocations_.back();
+  return **relocations_.insert(relocations_.end(), std::move(relocation_ptr));
 }
 
 
@@ -1588,9 +1608,8 @@ Symbol& Binary::add_dynamic_symbol(const Symbol& symbol,
 
   sym->symbol_version_ = symver.get();
 
-  dynamic_symbols_.push_back(std::move(sym));
   symbol_version_table_.push_back(std::move(symver));
-  return *dynamic_symbols_.back();
+  return **dynamic_symbols_.insert(dynamic_symbols_.end(), std::move(sym));
 }
 
 result<uint64_t>

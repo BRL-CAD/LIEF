@@ -1188,6 +1188,13 @@ class LIEF_API Binary : public LIEF::Binary {
       nb_segments = 0;
     }
   };
+  uint64_t entry_size(DynamicEntry::TAG ent_tag, uint64_t fallback) const {
+    if (const DynamicEntry* dt_ent = get(ent_tag)) {
+      return dt_ent->value();
+    }
+    return fallback;
+  }
+
   LIEF_LOCAL Binary();
 
   /// Return an abstraction of binary's section: LIEF::Section
