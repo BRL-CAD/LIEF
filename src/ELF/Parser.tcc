@@ -1799,7 +1799,7 @@ ok_error_t Parser::parse_symbol_version_requirement(uint64_t offset,
 
   const uint64_t string_offset = get_dynamic_string_table();
 
-  uint32_t next_symbol_offset = 0;
+  uint64_t next_symbol_offset = 0;
 
   for (size_t sym_idx = 0; sym_idx < nb_entries; ++sym_idx) {
     const auto header =
@@ -1820,7 +1820,7 @@ ok_error_t Parser::parse_symbol_version_requirement(uint64_t offset,
     const uint32_t nb_symbol_aux = header->vn_cnt;
 
     if (nb_symbol_aux > 0 && header->vn_aux > 0) {
-      uint32_t next_aux_offset = 0;
+      uint64_t next_aux_offset = 0;
       for (size_t j = 0; j < nb_symbol_aux; ++j) {
         const uint64_t aux_hdr_off =
             svr_offset + next_symbol_offset + header->vn_aux + next_aux_offset;
@@ -1843,7 +1843,11 @@ ok_error_t Parser::parse_symbol_version_requirement(uint64_t offset,
         if (aux_header->vna_next == 0) {
           break;
         }
+        const uint64_t prev_aux_offset = next_aux_offset;
         next_aux_offset += aux_header->vna_next;
+        if (next_aux_offset <= prev_aux_offset) {
+          break;
+        }
       }
 
       binary_->symbol_version_requirements_.push_back(
@@ -1854,7 +1858,11 @@ ok_error_t Parser::parse_symbol_version_requirement(uint64_t offset,
     if (header->vn_next == 0) {
       break;
     }
+    const uint64_t prev_symbol_offset = next_symbol_offset;
     next_symbol_offset += header->vn_next;
+    if (next_symbol_offset <= prev_symbol_offset) {
+      break;
+    }
   }
 
 

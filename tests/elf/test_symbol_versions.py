@@ -1,10 +1,19 @@
 import subprocess
+import sys
 from pathlib import Path
 from subprocess import Popen
 from typing import cast
 
 import lief
-from utils import check_layout, get_sample, is_linux, is_x86_64, parse_elf
+import pytest
+from utils import (
+    address_space_limiter,
+    check_layout,
+    get_sample,
+    is_linux,
+    is_x86_64,
+    parse_elf,
+)
 
 
 def test_issue_749():
@@ -157,3 +166,35 @@ def test_remove_req(tmp_path: Path):
             stdout = proc.stdout.read()
             proc.poll()
             assert "fun6!" in stdout
+
+
+@pytest.mark.private
+def test_verneed_vn_next_wrap_bounded():
+    sample = get_sample("private/ELF/verneed_vn_next.elf")
+
+    elf = lief.ELF.parse(sample)
+    assert elf is not None
+    assert len(elf.symbols_version_requirement) <= 2
+
+
+@pytest.mark.private
+def test_verneed_vna_next_wrap_bounded():
+    sample = get_sample("private/ELF/verneed_vna_next.elf")
+
+    elf = lief.ELF.parse(sample)
+    assert elf is not None
+    reqs = elf.symbols_version_requirement
+    assert len(reqs) == 1
+    assert len(reqs[0].get_auxiliary_symbols()) <= 2
+
+
+@pytest.mark.linux
+@pytest.mark.private
+def test_verneed_next_wrap_no_oom():
+    sample = Path(get_sample("private/ELF/verneed_combined.elf")).absolute()
+
+    subprocess.check_call(
+        [sys.executable, "-c", f'import lief; lief.parse(r"{sample}")'],
+        timeout=60.0,
+        preexec_fn=address_space_limiter,
+    )
