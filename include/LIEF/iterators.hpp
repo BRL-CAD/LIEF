@@ -620,16 +620,35 @@ class iterator_range {
     return begin_ == end_;
   }
 
-  typename IteratorDecayTy::value_type
-      at(typename IteratorDecayTy::difference_type pos) const {
+  class ReferenceProxy {
+    friend iterator_range;
+
+    IteratorDecayTy it_;
+
+    explicit ReferenceProxy(IteratorDecayTy it) :
+      it_(std::move(it)) {}
+
+    public:
+    using reference = decltype(*std::declval<const IteratorDecayTy&>());
+
+    operator reference() const {
+      return *it_;
+    }
+
+    template<class It = IteratorDecayTy>
+    auto operator->() const -> decltype(&*std::declval<const It&>()) {
+      return &*it_;
+    }
+  };
+
+  ReferenceProxy at(typename IteratorDecayTy::difference_type pos) const {
     static_assert(IsRandomAccess, "at() needs random access iterator");
     auto it = begin_;
     std::advance(it, pos);
-    return *it;
+    return ReferenceProxy(std::move(it));
   }
 
-  typename IteratorDecayTy::value_type
-      operator[](typename IteratorDecayTy::difference_type pos) const {
+  ReferenceProxy operator[](typename IteratorDecayTy::difference_type pos) const {
     return at(pos);
   }
 
