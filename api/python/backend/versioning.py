@@ -78,7 +78,7 @@ class Versioning:
                 # the 0.X.Y series
                 tag = "1.0.0"
             else:
-                tag = f"{MA}.{MI + 1}.{0}"
+                tag = f"{MA + 1}.{MI}.{0}"
 
         if count == "0" and not dirty:
             return tag
