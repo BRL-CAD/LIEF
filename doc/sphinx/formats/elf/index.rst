@@ -141,6 +141,14 @@ as a buffer of bytes:
         :end-before: lief-doc: write-bytes-end
         :dedent:
 
+  .. tab:: :fa:`brands fa-rust` Rust
+
+      .. literalinclude:: ../../../code/rust/src/elf.rs
+        :language: rust
+        :start-after: lief-doc: write-bytes-start
+        :end-before: lief-doc: write-bytes-end
+        :dedent:
+
 .. _format-elf-section-segment:
 
 Adding a Section/Segment

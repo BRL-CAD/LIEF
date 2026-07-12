@@ -17,8 +17,12 @@ pub fn iterate(some_fat: &lief::macho::FatBinary) {
     // lief-doc: iterate-end
 }
 
-pub fn write_bytes() {
-    todo!("Bindings not implemented yet");
+pub fn write_bytes(some_macho: &mut lief::macho::Binary) {
+    // lief-doc: write-bytes-start
+    let macho: &mut lief::macho::Binary = some_macho;
+
+    let bytes: Vec<u8> = macho.write_to_bytes();
+    // lief-doc: write-bytes-end
 }
 
 pub fn parse_from_dump() {

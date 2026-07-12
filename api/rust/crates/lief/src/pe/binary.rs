@@ -506,6 +506,30 @@ impl Binary {
             .write_with_config(&__cxx_s, ffi_config.as_ref().unwrap());
     }
 
+    /// Rebuild the current PE binary and return the raw bytes.
+    ///
+    /// This is similar to [`Binary::write`] but instead of writing the result
+    /// into a file, it returns the reconstructed binary as a buffer.
+    pub fn write_to_bytes(&mut self) -> Vec<u8> {
+        Vec::from(self.ptr.as_mut().unwrap().write_to_bytes().as_slice())
+    }
+
+    /// Rebuild the current PE binary with the configuration provided in the
+    /// parameter and return the raw bytes.
+    ///
+    /// This is similar to [`Binary::write_with_config`] but instead of writing
+    /// the result into a file, it returns the reconstructed binary as a buffer.
+    pub fn write_to_bytes_with_config(&mut self, config: Config) -> Vec<u8> {
+        let ffi_config = config.to_ffi();
+        Vec::from(
+            self.ptr
+                .as_mut()
+                .unwrap()
+                .write_to_bytes_with_config(ffi_config.as_ref().unwrap())
+                .as_slice(),
+        )
+    }
+
     /// Iterator over the strings located in the COFF string table
     pub fn coff_string_table(&self) -> COFFStrings<'_> {
         COFFStrings::new(self.ptr.coff_string_table())

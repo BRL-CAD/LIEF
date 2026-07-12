@@ -15,6 +15,7 @@
 
 #pragma once
 #include <memory>
+#include <sstream>
 #include <LIEF/MachO.hpp>
 
 #include "LIEF/rust/MachO/AtomInfo.hpp"
@@ -461,6 +462,20 @@ class MachO_Binary : public AbstractBinary {
   void write_with_config(const std::string& output,
                          const MachO_Binary_write_config_t& config) {
     impl().write(output, {config.linkedit});
+  }
+
+  auto write_to_bytes() {
+    std::ostringstream os;
+    impl().write(os);
+    std::string bytes = os.str();
+    return make_unique_vector<uint8_t>(bytes.begin(), bytes.end());
+  }
+
+  auto write_to_bytes_with_config(const MachO_Binary_write_config_t& config) {
+    std::ostringstream os;
+    impl().write(os, {config.linkedit});
+    std::string bytes = os.str();
+    return make_unique_vector<uint8_t>(bytes.begin(), bytes.end());
   }
 
   auto add_command(const MachO_Command& command) {

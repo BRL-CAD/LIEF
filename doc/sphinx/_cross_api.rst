@@ -518,6 +518,8 @@
 
 .. |lief-pe-binary-write_to_bytes| lief-api:: lief.PE.Binary.write_to_bytes()
 
+    :rust:method:`lief::pe::Binary::write_to_bytes [struct]`
+    :rust:method:`lief::pe::Binary::write_to_bytes_with_config [struct]`
     :py:meth:`lief.PE.Binary.write_to_bytes`
     :cpp:func:`std::unique_ptr<Builder> LIEF::PE::Binary::write(std::ostream &)`
     :cpp:func:`std::unique_ptr<Builder> LIEF::PE::Binary::write(std::ostream &, const Builder::config_t &)`
@@ -872,6 +874,8 @@
 
 .. |lief-elf-binary-write_to_bytes| lief-api:: lief.ELF.Binary.write_to_bytes()
 
+    :rust:method:`lief::elf::Binary::write_to_bytes [struct]`
+    :rust:method:`lief::elf::Binary::write_to_bytes_with_config [struct]`
     :py:meth:`lief.ELF.Binary.write_to_bytes`
     :cpp:func:`std::unique_ptr<Builder> LIEF::ELF::Binary::write(std::ostream &)`
     :cpp:func:`std::unique_ptr<Builder> LIEF::ELF::Binary::write(std::ostream &, const Builder::config_t &)`
@@ -1064,6 +1068,8 @@
 
 .. |lief-macho-binary-write_to_bytes| lief-api:: lief.MachO.Binary.write_to_bytes()
 
+    :rust:method:`lief::macho::Binary::write_to_bytes [struct]`
+    :rust:method:`lief::macho::Binary::write_to_bytes_with_config [struct]`
     :py:meth:`lief.MachO.Binary.write_to_bytes`
     :cpp:func:`std::unique_ptr<Builder> LIEF::MachO::Binary::write(std::ostream &)`
     :cpp:func:`std::unique_ptr<Builder> LIEF::MachO::Binary::write(std::ostream &, const Builder::config_t &)`

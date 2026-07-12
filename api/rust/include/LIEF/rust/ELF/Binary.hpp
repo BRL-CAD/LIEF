@@ -14,6 +14,7 @@
  */
 #pragma once
 #include <string>
+#include <sstream>
 #include <LIEF/ELF/Binary.hpp>
 #include <LIEF/ELF/Parser.hpp>
 
@@ -771,32 +772,52 @@ class ELF_Binary : public AbstractBinary {
   }
   void write_with_config(const std::string& output,
                          const ELF_Binary_write_config_t& config) {
-    impl().write(output, LIEF::ELF::Builder::config_t{
-                             config.dt_hash,
-                             config.dyn_str,
-                             config.dynamic_section,
-                             config.fini_array,
-                             config.gnu_hash,
-                             config.init_array,
-                             config.interpreter,
-                             config.jmprel,
-                             config.notes,
-                             config.preinit_array,
-                             config.relr,
-                             config.android_rela,
-                             config.rela,
-                             config.static_symtab,
-                             config.sym_verdef,
-                             config.sym_verneed,
-                             config.sym_versym,
-                             config.symtab,
-                             config.coredump_notes,
-                             config.force_relocate,
-                             config.keep_empty_version_requirement,
-                         });
+    impl().write(output, to_builder_config(config));
+  }
+
+  auto write_to_bytes() {
+    std::ostringstream os;
+    impl().write(os);
+    std::string bytes = os.str();
+    return make_unique_vector<uint8_t>(bytes.begin(), bytes.end());
+  }
+
+  auto write_to_bytes_with_config(const ELF_Binary_write_config_t& config) {
+    std::ostringstream os;
+    impl().write(os, to_builder_config(config));
+    std::string bytes = os.str();
+    return make_unique_vector<uint8_t>(bytes.begin(), bytes.end());
   }
 
   private:
+  static LIEF::ELF::Builder::config_t
+      to_builder_config(const ELF_Binary_write_config_t& config) {
+    LIEF::ELF::Builder::config_t out;
+    out.dt_hash = config.dt_hash;
+    out.dyn_str = config.dyn_str;
+    out.dynamic_section = config.dynamic_section;
+    out.fini_array = config.fini_array;
+    out.gnu_hash = config.gnu_hash;
+    out.init_array = config.init_array;
+    out.interpreter = config.interpreter;
+    out.jmprel = config.jmprel;
+    out.notes = config.notes;
+    out.preinit_array = config.preinit_array;
+    out.relr = config.relr;
+    out.android_rela = config.android_rela;
+    out.rela = config.rela;
+    out.static_symtab = config.static_symtab;
+    out.sym_verdef = config.sym_verdef;
+    out.sym_verneed = config.sym_verneed;
+    out.sym_versym = config.sym_versym;
+    out.symtab = config.symtab;
+    out.coredump_notes = config.coredump_notes;
+    out.force_relocate = config.force_relocate;
+    out.skip_dynamic = config.skip_dynamic;
+    out.keep_empty_version_requirement = config.keep_empty_version_requirement;
+    return out;
+  }
+
   const lief_t& impl() const {
     return as<lief_t>(this);
   }

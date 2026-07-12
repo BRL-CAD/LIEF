@@ -324,6 +324,13 @@ pub mod ffi {
             config: &ELF_Binary_write_config_t,
         );
 
+        fn write_to_bytes(self: Pin<&mut ELF_Binary>) -> UniquePtr<CxxVector<u8>>;
+
+        fn write_to_bytes_with_config(
+            self: Pin<&mut ELF_Binary>,
+            config: &ELF_Binary_write_config_t,
+        ) -> UniquePtr<CxxVector<u8>>;
+
         type ELF_ParserConfig;
 
         #[Self = "ELF_ParserConfig"]

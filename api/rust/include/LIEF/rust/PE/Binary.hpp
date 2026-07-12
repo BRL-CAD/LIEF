@@ -15,6 +15,7 @@
 #pragma once
 #include <string>
 #include <memory>
+#include <sstream>
 #include <LIEF/PE.hpp>
 #include "LIEF/rust/helpers.hpp"
 #include "LIEF/rust/PE/DosHeader.hpp"
@@ -646,6 +647,20 @@ class PE_Binary : public AbstractBinary {
   void write_with_config(const std::string& output,
                          const PE_Binary_write_config_t& config) {
     impl().write(output, config.conf());
+  }
+
+  auto write_to_bytes() {
+    std::ostringstream os;
+    impl().write(os);
+    std::string bytes = os.str();
+    return make_unique_vector<uint8_t>(bytes.begin(), bytes.end());
+  }
+
+  auto write_to_bytes_with_config(const PE_Binary_write_config_t& config) {
+    std::ostringstream os;
+    impl().write(os, config.conf());
+    std::string bytes = os.str();
+    return make_unique_vector<uint8_t>(bytes.begin(), bytes.end());
   }
 
   auto set_export(const PE_Export& exp) {

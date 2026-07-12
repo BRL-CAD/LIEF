@@ -24,6 +24,14 @@ pub fn modify_write(some_elf: &mut lief::elf::Binary) {
     // lief-doc: write-end
 }
 
+pub fn write_bytes(some_elf: &mut lief::elf::Binary) {
+    // lief-doc: write-bytes-start
+    let elf: &mut lief::elf::Binary = some_elf;
+
+    let bytes: Vec<u8> = elf.write_to_bytes();
+    // lief-doc: write-bytes-end
+}
+
 pub fn add_loaded_segment(some_elf: &mut lief::elf::Binary) {
     // lief-doc: add-segment-start
     let elf: &mut lief::elf::Binary = some_elf;

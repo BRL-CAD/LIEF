@@ -126,6 +126,11 @@ pub mod ffi {
             output: &CxxString,
             config: &MachO_Binary_write_config_t,
         );
+        fn write_to_bytes(self: Pin<&mut MachO_Binary>) -> UniquePtr<CxxVector<u8>>;
+        fn write_to_bytes_with_config(
+            self: Pin<&mut MachO_Binary>,
+            config: &MachO_Binary_write_config_t,
+        ) -> UniquePtr<CxxVector<u8>>;
 
         fn add_library(self: Pin<&mut MachO_Binary>, name: &CxxString) -> UniquePtr<MachO_Dylib>;
         fn filesets(self: &MachO_Binary) -> UniquePtr<MachO_Binary_it_fileset_binaries>;

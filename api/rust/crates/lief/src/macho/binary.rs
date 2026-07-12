@@ -387,6 +387,30 @@ impl Binary {
             .write_with_config(&__cxx_out, &cfg);
     }
 
+    /// Rebuild the current MachO binary and return the raw bytes.
+    ///
+    /// This is similar to [`Binary::write`] but instead of writing the result
+    /// into a file, it returns the reconstructed binary as a buffer.
+    pub fn write_to_bytes(&mut self) -> Vec<u8> {
+        Vec::from(self.ptr.as_mut().unwrap().write_to_bytes().as_slice())
+    }
+
+    /// Rebuild the current MachO binary with the configuration provided in the
+    /// parameter and return the raw bytes.
+    ///
+    /// This is similar to [`Binary::write_with_config`] but instead of writing
+    /// the result into a file, it returns the reconstructed binary as a buffer.
+    pub fn write_to_bytes_with_config(&mut self, config: Config) -> Vec<u8> {
+        let cfg = config.to_ffi();
+        Vec::from(
+            self.ptr
+                .as_mut()
+                .unwrap()
+                .write_to_bytes_with_config(&cfg)
+                .as_slice(),
+        )
+    }
+
     /// Insert a new command
     pub fn add_command(&mut self, command: impl Command) -> Option<Commands<'_>> {
         into_optional(self.ptr.as_mut().unwrap().add_command(command.get_base()))

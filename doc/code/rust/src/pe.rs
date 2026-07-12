@@ -61,6 +61,14 @@ pub fn advanced_parse_write() {
     // lief-doc: advanced-end
 }
 
+pub fn write_bytes(some_pe: &mut lief::pe::Binary) {
+    // lief-doc: write-bytes-start
+    let pe: &mut lief::pe::Binary = some_pe;
+
+    let bytes: Vec<u8> = pe.write_to_bytes();
+    // lief-doc: write-bytes-end
+}
+
 pub fn authenticode() {
     // lief-doc: authenticode-start
     if let Some(lief::Binary::PE(pe)) = lief::Binary::parse("signed.exe") {

@@ -127,6 +127,11 @@ pub mod ffi {
             output: &CxxString,
             config: &PE_Binary_write_config_t,
         );
+        fn write_to_bytes(self: Pin<&mut PE_Binary>) -> UniquePtr<CxxVector<u8>>;
+        fn write_to_bytes_with_config(
+            self: Pin<&mut PE_Binary>,
+            config: &PE_Binary_write_config_t,
+        ) -> UniquePtr<CxxVector<u8>>;
         fn set_export(self: Pin<&mut PE_Binary>, exp: &PE_Export);
         fn is_reproducible_build(self: &PE_Binary) -> bool;
         fn has_import(self: &PE_Binary, name: &CxxString) -> bool;
