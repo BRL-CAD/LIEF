@@ -275,7 +275,7 @@ dependencies = [
 
 [[package]]
 name = "common"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "lief",
 ]
@@ -883,7 +883,7 @@ checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
 name = "lief"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "bitflags",
  "cxx",
@@ -895,7 +895,7 @@ dependencies = [
 
 [[package]]
 name = "lief-build"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "git-version",
  "miette",
@@ -906,7 +906,7 @@ dependencies = [
 
 [[package]]
 name = "lief-ffi"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "cxx",
  "lief-build",
@@ -915,7 +915,7 @@ dependencies = [
 
 [[package]]
 name = "lief-patchelf"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "anyhow",
  "clap",

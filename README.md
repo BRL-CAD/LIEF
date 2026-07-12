@@ -87,7 +87,7 @@ target_link_libraries(my-project LIEF::LIEF)
 [package]
 name    = "my-awesome-project"
 version = "0.0.1"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 lief = "1.0.0"
@@ -110,7 +110,7 @@ pip install lief
 To install nightly build:
 
 ```console
-pip install [--user] --force-reinstall --index-url https://lief.s3-website.fr-par.scw.cloud/latest lief==1.0.0.dev0
+pip install [--user] --force-reinstall --index-url https://lief.s3-website.fr-par.scw.cloud/latest lief==2.0.0.dev0
 ```
 
 ### Packages

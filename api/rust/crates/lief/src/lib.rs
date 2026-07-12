@@ -30,7 +30,7 @@
 //! # For nightly
 //! lief = { git = "https://github.com/lief-project/LIEF", branch = "main" }
 //! # For releases
-//! lief = 1.0.0
+//! lief = 2.0.0
 //! ```
 //!
 //! ```rust
